@@ -6,8 +6,9 @@
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    background: #080818;
-    color: #fff;
+    background: #ffffff;
+    color: #111827;
     overflow-x: hidden;
   }
+  input, textarea, button, select { font-family: inherit; }
 }

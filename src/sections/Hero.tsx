@@ -1,150 +1,216 @@
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 
-const V = '#8B35E8'
-const VL = '#A855F7'
-const GRAD = `linear-gradient(135deg,${V},#C026D3)`
-const WA_URL = 'https://wa.me/573013369325?text=Hola%2C%20quiero%20agendar%20una%20asesor%C3%ADa%20con%20Alma%20Agencia%20Creativa'
+const P = '#6B21A8'
+const PL = '#9333EA'
+const Y = '#FACC15'
+const YD = '#EAB308'
+const WA_URL = 'https://wa.me/573013369325?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma'
+
+const previewCards = [
+  { titulo: 'Prr Love', cat: 'Branding', g: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
+  { titulo: 'Malasaña Store', cat: 'E-commerce', g: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
+  { titulo: 'Magic All Stars', cat: 'Marketing', g: 'linear-gradient(135deg,#FDE68A,#F59E0B)' },
+]
 
 export default function Hero() {
+  const [cardIdx, setCardIdx] = useState(0)
+  const [btnHover, setBtnHover] = useState(false)
+
+  useEffect(() => {
+    const t = setInterval(() => setCardIdx(i => (i + 1) % previewCards.length), 2400)
+    return () => clearInterval(t)
+  }, [])
+
+  const card = previewCards[cardIdx]
+
   return (
     <section style={{
-      position: 'relative', zIndex: 1, minHeight: '100vh',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: '120px 24px 80px', textAlign: 'center',
+      minHeight: '100vh',
+      display: 'flex', alignItems: 'center',
+      padding: '100px 24px 80px',
+      background: 'linear-gradient(135deg,#ffffff 55%,rgba(147,51,234,0.06) 100%)',
+      position: 'relative', overflow: 'hidden',
     }}>
-      {/* Glow */}
       <div style={{
-        position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-50%)',
-        width: '800px', height: '600px',
-        background: 'radial-gradient(ellipse,rgba(139,53,232,0.22) 0%,transparent 70%)',
+        position: 'absolute', top: '-200px', right: '-200px',
+        width: '700px', height: '700px',
+        background: 'radial-gradient(ellipse,rgba(147,51,234,0.1) 0%,transparent 65%)',
         pointerEvents: 'none',
       }} />
 
-      {/* Logo */}
-      <motion.img
-        src="/alma-logo.png"
-        alt="Alma Agencia Creativa"
-        initial={{ opacity: 0, scale: 0.85 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        style={{ height: '100px', width: 'auto', marginBottom: '40px', position: 'relative' }}
-      />
+      <div style={{
+        maxWidth: '1200px', margin: '0 auto', width: '100%',
+        display: 'flex', alignItems: 'center', gap: '64px', flexWrap: 'wrap',
+      }}>
+        {/* Left 60% */}
+        <div style={{ flex: '1 1 380px', maxWidth: '600px' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              background: Y, color: '#111',
+              fontSize: '12px', fontWeight: 700,
+              padding: '6px 14px', borderRadius: '20px', marginBottom: '28px',
+            }}
+          >
+            📍 Estrategia & Diseño desde Manizales
+          </motion.div>
 
-      {/* Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          background: 'rgba(139,53,232,0.15)', border: '1px solid rgba(139,53,232,0.3)',
-          color: VL, fontSize: '12px', fontWeight: 600,
-          padding: '6px 16px', borderRadius: '20px', marginBottom: '28px',
-          letterSpacing: '1px', textTransform: 'uppercase',
-        }}
-      >
-        Agencia Creativa · WhatsApp Marketing
-      </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              fontSize: 'clamp(38px,5.5vw,64px)', fontWeight: 900,
+              lineHeight: 1.06, letterSpacing: '-2px', color: '#111827',
+              marginBottom: '20px',
+            }}
+          >
+            Convertimos tu{' '}
+            <span style={{ color: P }}>visión</span>
+            {' '}en{' '}
+            <span style={{ color: P }}>realidad</span>
+            {' '}digital
+          </motion.h1>
 
-      {/* Headline */}
-      <motion.h1
-        initial={{ opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        style={{
-          fontSize: 'clamp(40px,7vw,72px)', fontWeight: 900,
-          lineHeight: 1.05, letterSpacing: '-2px', marginBottom: '12px',
-        }}
-      >
-        Conecta.{' '}
-        <span style={{ background: GRAD, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Comunica.
-        </span>
-        {' '}Convierte.
-      </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            style={{ fontSize: '18px', lineHeight: 1.65, color: '#4B5563', marginBottom: '40px', maxWidth: '480px' }}
+          >
+            Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia
+            y generan resultados medibles.
+          </motion.p>
 
-      {/* Sub */}
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.55 }}
-        style={{
-          maxWidth: '560px', fontSize: '18px', lineHeight: 1.65,
-          color: 'rgba(255,255,255,0.55)', marginBottom: '44px',
-        }}
-      >
-        Soluciones de comunicación conversacional para relaciones más cercanas,
-        experiencias memorables y resultados reales.
-      </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}
+          >
+            <a
+              href={WA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onMouseEnter={() => setBtnHover(true)}
+              onMouseLeave={() => setBtnHover(false)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: btnHover ? YD : Y,
+                color: '#111', padding: '16px 32px', borderRadius: '10px',
+                fontWeight: 700, fontSize: '15px', textDecoration: 'none',
+                boxShadow: btnHover ? '0 8px 24px rgba(234,179,8,0.35)' : '0 4px 14px rgba(250,204,21,0.3)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Empezar mi proyecto hoy →
+            </a>
+            <a
+              href="#servicios"
+              style={{ color: P, fontSize: '15px', fontWeight: 600, textDecoration: 'none', padding: '16px 8px' }}
+            >
+              Ver tarifas
+            </a>
+          </motion.div>
 
-      {/* CTAs */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
-        style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}
-      >
-        <motion.a
-          href={WA_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '10px',
-            background: '#25D366', color: '#fff',
-            padding: '16px 32px', borderRadius: '14px',
-            fontWeight: 700, fontSize: '15px', textDecoration: 'none',
-            boxShadow: '0 0 32px rgba(37,211,102,0.3)',
-          }}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.7, delay: 0.7 }}
+            style={{ display: 'flex', gap: '40px', marginTop: '56px', flexWrap: 'wrap' }}
+          >
+            {[
+              { n: '150+', label: 'Proyectos entregados' },
+              { n: '4', label: 'Años de experiencia' },
+              { n: '98%', label: 'Clientes satisfechos' },
+            ].map(s => (
+              <div key={s.label}>
+                <p style={{ fontSize: '30px', fontWeight: 900, color: P, lineHeight: 1 }}>{s.n}</p>
+                <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>{s.label}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Right 40% — browser mockup */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          style={{ flex: '1 1 320px', maxWidth: '460px' }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-          </svg>
-          Agenda tu asesoría gratis
-        </motion.a>
+          <div style={{
+            background: '#fff', borderRadius: '20px',
+            boxShadow: '0 40px 100px rgba(107,33,168,0.18)',
+            overflow: 'hidden', border: '1px solid #E5E7EB',
+          }}>
+            {/* Chrome */}
+            <div style={{
+              background: '#F9FAFB', padding: '12px 16px',
+              display: 'flex', alignItems: 'center', gap: '6px',
+              borderBottom: '1px solid #E5E7EB',
+            }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FC5C65' }} />
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FED330' }} />
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#26de81' }} />
+              <div style={{
+                flex: 1, background: '#fff', borderRadius: '6px',
+                padding: '4px 12px', fontSize: '11px', color: '#9CA3AF',
+                marginLeft: '8px', border: '1px solid #E5E7EB',
+              }}>
+                almaagenciacreativa.com
+              </div>
+            </div>
 
-        <motion.a
-          href="#servicios"
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            background: 'rgba(139,53,232,0.15)', border: '1px solid rgba(139,53,232,0.35)',
-            color: '#fff', padding: '16px 32px', borderRadius: '14px',
-            fontWeight: 600, fontSize: '15px', textDecoration: 'none',
-          }}
-        >
-          Ver servicios
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </motion.a>
-      </motion.div>
+            {/* Content */}
+            <div style={{
+              background: 'linear-gradient(135deg,#F5F3FF,#EDE9FE)',
+              padding: '28px 20px', minHeight: '320px',
+              display: 'flex', flexDirection: 'column', gap: '14px',
+            }}>
+              {/* Simulated nav */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ width: 60, height: 10, background: P, borderRadius: 4 }} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[40, 50, 40].map((w, i) => (
+                    <div key={i} style={{ width: w, height: 8, background: '#D8B4FE', borderRadius: 4 }} />
+                  ))}
+                </div>
+              </div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.9 }}
-        style={{
-          display: 'flex', gap: '48px', marginTop: '72px', flexWrap: 'wrap', justifyContent: 'center',
-        }}
-      >
-        {[
-          { n: '12.5K+', label: 'Mensajes enviados' },
-          { n: '98%', label: 'Tasa de entrega' },
-          { n: '3x', label: 'Más conversiones' },
-        ].map(s => (
-          <div key={s.label} style={{ textAlign: 'center' }}>
-            <p style={{
-              fontSize: '32px', fontWeight: 900, lineHeight: 1,
-              background: GRAD, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>{s.n}</p>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>{s.label}</p>
+              {/* Rotating project card */}
+              <motion.div
+                key={cardIdx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                style={{
+                  background: '#fff', borderRadius: '14px', padding: '16px',
+                  border: '1px solid rgba(107,33,168,0.1)', flex: 1,
+                }}
+              >
+                <div style={{ width: '100%', height: 130, background: card.g, borderRadius: '10px', marginBottom: '12px' }} />
+                <p style={{ fontWeight: 700, color: '#111', fontSize: '14px' }}>{card.titulo}</p>
+                <p style={{ fontSize: '12px', color: PL, marginTop: '4px', fontWeight: 600 }}>{card.cat}</p>
+              </motion.div>
+
+              {/* Bottom color row */}
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {[P, '#9333EA', '#C026D3'].map((c, i) => (
+                  <div key={i} style={{
+                    flex: 1, height: 44, borderRadius: '10px',
+                    background: c, opacity: 0.3 + i * 0.35,
+                  }} />
+                ))}
+              </div>
+            </div>
           </div>
-        ))}
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   )
 }
