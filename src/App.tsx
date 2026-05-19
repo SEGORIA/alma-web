@@ -60,7 +60,7 @@ export default function App() {
       }}>
         <div style={{
           maxWidth: '1200px', margin: '0 auto', padding: '0 24px',
-          height: scrolled ? '60px' : '72px',
+          height: scrolled ? '90px' : '120px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           transition: 'height 0.3s ease',
         }}>
@@ -68,7 +68,7 @@ export default function App() {
           <a href="#inicio" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
             <div style={{
               background: P,
-              padding: scrolled ? '5px 12px' : '6px 14px',
+              padding: scrolled ? '6px 14px' : '8px 16px',
               borderRadius: '10px',
               display: 'inline-flex', alignItems: 'center',
               transition: 'all 0.3s ease',
@@ -76,7 +76,7 @@ export default function App() {
               <img
                 src="/alma-logo.png"
                 alt="Alma Agencia Creativa"
-                style={{ height: scrolled ? '30px' : '38px', width: 'auto', transition: 'height 0.3s ease' }}
+                style={{ height: scrolled ? '72px' : '96px', width: 'auto', transition: 'height 0.3s ease' }}
               />
             </div>
           </a>

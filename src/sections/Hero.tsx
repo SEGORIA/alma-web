@@ -28,7 +28,7 @@ export default function Hero() {
     <section style={{
       minHeight: '100vh',
       display: 'flex', alignItems: 'center',
-      padding: '100px 24px 80px',
+      padding: '140px 24px 80px',
       background: 'linear-gradient(135deg,#ffffff 55%,rgba(147,51,234,0.06) 100%)',
       position: 'relative', overflow: 'hidden',
     }}>
