@@ -9,6 +9,7 @@ export type Bloque =
   | { tipo: 'separador' }
 
 export type Articulo = {
+  _id?:      string
   slug:      string
   cat:       string
   titulo:    string

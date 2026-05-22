@@ -1,22 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y, WA_CONTACTO } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getProyectos } from '../lib/db'
+import { proyectosEstaticos, filtrosPortafolio, type Proyecto } from '../data/portafolio'
 
-type Proyecto = {
-  titulo: string; cat: string; desc: string; año: string; tags: string[]; g: string; featured?: boolean
-}
-
-const proyectos: Proyecto[] = [
-  { titulo: 'Prr Love',       cat: 'Branding',          desc: 'Identidad visual completa para marca de accesorios para mascotas. Logotipo, paleta, manual de marca y assets digitales.',    año: '2024', tags: ['Logo', 'Manual de marca', 'Redes sociales'], g: 'linear-gradient(135deg,#F5D0FE 0%,#A855F7 100%)', featured: true },
-  { titulo: 'Malasaña Store', cat: 'Desarrollo Web',    desc: 'Tienda virtual con pasarela de pagos, gestión de inventario y panel administrativo personalizado.',                            año: '2024', tags: ['E-commerce', 'Pasarela de pagos', 'Admin'],    g: 'linear-gradient(135deg,#DDD6FE 0%,#7C3AED 100%)' },
-  { titulo: 'Magic All Stars',cat: 'Marketing Digital', desc: 'Estrategia de contenido y pauta digital para academia deportiva. Crecimiento de 0 a 8K seguidores en 3 meses.',             año: '2023', tags: ['Instagram', 'Pauta', 'Contenido'],              g: 'linear-gradient(135deg,#FDE68A 0%,#F59E0B 100%)' },
-  { titulo: 'Café Ritual',    cat: 'Branding',          desc: 'Rebranding completo para cafetería de especialidad. Naming, identidad visual y aplicaciones en empaque y señalética.',        año: '2024', tags: ['Rebranding', 'Empaque', 'Señalética'],           g: 'linear-gradient(135deg,#FECDD3 0%,#E11D48 100%)', featured: true },
-  { titulo: 'Nexo Legal',     cat: 'Desarrollo Web',    desc: 'Sitio corporativo para firma de abogados con blog integrado, formulario de consultas y SEO posicionado.',                    año: '2023', tags: ['Corporativo', 'Blog', 'SEO'],                   g: 'linear-gradient(135deg,#BAE6FD 0%,#0284C7 100%)' },
-  { titulo: 'Bloom Spa',      cat: 'Marketing Digital', desc: 'Gestión mensual de redes sociales, diseño de contenido y campañas de pauta con enfoque en reservas online.',                  año: '2024', tags: ['Community', 'Diseño', 'Conversión'],             g: 'linear-gradient(135deg,#D1FAE5 0%,#059669 100%)' },
-]
-
-const filtros = ['Todos', 'Branding', 'Desarrollo Web', 'Marketing Digital']
+const filtros = filtrosPortafolio
 
 function Tag({ label }: { label: string }) {
   return (
@@ -79,9 +68,15 @@ function ProyectoCard({ p, index }: { p: Proyecto; index: number }) {
 }
 
 export default function Portafolio() {
-  const isMobile            = useIsMobile()
-  const [filtro, setFiltro] = useState('Todos')
-  const filtered            = filtro === 'Todos' ? proyectos : proyectos.filter(p => p.cat === filtro)
+  const isMobile                  = useIsMobile()
+  const [filtro,    setFiltro]    = useState('Todos')
+  const [proyectos, setProyectos] = useState<Proyecto[]>(proyectosEstaticos)
+
+  useEffect(() => {
+    getProyectos().then(setProyectos)
+  }, [])
+
+  const filtered = filtro === 'Todos' ? proyectos : proyectos.filter(p => p.cat === filtro)
 
   return (
     <section style={{ background: '#F9FAFB', padding: isMobile ? '60px 20px' : '100px 24px' }}>

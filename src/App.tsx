@@ -17,8 +17,16 @@ import Nosotros    from './sections/Nosotros'
 import Blog        from './sections/Blog'
 import Calculadora from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
-import BlogPage    from './pages/BlogPage'
-import ArticuloPage from './pages/ArticuloPage'
+import BlogPage        from './pages/BlogPage'
+import ArticuloPage    from './pages/ArticuloPage'
+import AdminLogin      from './pages/admin/AdminLogin'
+import AdminDashboard  from './pages/admin/AdminDashboard'
+import BlogAdmin       from './pages/admin/BlogAdmin'
+import BlogEditor      from './pages/admin/BlogEditor'
+import PortafolioAdmin from './pages/admin/PortafolioAdmin'
+import PortafolioEditor from './pages/admin/PortafolioEditor'
+import { useAuth }     from './hooks/useAuth'
+import { Navigate }    from 'react-router-dom'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 const NAV_LINKS = [
@@ -358,13 +366,33 @@ function Landing() {
   )
 }
 
+/* ── Protected route ─────────────────────────────────────── */
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
+      <p style={{ color: '#6B7280', fontSize: '15px' }}>Cargando…</p>
+    </div>
+  )
+  return user ? <>{children}</> : <Navigate to="/admin/login" replace />
+}
+
 /* ── App Router ──────────────────────────────────────────── */
 export default function App() {
   return (
     <Routes>
+      {/* Público */}
       <Route path="/"           element={<Landing />} />
       <Route path="/blog"       element={<BlogPage />} />
       <Route path="/blog/:slug" element={<ArticuloPage />} />
+
+      {/* Admin */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+      <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />
+      <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
+      <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
+      <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
     </Routes>
   )
 }
