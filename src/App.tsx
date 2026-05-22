@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Link as RouterLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import './index.css'
 import Hero        from './sections/Hero'
@@ -27,7 +27,7 @@ const NAV_LINKS = [
   { label: 'Servicios',  href: '#servicios', id: 'servicios' },
   { label: 'Academia',   href: '#academia',  id: 'academia'  },
   { label: 'Portafolio', href: '#portafolio',id: 'portafolio'},
-  { label: 'Blog',       href: '#blog',      id: 'blog'      },
+  { label: 'Blog',       href: '/blog',      id: 'blog'      },
 ]
 
 /* ── Desktop NavLink ─────────────────────────────────────── */
@@ -35,29 +35,51 @@ function NavLink({ label, href, onClick, active }: {
   label: string; href: string; onClick?: () => void; active?: boolean
 }) {
   const [hovered, setHovered] = useState(false)
-  const lit = active || hovered
+  const lit     = active || hovered
+  const isRoute = href.startsWith('/')
+
+  const sharedStyle: React.CSSProperties = {
+    color: lit ? P : '#374151',
+    fontSize: '14px', fontWeight: lit ? 600 : 500,
+    textDecoration: 'none', padding: '6px 12px', borderRadius: '8px',
+    transition: 'color 0.2s ease, font-weight 0.2s ease',
+    position: 'relative', display: 'inline-block',
+  }
+
+  const underline = (
+    <span style={{
+      position: 'absolute', bottom: 2, left: '12px', right: '12px',
+      height: '2px', background: Y, borderRadius: '2px',
+      opacity: lit ? 1 : 0,
+      transition: 'opacity 0.2s ease',
+    }} />
+  )
+
+  if (isRoute) {
+    return (
+      <RouterLink
+        to={href}
+        onClick={onClick}
+        style={sharedStyle}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {label}
+        {underline}
+      </RouterLink>
+    )
+  }
 
   return (
     <a
       href={href}
       onClick={onClick}
-      style={{
-        color: lit ? P : '#374151',
-        fontSize: '14px', fontWeight: lit ? 600 : 500,
-        textDecoration: 'none', padding: '6px 12px', borderRadius: '8px',
-        transition: 'color 0.2s ease, font-weight 0.2s ease',
-        position: 'relative', display: 'inline-block',
-      }}
+      style={sharedStyle}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {label}
-      <span style={{
-        position: 'absolute', bottom: 2, left: '12px', right: '12px',
-        height: '2px', background: Y, borderRadius: '2px',
-        opacity: lit ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-      }} />
+      {underline}
     </a>
   )
 }
@@ -250,28 +272,49 @@ function Landing() {
                 padding: '16px 24px 24px',
                 display: 'flex', flexDirection: 'column', gap: '4px',
               }}>
-                {NAV_LINKS.map((link, i) => (
-                  <motion.a
-                    key={link.href}
-                    href={link.href}
-                    onClick={closeMenu}
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.25 }}
-                    style={{
-                      color: activeSection === link.id ? P : '#111827',
-                      fontSize: '16px', fontWeight: 600,
-                      textDecoration: 'none', padding: '12px 8px',
-                      borderBottom: '1px solid #F3F4F6',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = P)}
-                    onMouseLeave={e => (e.currentTarget.style.color = activeSection === link.id ? P : '#111827')}
-                  >
-                    {link.label}
-                    <span style={{ color: Y, fontWeight: 900, fontSize: '18px' }}>›</span>
-                  </motion.a>
-                ))}
+                {NAV_LINKS.map((link, i) => {
+                  const mobileStyle: React.CSSProperties = {
+                    color: activeSection === link.id ? P : '#111827',
+                    fontSize: '16px', fontWeight: 600,
+                    textDecoration: 'none', padding: '12px 8px',
+                    borderBottom: '1px solid #F3F4F6',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }
+                  const icon = <span style={{ color: Y, fontWeight: 900, fontSize: '18px' }}>›</span>
+
+                  if (link.href.startsWith('/')) {
+                    return (
+                      <motion.div
+                        key={link.href}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05, duration: 0.25 }}
+                      >
+                        <RouterLink to={link.href} onClick={closeMenu} style={mobileStyle}>
+                          {link.label}
+                          {icon}
+                        </RouterLink>
+                      </motion.div>
+                    )
+                  }
+
+                  return (
+                    <motion.a
+                      key={link.href}
+                      href={link.href}
+                      onClick={closeMenu}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05, duration: 0.25 }}
+                      style={mobileStyle}
+                      onMouseEnter={e => (e.currentTarget.style.color = P)}
+                      onMouseLeave={e => (e.currentTarget.style.color = activeSection === link.id ? P : '#111827')}
+                    >
+                      {link.label}
+                      {icon}
+                    </motion.a>
+                  )
+                })}
                 <motion.a
                   href={WA_PROYECTO}
                   target="_blank"

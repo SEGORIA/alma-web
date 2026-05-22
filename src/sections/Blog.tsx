@@ -3,151 +3,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { P, Y, WA_PROYECTO } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { articulos, catColor, categorias, type Articulo } from '../data/articulos'
-
-function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande?: boolean }) {
-  const [hovered, setHovered] = useState(false)
-  const color = catColor[a.cat] ?? P
-
-  if (grande) {
-    return (
-      <Link to={`/blog/${a.slug}`} style={{ textDecoration: 'none', display: 'block', marginBottom: '24px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            background: '#fff',
-            borderRadius: '24px',
-            border: `1.5px solid ${hovered ? P : '#E5E7EB'}`,
-            overflow: 'hidden',
-            boxShadow: hovered ? '0 24px 64px rgba(107,33,168,0.14)' : '0 4px 20px rgba(0,0,0,0.06)',
-            transition: 'all 0.3s ease',
-            cursor: 'pointer',
-          }}
-        >
-          {/* Visual */}
-          <div style={{
-            background: a.gradient,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            minHeight: '260px', fontSize: '72px',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.08)' }} />
-            <span style={{ position: 'relative', zIndex: 1, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.2))' }}>{a.emoji}</span>
-            <div style={{
-              position: 'absolute', top: '16px', left: '16px',
-              background: Y, color: '#111', fontSize: '11px', fontWeight: 800,
-              padding: '4px 12px', borderRadius: '20px', letterSpacing: '0.5px',
-            }}>
-              ★ Destacado
-            </div>
-          </div>
-          {/* Content */}
-          <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{
-              fontSize: '11px', fontWeight: 700, color, letterSpacing: '1px',
-              textTransform: 'uppercase', marginBottom: '12px', display: 'block',
-            }}>{a.cat}</span>
-            <h3 style={{ fontSize: 'clamp(20px,2.5vw,26px)', fontWeight: 800, color: '#111827', lineHeight: 1.25, marginBottom: '14px' }}>
-              {a.titulo}
-            </h3>
-            <p style={{ fontSize: '14px', lineHeight: 1.75, color: '#6B7280', marginBottom: '24px' }}>
-              {a.excerpt}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 500 }}>
-                🕐 {a.minutos} min · {a.fecha}
-              </span>
-              <span style={{
-                fontSize: '13px', fontWeight: 700, color: P,
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                transform: hovered ? 'translateX(4px)' : 'translateX(0)',
-                transition: 'transform 0.2s ease',
-              }}>
-                Leer artículo →
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      </Link>
-    )
-  }
-
-  return (
-    <Link to={`/blog/${a.slug}`} style={{ textDecoration: 'none', display: 'flex' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          display: 'flex', flexDirection: 'column',
-          background: '#fff',
-          borderRadius: '20px',
-          border: `1.5px solid ${hovered ? P : '#E5E7EB'}`,
-          overflow: 'hidden',
-          boxShadow: hovered ? '0 16px 48px rgba(107,33,168,0.12)' : '0 2px 12px rgba(0,0,0,0.04)',
-          transition: 'all 0.3s ease',
-          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-          cursor: 'pointer',
-          width: '100%',
-        }}
-      >
-        {/* Visual strip */}
-        <div style={{
-          background: a.gradient,
-          height: '120px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '42px', position: 'relative',
-        }}>
-          {a.emoji}
-        </div>
-        {/* Content */}
-        <div style={{ padding: '22px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-          <span style={{
-            fontSize: '10px', fontWeight: 700, color, letterSpacing: '1px',
-            textTransform: 'uppercase', marginBottom: '8px', display: 'block',
-          }}>{a.cat}</span>
-          <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', lineHeight: 1.35, marginBottom: '10px', flex: 1 }}>
-            {a.titulo}
-          </h3>
-          <p style={{ fontSize: '12px', lineHeight: 1.65, color: '#9CA3AF', marginBottom: '16px' }}>
-            {a.excerpt.slice(0, 90)}…
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-            <span style={{ fontSize: '11px', color: '#D1D5DB', fontWeight: 500 }}>
-              🕐 {a.minutos} min · {a.fecha}
-            </span>
-            <span style={{
-              fontSize: '12px', fontWeight: 700, color: P,
-              transform: hovered ? 'translateX(3px)' : 'translateX(0)',
-              transition: 'transform 0.2s ease',
-            }}>
-              Leer →
-            </span>
-          </div>
-        </div>
-      </motion.div>
-    </Link>
-  )
-}
+import { articulos, catColor } from '../data/articulos'
 
 export default function Blog() {
-  const isMobile            = useIsMobile()
-  const [filtro, setFiltro] = useState('Todos')
-
-  const visibles    = filtro === 'Todos' ? articulos : articulos.filter(a => a.cat === filtro)
-  const destacado   = articulos.find(a => a.destacado)!
-  const sinDestacado = articulos.filter(a => !a.destacado)
-  const grid        = filtro === 'Todos' ? sinDestacado : visibles
+  const isMobile = useIsMobile()
+  // Siempre el más reciente (primero del array)
+  const ultimo   = articulos[0]
+  const color    = catColor[ultimo.cat] ?? P
+  const [hovered, setHovered] = useState(false)
 
   return (
     <section id="blog" style={{ background: '#F9FAFB', padding: isMobile ? '60px 20px' : '100px 24px' }}>
@@ -162,9 +25,12 @@ export default function Blog() {
           style={{ textAlign: 'center', marginBottom: isMobile ? '32px' : '48px' }}
         >
           <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
-            Blog & Recursos
+            Último artículo
           </p>
-          <h2 style={{ fontSize: isMobile ? 'clamp(26px,7vw,38px)' : 'clamp(30px,4vw,46px)', fontWeight: 900, color: '#111827', letterSpacing: '-2px', lineHeight: 1.05, marginBottom: '16px' }}>
+          <h2 style={{
+            fontSize: isMobile ? 'clamp(26px,7vw,38px)' : 'clamp(30px,4vw,46px)',
+            fontWeight: 900, color: '#111827', letterSpacing: '-2px', lineHeight: 1.05, marginBottom: '16px',
+          }}>
             Ideas que te ayudan<br />
             <span style={{ color: P }}>a crecer tu marca</span>
           </h2>
@@ -173,61 +39,110 @@ export default function Blog() {
           </p>
         </motion.div>
 
-        {/* Filtros */}
+        {/* Artículo más reciente — card grande */}
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ marginBottom: isMobile ? '28px' : '36px' }}
+        >
+          <Link to={`/blog/${ultimo.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+            <div
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              style={{
+                display: isMobile ? 'flex' : 'grid',
+                flexDirection: isMobile ? 'column' : undefined,
+                gridTemplateColumns: isMobile ? undefined : '1fr 1fr',
+                background: '#fff',
+                borderRadius: '24px',
+                border: `1.5px solid ${hovered ? P : '#E5E7EB'}`,
+                overflow: 'hidden',
+                boxShadow: hovered ? '0 24px 64px rgba(107,33,168,0.14)' : '0 4px 20px rgba(0,0,0,0.06)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+              }}
+            >
+              {/* Visual */}
+              <div style={{
+                background: ultimo.gradient,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                minHeight: isMobile ? '200px' : '300px',
+                fontSize: isMobile ? '64px' : '88px',
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.08)' }} />
+                <span style={{ position: 'relative', zIndex: 1, filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.2))' }}>
+                  {ultimo.emoji}
+                </span>
+                {/* Badges */}
+                <div style={{
+                  position: 'absolute', top: '16px', left: '16px',
+                  display: 'flex', gap: '8px',
+                }}>
+                  <span style={{
+                    background: Y, color: '#111', fontSize: '11px', fontWeight: 800,
+                    padding: '4px 12px', borderRadius: '20px', letterSpacing: '0.5px',
+                  }}>
+                    ★ Último artículo
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div style={{
+                padding: isMobile ? '28px 24px' : '44px 40px',
+                display: 'flex', flexDirection: 'column', justifyContent: 'center',
+              }}>
+                <span style={{
+                  fontSize: '11px', fontWeight: 700, color, letterSpacing: '1px',
+                  textTransform: 'uppercase', marginBottom: '12px', display: 'block',
+                }}>
+                  {ultimo.cat}
+                </span>
+                <h3 style={{
+                  fontSize: isMobile ? 'clamp(18px,5vw,24px)' : 'clamp(20px,2.5vw,28px)',
+                  fontWeight: 900, color: '#111827', lineHeight: 1.2, marginBottom: '14px',
+                  letterSpacing: '-0.5px',
+                }}>
+                  {ultimo.titulo}
+                </h3>
+                <p style={{ fontSize: '14px', lineHeight: 1.75, color: '#6B7280', marginBottom: '28px' }}>
+                  {ultimo.excerpt}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 500 }}>
+                    🕐 {ultimo.minutos} min · {ultimo.fecha}
+                  </span>
+                  <span style={{
+                    fontSize: '14px', fontWeight: 700, color: P,
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    transform: hovered ? 'translateX(5px)' : 'translateX(0)',
+                    transition: 'transform 0.2s ease',
+                  }}>
+                    Leer artículo →
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        {/* Ver todos */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          style={{
-            display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center',
-            marginBottom: isMobile ? '32px' : '44px',
-          }}
+          transition={{ duration: 0.4 }}
+          style={{ textAlign: 'center', marginBottom: isMobile ? '36px' : '52px' }}
         >
-          {categorias.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setFiltro(cat)}
-              style={{
-                padding: '8px 18px', borderRadius: '20px', cursor: 'pointer',
-                fontSize: '13px', fontWeight: 600,
-                background: filtro === cat ? P : '#fff',
-                color:      filtro === cat ? '#fff' : '#6B7280',
-                boxShadow:  filtro === cat ? `0 4px 14px rgba(107,33,168,0.25)` : '0 1px 4px rgba(0,0,0,0.06)',
-                transition: 'all 0.2s ease',
-                border: `1px solid ${filtro === cat ? P : '#E5E7EB'}`,
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </motion.div>
-
-        {/* Artículo destacado — solo en "Todos" y desktop */}
-        {filtro === 'Todos' && !isMobile && (
-          <ArticuloCard a={destacado} index={0} grande />
-        )}
-
-        {/* Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: isMobile ? '16px' : '20px',
-          marginBottom: isMobile ? '36px' : '52px',
-        }}>
-          {(filtro === 'Todos' ? grid : visibles).map((a, i) => (
-            <ArticuloCard key={a.slug} a={a} index={i} />
-          ))}
-        </div>
-
-        {/* Ver todos link */}
-        <div style={{ textAlign: 'center', marginBottom: isMobile ? '36px' : '52px' }}>
           <Link
             to="/blog"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               color: P, fontWeight: 700, fontSize: '14px',
-              textDecoration: 'none', padding: '10px 20px',
+              textDecoration: 'none', padding: '11px 24px',
               border: `1.5px solid ${P}`, borderRadius: '10px',
               transition: 'all 0.2s ease',
             }}
@@ -240,9 +155,9 @@ export default function Blog() {
               e.currentTarget.style.color = P
             }}
           >
-            Ver todos los artículos →
+            Ver todos los artículos del blog →
           </Link>
-        </div>
+        </motion.div>
 
         {/* CTA band */}
         <motion.div

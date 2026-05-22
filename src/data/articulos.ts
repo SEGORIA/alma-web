@@ -29,7 +29,7 @@ export const articulos: Articulo[] = [
     titulo:    '5 señales de que tu marca necesita un rediseño urgente',
     excerpt:   'Logo pixelado, colores que no recuerdas haber elegido, tipografía que no dice nada… Si te identificas con alguna de estas señales, es momento de actuar.',
     minutos:   5,
-    fecha:     'May 2025',
+    fecha:     'May 2026',
     emoji:     '🎨',
     gradient:  'linear-gradient(135deg, #6B21A8 0%, #9333EA 100%)',
     destacado: true,
@@ -74,7 +74,7 @@ export const articulos: Articulo[] = [
     titulo:    'Por qué tu negocio necesita una web profesional en 2025',
     excerpt:   'Tener solo Instagram ya no es suficiente. Una web propia te da credibilidad, control y clientes 24/7. Te explicamos qué debe tener y qué cuesta.',
     minutos:   4,
-    fecha:     'Abr 2025',
+    fecha:     'Abr 2026',
     emoji:     '💻',
     gradient:  'linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)',
     contenido: [
@@ -120,7 +120,7 @@ export const articulos: Articulo[] = [
     titulo:    'Cómo elegir los colores perfectos para tu marca',
     excerpt:   'Los colores no son solo estética — comunican valores, generan emociones y condicionan decisiones de compra. Guía práctica para no elegirlos al azar.',
     minutos:   3,
-    fecha:     'Abr 2025',
+    fecha:     'Mar 2026',
     emoji:     '🎯',
     gradient:  'linear-gradient(135deg, #E11D48 0%, #F43F5E 100%)',
     contenido: [
@@ -167,7 +167,7 @@ export const articulos: Articulo[] = [
     titulo:    'Instagram para negocios locales: la guía que nadie te da',
     excerpt:   'Algoritmo, horarios, hashtags, formatos... Deja de publicar sin estrategia. Estas son las claves que aplican los negocios que realmente crecen.',
     minutos:   6,
-    fecha:     'Mar 2025',
+    fecha:     'Feb 2026',
     emoji:     '📱',
     gradient:  'linear-gradient(135deg, #9333EA 0%, #C084FC 100%)',
     contenido: [
@@ -220,7 +220,7 @@ export const articulos: Articulo[] = [
     titulo:    'Manual de marca: qué es y por qué necesitas uno hoy',
     excerpt:   'Sin manual de marca tu negocio se ve diferente en cada pieza. Descubre qué debe incluir un manual profesional y cómo protege tu identidad.',
     minutos:   4,
-    fecha:     'Mar 2025',
+    fecha:     'Ene 2026',
     emoji:     '📖',
     gradient:  'linear-gradient(135deg, #059669 0%, #34D399 100%)',
     contenido: [
@@ -267,7 +267,7 @@ export const articulos: Articulo[] = [
     titulo:    'SEO local: cómo aparecer primero en Google Manizales',
     excerpt:   'Google My Business, reseñas, palabras clave locales y velocidad de carga. Si tienes un negocio local y no apareces en el mapa, estás regalando clientes.',
     minutos:   5,
-    fecha:     'Feb 2025',
+    fecha:     'Dic 2025',
     emoji:     '🔍',
     gradient:  'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
     contenido: [
