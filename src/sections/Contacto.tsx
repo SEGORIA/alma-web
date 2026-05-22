@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PD, Y, WA_CONTACTO as WA, PHONE } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -156,9 +157,15 @@ export default function Contacto() {
           fontSize: '12px', color: 'rgba(255,255,255,0.35)',
         }}>
           <span>© {new Date().getFullYear()} Alma Agencia Creativa · Manizales, Colombia</span>
-          <div style={{ display: 'flex', gap: '20px' }}>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <a href="https://edu.almaagenciacreativa.com" style={{ color: 'rgba(250,204,21,0.65)', textDecoration: 'none' }}>Academia →</a>
             <a href="mailto:alma.directivo@gmail.com" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>alma.directivo@gmail.com</a>
+            <Link to="/admin/login" style={{ color: 'rgba(255,255,255,0.18)', textDecoration: 'none', fontSize: '11px' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
+            >
+              🔐 Equipo
+            </Link>
           </div>
         </div>
       </footer>

@@ -3,76 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { articulos, catColor, categorias, type Articulo } from '../data/articulos'
 import { P, Y, WA_PROYECTO } from '../tokens'
-
-/* ── Navbar ──────────────────────────────────────────────── */
-function NavBar() {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      backdropFilter: 'blur(20px)',
-      background: 'rgba(255,255,255,0.96)',
-      borderBottom: '1px solid rgba(107,33,168,0.1)',
-      boxShadow: scrolled ? '0 2px 20px rgba(107,33,168,0.08)' : 'none',
-      transition: 'box-shadow 0.3s ease',
-    }}>
-      <div style={{
-        maxWidth: '1100px', margin: '0 auto', padding: '0 24px',
-        height: '68px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            background: P, padding: '5px 12px',
-            borderRadius: '10px', display: 'inline-flex', alignItems: 'center',
-          }}>
-            <img
-              src="/alma-logo.png"
-              alt="Alma Agencia Creativa"
-              style={{ height: '48px', width: 'auto' }}
-            />
-          </div>
-        </Link>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link
-            to="/"
-            style={{
-              color: '#6B7280', fontWeight: 500, fontSize: '14px',
-              textDecoration: 'none', transition: 'color 0.2s ease',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = P)}
-            onMouseLeave={e => (e.currentTarget.style.color = '#6B7280')}
-          >
-            ← Inicio
-          </Link>
-          <a
-            href={WA_PROYECTO}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              background: P, color: '#fff',
-              padding: '9px 20px', borderRadius: '10px',
-              fontWeight: 600, fontSize: '14px', textDecoration: 'none',
-              transition: 'background 0.2s ease',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#581C87')}
-            onMouseLeave={e => (e.currentTarget.style.background = P)}
-          >
-            Iniciar Proyecto
-          </a>
-        </div>
-      </div>
-    </nav>
-  )
-}
+import SiteNav from '../components/SiteNav'
 
 /* ── Article Card ────────────────────────────────────────── */
 function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande?: boolean }) {
@@ -230,7 +161,7 @@ export default function BlogPage() {
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh' }}>
-      <NavBar />
+      <SiteNav activePath="/blog" />
 
       {/* Page hero */}
       <div style={{

@@ -1,63 +1,9 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { articulos, catColor, type Bloque } from '../data/articulos'
 import { P, Y, WA_PROYECTO } from '../tokens'
-
-/* ── Mini Navbar ─────────────────────────────────────────── */
-function NavBar() {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      backdropFilter: 'blur(20px)',
-      background: 'rgba(255,255,255,0.96)',
-      borderBottom: '1px solid rgba(107,33,168,0.1)',
-      boxShadow: scrolled ? '0 2px 20px rgba(107,33,168,0.08)' : 'none',
-      transition: 'box-shadow 0.3s ease',
-    }}>
-      <div style={{
-        maxWidth: '800px', margin: '0 auto', padding: '0 24px',
-        height: '68px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            background: P, padding: '5px 12px',
-            borderRadius: '10px', display: 'inline-flex', alignItems: 'center',
-          }}>
-            <img
-              src="/alma-logo.png"
-              alt="Alma Agencia Creativa"
-              style={{ height: '48px', width: 'auto' }}
-            />
-          </div>
-        </Link>
-
-        <Link
-          to="/blog"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            color: '#6B7280', fontWeight: 600, fontSize: '14px',
-            textDecoration: 'none',
-            transition: 'color 0.2s ease',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = P)}
-          onMouseLeave={e => (e.currentTarget.style.color = '#6B7280')}
-        >
-          ← Blog
-        </Link>
-      </div>
-    </nav>
-  )
-}
+import SiteNav from '../components/SiteNav'
 
 /* ── Bloque renderer ─────────────────────────────────────── */
 function RenderBloque({ b }: { b: Bloque }) {
@@ -216,7 +162,7 @@ export default function ArticuloPage() {
 
   return (
     <div style={{ background: '#fff', minHeight: '100vh' }}>
-      <NavBar />
+      <SiteNav />
 
       {/* Hero */}
       <div style={{
