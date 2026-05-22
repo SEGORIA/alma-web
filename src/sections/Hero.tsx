@@ -1,6 +1,6 @@
 import { motion, useInView } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
-import { P, PL, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
+import { P, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
 
 /* ── Palabras del headline ───────────────────────────────── */
 const headline = [
@@ -49,30 +49,15 @@ function Counter({ target, suffix = '', label }: { target: number; suffix?: stri
   )
 }
 
-const previewCards = [
-  { titulo: 'Prr Love',       cat: 'Branding',          g: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
-  { titulo: 'Malasaña Store', cat: 'E-commerce',        g: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
-  { titulo: 'Magic All Stars',cat: 'Marketing Digital', g: 'linear-gradient(135deg,#FDE68A,#F59E0B)' },
-]
-
 export default function Hero() {
-  const [cardIdx,  setCardIdx]  = useState(0)
   const [btnHover, setBtnHover] = useState(false)
   const [scrollY,  setScrollY]  = useState(0)
 
   useEffect(() => {
-    // Rotación de cards
-    const t = setInterval(() => setCardIdx(i => (i + 1) % previewCards.length), 2400)
-    // Parallax
     const onScroll = () => setScrollY(window.scrollY)
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      clearInterval(t)
-      window.removeEventListener('scroll', onScroll)
-    }
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
-
-  const card = previewCards[cardIdx]
 
   return (
     <section style={{
@@ -222,114 +207,175 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* ── Right: browser mockup ── */}
+        {/* ── Right: floating cards composition ── */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          style={{ flex: '1 1 320px', maxWidth: '460px', position: 'relative' }}
+          style={{ flex: '1 1 320px', maxWidth: '460px', position: 'relative', minHeight: '440px', paddingBottom: '40px' }}
         >
-          {/* Pill flotante superior */}
+
+          {/* Floating metrics card — top right */}
           <motion.div
-            animate={{ y: [0, -6, 0] }}
+            animate={{ y: [0, -8, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             style={{
-              position: 'absolute', top: '-18px', right: '20px', zIndex: 2,
+              position: 'absolute', top: '-8px', right: '-8px', zIndex: 3,
               background: '#fff',
-              boxShadow: '0 8px 28px rgba(107,33,168,0.15)',
-              borderRadius: '20px', padding: '8px 16px',
-              display: 'flex', alignItems: 'center', gap: '8px',
-              border: '1px solid rgba(107,33,168,0.1)',
+              boxShadow: '0 12px 36px rgba(107,33,168,0.18)',
+              borderRadius: '16px', padding: '12px 16px',
+              display: 'flex', alignItems: 'center', gap: '10px',
+              border: '1px solid rgba(107,33,168,0.08)',
+              minWidth: '175px',
             }}
           >
-            <span style={{ fontSize: '16px' }}>🚀</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: P }}>Proyecto lanzado</span>
-          </motion.div>
-
-          {/* Pill flotante inferior */}
-          <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-            style={{
-              position: 'absolute', bottom: '-18px', left: '20px', zIndex: 2,
-              background: '#fff',
-              boxShadow: '0 8px 28px rgba(107,33,168,0.15)',
-              borderRadius: '20px', padding: '8px 16px',
-              display: 'flex', alignItems: 'center', gap: '8px',
-              border: '1px solid rgba(107,33,168,0.1)',
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>⭐</span>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151' }}>Cliente satisfecho</span>
-          </motion.div>
-
-          {/* Browser mockup */}
-          <div style={{
-            background: '#fff', borderRadius: '20px',
-            boxShadow: '0 40px 100px rgba(107,33,168,0.18)',
-            overflow: 'hidden', border: '1px solid #E5E7EB',
-          }}>
-            {/* Chrome bar */}
             <div style={{
-              background: '#F9FAFB', padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: '6px',
-              borderBottom: '1px solid #E5E7EB',
-            }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FC5C65' }} />
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#FED330' }} />
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#26de81' }} />
-              <div style={{
-                flex: 1, background: '#fff', borderRadius: '6px',
-                padding: '4px 12px', fontSize: '11px', color: '#9CA3AF',
-                marginLeft: '8px', border: '1px solid #E5E7EB',
-              }}>
-                almaagenciacreativa.com
-              </div>
+              width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+              background: 'linear-gradient(135deg,#D1FAE5,#059669)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', fontWeight: 900, color: '#fff',
+            }}>↑</div>
+            <div>
+              <p style={{ fontSize: '13px', fontWeight: 800, color: '#059669', lineHeight: 1.2 }}>+127% Engagement</p>
+              <p style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px', fontWeight: 500 }}>vs. mes anterior</p>
             </div>
+          </motion.div>
 
-            {/* Content */}
+          {/* Main brand identity card */}
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            boxShadow: '0 40px 100px rgba(107,33,168,0.18)',
+            overflow: 'hidden',
+            border: '1px solid #E5E7EB',
+            transform: 'rotate(-1.5deg)',
+            marginTop: '36px',
+          }}>
+            {/* Card header — gradient */}
             <div style={{
-              background: 'linear-gradient(135deg,#F5F3FF,#EDE9FE)',
-              padding: '28px 20px', minHeight: '320px',
-              display: 'flex', flexDirection: 'column', gap: '14px',
+              background: `linear-gradient(135deg, ${P}, #9333EA)`,
+              padding: '22px 24px 20px',
             }}>
-              {/* Simulated nav */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ width: 60, height: 10, background: P, borderRadius: 4 }} />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[40, 50, 40].map((w, i) => (
-                    <div key={i} style={{ width: w, height: 8, background: '#D8B4FE', borderRadius: 4 }} />
-                  ))}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
+                <div>
+                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Brand Identity</p>
+                  <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginTop: '3px' }}>Prr Love Studio</p>
                 </div>
+                <div style={{
+                  background: 'rgba(255,255,255,0.18)',
+                  borderRadius: '8px', padding: '4px 10px',
+                  fontSize: '11px', fontWeight: 700, color: '#fff',
+                }}>2024</div>
               </div>
-
-              {/* Rotating project card */}
-              <motion.div
-                key={cardIdx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                style={{
-                  background: '#fff', borderRadius: '14px', padding: '16px',
-                  border: '1px solid rgba(107,33,168,0.1)', flex: 1,
-                }}
-              >
-                <div style={{ width: '100%', height: 130, background: card.g, borderRadius: '10px', marginBottom: '12px' }} />
-                <p style={{ fontWeight: 700, color: '#111', fontSize: '14px' }}>{card.titulo}</p>
-                <p style={{ fontSize: '12px', color: PL, marginTop: '4px', fontWeight: 600 }}>{card.cat}</p>
-              </motion.div>
-
-              {/* Color row */}
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {[P, '#9333EA', '#C026D3'].map((c, i) => (
+              {/* Colour palette */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['#fff', '#FECDD3', '#FCA5A5', '#F87171', '#EF4444'].map((c, i) => (
                   <div key={i} style={{
-                    flex: 1, height: 44, borderRadius: '10px',
-                    background: c, opacity: 0.3 + i * 0.35,
+                    width: '30px', height: '30px', borderRadius: '8px',
+                    background: c, boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
                   }} />
                 ))}
               </div>
             </div>
+
+            {/* Card body */}
+            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Typography row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '50px', height: '50px', borderRadius: '12px', flexShrink: 0,
+                  background: `linear-gradient(135deg,${P}18,#9333EA18)`,
+                  border: `1px solid ${P}25`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: '21px', fontWeight: 900, color: P }}>Aa</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>Tipografía Principal</p>
+                  <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>Playfair Display · Bold</p>
+                </div>
+                <div style={{
+                  width: '26px', height: '26px', borderRadius: '50%',
+                  background: '#ECFDF5', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px', color: '#059669',
+                }}>✓</div>
+              </div>
+
+              {/* Brand assets grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {[
+                  { label: 'Logo',   g: `linear-gradient(135deg,${P},#9333EA)`,   icon: '✦' },
+                  { label: 'Icono',  g: 'linear-gradient(135deg,#FECDD3,#E11D48)', icon: '♥' },
+                  { label: 'Patrón', g: 'linear-gradient(135deg,#FDE68A,#F59E0B)', icon: '◈' },
+                ].map(el => (
+                  <div key={el.label} style={{
+                    borderRadius: '12px', background: el.g, height: '62px',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center', gap: '4px',
+                  }}>
+                    <span style={{ fontSize: '18px', color: '#fff' }}>{el.icon}</span>
+                    <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{el.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Status row */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                paddingTop: '10px', borderTop: '1px solid #F3F4F6',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981' }} />
+                  <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>Entregado al cliente</span>
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: P }}>Ver caso →</span>
+              </div>
+            </div>
           </div>
+
+          {/* Floating social card — bottom left */}
+          <motion.div
+            animate={{ y: [0, 7, 0] }}
+            transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+            style={{
+              position: 'absolute', bottom: '0px', left: '-8px', zIndex: 3,
+              background: '#fff',
+              boxShadow: '0 12px 36px rgba(107,33,168,0.15)',
+              borderRadius: '16px', padding: '12px 16px',
+              border: '1px solid rgba(107,33,168,0.08)',
+              minWidth: '210px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <div style={{
+                width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
+                background: `linear-gradient(135deg,${P},#9333EA)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '11px', fontWeight: 800, color: '#fff',
+              }}>A</div>
+              <div>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#111827' }}>@almaagencia</p>
+                <p style={{ fontSize: '10px', color: '#9CA3AF' }}>Instagram · Hoy</p>
+              </div>
+            </div>
+            {/* Post thumbnails */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+              {[
+                'linear-gradient(135deg,#F5D0FE,#A855F7)',
+                'linear-gradient(135deg,#DDD6FE,#7C3AED)',
+                'linear-gradient(135deg,#FDE68A,#F59E0B)',
+              ].map((g, i) => (
+                <div key={i} style={{ flex: 1, height: '42px', borderRadius: '8px', background: g }} />
+              ))}
+            </div>
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: '14px' }}>
+              {[['❤️', '2.4k'], ['💬', '184'], ['↗️', '891']].map(([icon, val]) => (
+                <span key={icon} style={{ fontSize: '11px', color: '#6B7280', fontWeight: 600 }}>{icon} {val}</span>
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
