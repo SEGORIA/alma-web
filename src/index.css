@@ -2,13 +2,77 @@
 
 @layer base {
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+
+  html {
+    scroll-behavior: smooth;
+    /* Offset para el navbar fijo al hacer click en anclas */
+    scroll-padding-top: 88px;
+  }
+
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background: #ffffff;
     color: #111827;
     overflow-x: hidden;
+    /* Fade-in suave al cargar la página */
+    animation: pageReveal 0.4s ease both;
   }
+
   input, textarea, button, select { font-family: inherit; }
+
+  /* ── Selección de texto con colores de marca ── */
+  ::selection {
+    background: rgba(107, 33, 168, 0.18);
+    color: #111827;
+  }
+
+  /* ── Scrollbar personalizada (Webkit) ── */
+  ::-webkit-scrollbar       { width: 6px; }
+  ::-webkit-scrollbar-track { background: #F9FAFB; }
+  ::-webkit-scrollbar-thumb { background: #D8B4FE; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9333EA; }
+
+  /* ── Focus visible accesible ── */
+  :focus-visible {
+    outline: 2px solid #9333EA;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* ── Placeholder suavizado ── */
+  ::placeholder { color: #9CA3AF; opacity: 1; }
+}
+
+/* ── Animaciones globales ── */
+@keyframes pageReveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.4; }
+  100% { transform: scale(1.75); opacity: 0;   }
+}
+
+/* ── Utilidad: animación float para elementos decorativos ── */
+.alma-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ── Performance hint para elementos animados ── */
+[data-motion],
+.framer-motion {
+  will-change: transform, opacity;
+}
+
+/* ── Móvil: espacio para barra sticky de WhatsApp ── */
+@media (max-width: 767px) {
+  body { padding-bottom: 58px; }
 }
