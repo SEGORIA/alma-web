@@ -13,7 +13,6 @@ import Testimonios from './sections/Testimonios'
 import FAQ         from './sections/FAQ'
 import Contacto    from './sections/Contacto'
 import WhatsAppFloat from './components/WhatsAppFloat'
-import CustomCursor  from './components/CustomCursor'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 const NAV_LINKS = [
@@ -148,9 +147,6 @@ export default function App() {
 
   return (
     <div style={{ background: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
-
-      {/* Custom cursor */}
-      <CustomCursor />
 
       {/* Scroll progress bar */}
       <div style={{
