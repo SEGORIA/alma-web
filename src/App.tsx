@@ -13,6 +13,7 @@ import Testimonios from './sections/Testimonios'
 import FAQ         from './sections/FAQ'
 import Contacto    from './sections/Contacto'
 import Nosotros    from './sections/Nosotros'
+import Blog        from './sections/Blog'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
@@ -22,6 +23,7 @@ const NAV_LINKS = [
   { label: 'Servicios',  href: '#servicios', id: 'servicios' },
   { label: 'Academia',   href: '#academia',  id: 'academia'  },
   { label: 'Portafolio', href: '#portafolio',id: 'portafolio'},
+  { label: 'Blog',       href: '#blog',      id: 'blog'      },
 ]
 
 /* ── Desktop NavLink ─────────────────────────────────────── */
@@ -303,6 +305,7 @@ export default function App() {
       <LeadMagnet />
       <div id="portafolio"><Portafolio /></div>
       <Testimonios />
+      <Blog />
       <FAQ />
       <div id="contacto"><Contacto /></div>
       <WhatsAppFloat />
