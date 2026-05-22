@@ -8,6 +8,7 @@ import Academia from './sections/Academia'
 import LeadMagnet from './sections/LeadMagnet'
 import Portafolio from './sections/Portafolio'
 import FAQ from './sections/FAQ'
+import Testimonios from './sections/Testimonios'
 import Contacto from './sections/Contacto'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
@@ -241,6 +242,7 @@ export default function App() {
       <div id="academia"><Academia /></div>
       <LeadMagnet />
       <div id="portafolio"><Portafolio /></div>
+      <Testimonios />
       <FAQ />
       <Contacto />
       <WhatsAppFloat />
