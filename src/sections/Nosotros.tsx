@@ -6,36 +6,20 @@ import { useIsMobile } from '../hooks/useIsMobile'
 // ── Actualiza estos datos con la info real del equipo ──────────────────────
 const equipo = [
   {
-    nombre: 'Sebastián González',
-    rol: 'Director Creativo & CEO',
-    desc: 'Más de 6 años construyendo marcas que comunican, conectan y convierten. Lidera la visión estratégica de cada proyecto.',
-    iniciales: 'SG',
-    emoji: '🎨',
-    color: `linear-gradient(135deg, #6B21A8, #9333EA)`,
-  },
-  {
-    nombre: 'Valentina Ríos',
-    rol: 'Diseñadora Web & UX',
-    desc: 'Especialista en experiencia de usuario y desarrollo frontend. Transforma wireframes en sitios que enamoran y convierten.',
-    iniciales: 'VR',
-    emoji: '💻',
+    nombre: 'Alejandra Giraldo Márquez',
+    rol: 'CEO & Fundadora',
+    desc: 'Lidera la visión y dirección de Alma. Apasionada por construir marcas que conectan emocionalmente con las personas y generan resultados reales.',
+    iniciales: 'AG',
+    emoji: '🚀',
     color: 'linear-gradient(135deg, #E11D48, #F43F5E)',
   },
   {
-    nombre: 'Camila Torres',
-    rol: 'Estratega de Marketing Digital',
-    desc: 'Convierte datos en estrategias. Experta en contenido, pauta y posicionamiento de marcas en redes sociales.',
-    iniciales: 'CT',
-    emoji: '📊',
-    color: 'linear-gradient(135deg, #0284C7, #38BDF8)',
-  },
-  {
-    nombre: 'Daniel Vargas',
-    rol: 'Content Creator & Branding',
-    desc: 'Diseñador gráfico y creador de contenido visual. Da vida a la identidad de cada marca con narrativas que impactan.',
-    iniciales: 'DV',
-    emoji: '✨',
-    color: 'linear-gradient(135deg, #059669, #34D399)',
+    nombre: 'Sebastián González',
+    rol: 'Gerente Operativo & Co-founder',
+    desc: 'Garantiza que cada proyecto fluya con precisión, desde la estrategia hasta la entrega. Más de 6 años convirtiendo ideas en experiencias digitales.',
+    iniciales: 'SG',
+    emoji: '🎨',
+    color: `linear-gradient(135deg, #6B21A8, #9333EA)`,
   },
 ]
 
@@ -210,7 +194,9 @@ export default function Nosotros() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+          maxWidth: isMobile ? '100%' : '640px',
+          margin: '0 auto',
           gap: isMobile ? '14px' : '20px',
           marginBottom: isMobile ? '40px' : '64px',
         }}>
