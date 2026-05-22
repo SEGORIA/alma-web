@@ -15,6 +15,7 @@ import FAQ         from './sections/FAQ'
 import Contacto    from './sections/Contacto'
 import Nosotros    from './sections/Nosotros'
 import Blog        from './sections/Blog'
+import InstaFeed   from './sections/InstaFeed'
 import Calculadora from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import BlogPage    from './pages/BlogPage'
@@ -351,6 +352,7 @@ function Landing() {
       <Calculadora />
       <Testimonios />
       <Blog />
+      <InstaFeed />
       <FAQ />
       <div id="contacto"><Contacto /></div>
       <WhatsAppFloat />
