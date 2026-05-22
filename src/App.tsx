@@ -12,12 +12,13 @@ import Portafolio  from './sections/Portafolio'
 import Testimonios from './sections/Testimonios'
 import FAQ         from './sections/FAQ'
 import Contacto    from './sections/Contacto'
+import Nosotros    from './sections/Nosotros'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
-  { label: 'Agencia',    href: '#agencia',   id: 'agencia'   },
+  { label: 'Nosotros',   href: '#nosotros',  id: 'nosotros'  },
   { label: 'Servicios',  href: '#servicios', id: 'servicios' },
   { label: 'Academia',   href: '#academia',  id: 'academia'  },
   { label: 'Portafolio', href: '#portafolio',id: 'portafolio'},
@@ -294,6 +295,7 @@ export default function App() {
       {/* ── Secciones ── */}
       <div id="inicio"><Hero /></div>
       <Clientes />
+      <Nosotros />
       <div id="agencia"><Manifiesto /></div>
       <Proceso />
       <div id="servicios"><ServiciosTabs /></div>
