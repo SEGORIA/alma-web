@@ -14,6 +14,7 @@ import FAQ         from './sections/FAQ'
 import Contacto    from './sections/Contacto'
 import Nosotros    from './sections/Nosotros'
 import Blog        from './sections/Blog'
+import Calculadora from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
@@ -304,6 +305,7 @@ export default function App() {
       <div id="academia"><Academia /></div>
       <LeadMagnet />
       <div id="portafolio"><Portafolio /></div>
+      <Calculadora />
       <Testimonios />
       <Blog />
       <FAQ />
