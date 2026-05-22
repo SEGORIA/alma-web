@@ -116,16 +116,29 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.7 }}
-            style={{ display: 'flex', gap: '40px', marginTop: '56px', flexWrap: 'wrap' }}
+            style={{
+              marginTop: '56px',
+              paddingTop: '32px',
+              borderTop: '1px solid #E5E7EB',
+              display: 'flex', gap: '0', flexWrap: 'wrap',
+            }}
           >
             {[
               { n: '150+', label: 'Proyectos entregados' },
-              { n: '6', label: 'Años de experiencia' },
-              { n: '98%', label: 'Clientes satisfechos' },
-            ].map(s => (
-              <div key={s.label}>
-                <p style={{ fontSize: '30px', fontWeight: 900, color: P, lineHeight: 1 }}>{s.n}</p>
-                <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>{s.label}</p>
+              { n: '6',    label: 'Años de experiencia' },
+              { n: '98%',  label: 'Clientes satisfechos' },
+            ].map((s, i) => (
+              <div
+                key={s.label}
+                style={{
+                  flex: '1 1 80px',
+                  paddingRight: '32px',
+                  borderRight: i < 2 ? '1px solid #E5E7EB' : 'none',
+                  marginRight: i < 2 ? '32px' : 0,
+                }}
+              >
+                <p style={{ fontSize: '32px', fontWeight: 900, color: P, lineHeight: 1 }}>{s.n}</p>
+                <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '6px', fontWeight: 500 }}>{s.label}</p>
               </div>
             ))}
           </motion.div>
@@ -136,8 +149,42 @@ export default function Hero() {
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          style={{ flex: '1 1 320px', maxWidth: '460px' }}
+          style={{ flex: '1 1 320px', maxWidth: '460px', position: 'relative' }}
         >
+          {/* Pill flotante superior */}
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute', top: '-18px', right: '20px', zIndex: 2,
+              background: '#fff',
+              boxShadow: '0 8px 28px rgba(107,33,168,0.15)',
+              borderRadius: '20px', padding: '8px 16px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              border: '1px solid rgba(107,33,168,0.1)',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>🚀</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: P }}>Proyecto lanzado</span>
+          </motion.div>
+
+          {/* Pill flotante inferior */}
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            style={{
+              position: 'absolute', bottom: '-18px', left: '20px', zIndex: 2,
+              background: '#fff',
+              boxShadow: '0 8px 28px rgba(107,33,168,0.15)',
+              borderRadius: '20px', padding: '8px 16px',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              border: '1px solid rgba(107,33,168,0.1)',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>⭐</span>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151' }}>Cliente satisfecho</span>
+          </motion.div>
+
           <div style={{
             background: '#fff', borderRadius: '20px',
             boxShadow: '0 40px 100px rgba(107,33,168,0.18)',

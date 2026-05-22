@@ -3,16 +3,72 @@ import { useState } from 'react'
 import { P, Y } from '../tokens'
 
 const recursos = [
-  { n: '01', titulo: 'Humanización', desc: 'Mensajes con alma que generan conexiones reales y duraderas con cada persona.' },
-  { n: '02', titulo: 'Estrategia', desc: 'Cada acción tiene un propósito medible y un resultado esperado desde el inicio.' },
-  { n: '03', titulo: 'Creatividad', desc: 'Diseño visual y narrativo que inspira, diferencia e impacta en cada punto de contacto.' },
-  { n: '04', titulo: 'Resultados', desc: 'Decisiones basadas en datos reales para escalar tu marca de forma sostenible.' },
-  { n: '05', titulo: 'Autenticidad', desc: 'Comunicación coherente, cercana y alineada con la esencia real de tu marca.' },
-  { n: '06', titulo: 'Impacto', desc: 'Transformamos la atención de tu audiencia en conversiones y relaciones de valor.' },
+  { n: '01', titulo: 'Humanización', desc: 'Mensajes con alma que generan conexiones reales y duraderas con cada persona. Porque detrás de cada marca hay personas que merecen ser escuchadas.', featured: true },
+  { n: '02', titulo: 'Estrategia',    desc: 'Cada acción tiene un propósito medible y un resultado esperado desde el inicio.' },
+  { n: '03', titulo: 'Creatividad',   desc: 'Diseño visual y narrativo que inspira, diferencia e impacta en cada punto de contacto.' },
+  { n: '04', titulo: 'Resultados',    desc: 'Decisiones basadas en datos reales para escalar tu marca de forma sostenible.' },
+  { n: '05', titulo: 'Autenticidad',  desc: 'Comunicación coherente, cercana y alineada con la esencia real de tu marca.' },
+  { n: '06', titulo: 'Impacto',       desc: 'Transformamos la atención de tu audiencia en conversiones y relaciones de valor.' },
 ]
 
 function RecursoCard({ r, i }: { r: typeof recursos[0]; i: number }) {
   const [hovered, setHovered] = useState(false)
+
+  if (r.featured) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.6, delay: 0 }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          gridColumn: 'span 2',
+          background: hovered ? P : `linear-gradient(135deg, ${P} 0%, #9333EA 100%)`,
+          borderRadius: '20px', padding: '40px 36px',
+          cursor: 'default', position: 'relative', overflow: 'hidden',
+          boxShadow: hovered ? '0 28px 80px rgba(107,33,168,0.35)' : '0 8px 32px rgba(107,33,168,0.2)',
+          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+          transition: 'all 0.3s ease',
+        }}
+      >
+        {/* decorative circle */}
+        <div style={{
+          position: 'absolute', top: '-40px', right: '-40px',
+          width: '200px', height: '200px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.06)', pointerEvents: 'none',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-60px', right: '80px',
+          width: '150px', height: '150px', borderRadius: '50%',
+          background: 'rgba(250,204,21,0.08)', pointerEvents: 'none',
+        }} />
+
+        <p style={{
+          fontSize: '52px', fontWeight: 900, lineHeight: 1,
+          color: Y, marginBottom: '20px',
+        }}>
+          {r.n}
+        </p>
+        <h3 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', marginBottom: '12px' }}>
+          {r.titulo}
+        </h3>
+        <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', maxWidth: '480px' }}>
+          {r.desc}
+        </p>
+        <div style={{
+          marginTop: '24px',
+          display: 'inline-flex', alignItems: 'center', gap: '8px',
+          background: Y, color: '#111',
+          padding: '8px 18px', borderRadius: '20px',
+          fontSize: '12px', fontWeight: 700,
+        }}>
+          ✦ Nuestra esencia
+        </div>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
