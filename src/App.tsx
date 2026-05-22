@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import './index.css'
 import Hero        from './sections/Hero'
@@ -16,6 +17,8 @@ import Nosotros    from './sections/Nosotros'
 import Blog        from './sections/Blog'
 import Calculadora from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
+import BlogPage    from './pages/BlogPage'
+import ArticuloPage from './pages/ArticuloPage'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 const NAV_LINKS = [
@@ -97,15 +100,14 @@ function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
   )
 }
 
-/* ── App ─────────────────────────────────────────────────── */
-export default function App() {
+/* ── Landing Page ────────────────────────────────────────── */
+function Landing() {
   const [scrolled,       setScrolled]       = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
   const [menuOpen,       setMenuOpen]       = useState(false)
   const [activeSection,  setActiveSection]  = useState('inicio')
 
-  /* Scroll + resize */
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40)
@@ -125,7 +127,6 @@ export default function App() {
     }
   }, [])
 
-  /* Sección activa via IntersectionObserver */
   useEffect(() => {
     const ids = NAV_LINKS.map(l => l.id)
     const observers = ids.map(id => {
@@ -141,7 +142,6 @@ export default function App() {
     return () => observers.forEach(obs => obs?.disconnect())
   }, [])
 
-  /* Bloquear scroll con menú abierto */
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -312,5 +312,16 @@ export default function App() {
       <div id="contacto"><Contacto /></div>
       <WhatsAppFloat />
     </div>
+  )
+}
+
+/* ── App Router ──────────────────────────────────────────── */
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/"           element={<Landing />} />
+      <Route path="/blog"       element={<BlogPage />} />
+      <Route path="/blog/:slug" element={<ArticuloPage />} />
+    </Routes>
   )
 }
