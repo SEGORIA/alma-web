@@ -21,6 +21,14 @@ const equipo = [
     emoji: '🎨',
     color: `linear-gradient(135deg, #6B21A8, #9333EA)`,
   },
+  {
+    nombre: 'Lina Márquez',
+    rol: 'Coordinadora de Clientes',
+    desc: 'El puente entre el equipo y cada cliente. Asegura que cada experiencia sea clara, cercana y que los proyectos avancen con total tranquilidad.',
+    iniciales: 'LM',
+    emoji: '🤝',
+    color: 'linear-gradient(135deg, #0284C7, #38BDF8)',
+  },
 ]
 
 const valores = [
@@ -194,8 +202,8 @@ export default function Nosotros() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-          maxWidth: isMobile ? '100%' : '640px',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          maxWidth: isMobile ? '100%' : '960px',
           margin: '0 auto',
           gap: isMobile ? '14px' : '20px',
           marginBottom: isMobile ? '40px' : '64px',
