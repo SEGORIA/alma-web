@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const P = '#6B21A8'
-const Y = '#FACC15'
-const WA = 'https://wa.me/573013369325?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma'
+import { P, Y, WA_COTIZAR as WA } from '../tokens'
 
 type Plan = { nombre: string; precio: string; periodo?: string; destacado?: boolean; items: string[] }
 type Tab = { id: string; label: string; planes: Plan[] }

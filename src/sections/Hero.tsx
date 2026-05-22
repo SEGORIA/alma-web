@@ -1,11 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-
-const P = '#6B21A8'
-const PL = '#9333EA'
-const Y = '#FACC15'
-const YD = '#EAB308'
-const WA_URL = 'https://wa.me/573013369325?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma'
+import { P, PL, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
 
 const previewCards = [
   { titulo: 'Prr Love', cat: 'Branding', g: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
@@ -125,7 +120,7 @@ export default function Hero() {
           >
             {[
               { n: '150+', label: 'Proyectos entregados' },
-              { n: '4', label: 'Años de experiencia' },
+              { n: '6', label: 'Años de experiencia' },
               { n: '98%', label: 'Clientes satisfechos' },
             ].map(s => (
               <div key={s.label}>

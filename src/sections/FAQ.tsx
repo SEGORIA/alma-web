@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const P = '#6B21A8'
-const Y = '#FACC15'
+import { P, Y } from '../tokens'
 
 const faqs = [
   { q: '¿Cuánto tiempo tarda la entrega de un proyecto web?', a: 'Una landing page tarda entre 5 y 7 días hábiles. Un sitio corporativo completo entre 10 y 15 días. Una tienda virtual entre 15 y 25 días hábiles.' },

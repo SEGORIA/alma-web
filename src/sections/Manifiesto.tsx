@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-
-const P = '#6B21A8'
-const Y = '#FACC15'
+import { P, Y } from '../tokens'
 
 const recursos = [
   { n: '01', titulo: 'Humanización', desc: 'Mensajes con alma que generan conexiones reales y duraderas con cada persona.' },

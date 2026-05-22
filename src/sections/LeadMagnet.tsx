@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-
-const P = '#6B21A8'
-const Y = '#FACC15'
+import { P, Y, PHONE } from '../tokens'
 
 export default function LeadMagnet() {
   const [email, setEmail] = useState('')
@@ -10,7 +8,10 @@ export default function LeadMagnet() {
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault()
-    if (email.trim()) setSent(true)
+    if (!email.trim()) return
+    const texto = `Hola, quiero recibir la guía de Instagram con IA. Mi correo es: ${email.trim()}`
+    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(texto)}`, '_blank')
+    setSent(true)
   }
 
   return (

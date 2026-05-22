@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const P = '#6B21A8'
-const Y = '#FACC15'
+import { P, Y } from '../tokens'
 
 type Proyecto = { titulo: string; cat: string; g: string; tall?: boolean }
 

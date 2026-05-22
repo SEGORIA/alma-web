@@ -9,10 +9,7 @@ import Portafolio from './sections/Portafolio'
 import FAQ from './sections/FAQ'
 import Contacto from './sections/Contacto'
 import WhatsAppFloat from './components/WhatsAppFloat'
-
-const P = '#6B21A8'
-const PD = '#581C87'
-const Y = '#FACC15'
+import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 function NavLink({ label, href }: { label: string; href: string }) {
   const [hovered, setHovered] = useState(false)
@@ -94,7 +91,7 @@ export default function App() {
 
           {/* CTA */}
           <a
-            href="https://wa.me/573013369325?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma"
+            href={WA_PROYECTO}
             target="_blank"
             rel="noopener noreferrer"
             style={{

@@ -1,7 +1,5 @@
 import { motion } from 'framer-motion'
-
-const PD = '#581C87'
-const Y = '#FACC15'
+import { PD, Y } from '../tokens'
 
 const mockups = [
   { titulo: 'Guía Instagram con IA', sub: 'E-book gratuito', g: 'linear-gradient(135deg,#A855F7,#EC4899)', h: 180, cta: true },
