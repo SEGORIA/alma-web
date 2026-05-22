@@ -1,20 +1,75 @@
-import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { motion, useInView } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
 import { P, PL, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
 
+/* ── Palabras del headline ───────────────────────────────── */
+const headline = [
+  { word: 'Convertimos', colored: false },
+  { word: 'tu',          colored: false },
+  { word: 'visión',      colored: true  },
+  { word: 'en',          colored: false },
+  { word: 'realidad',    colored: true  },
+  { word: 'digital',     colored: false },
+]
+
+/* ── Contador animado ─────────────────────────────────────── */
+function Counter({ target, suffix = '', label }: { target: number; suffix?: string; label: string }) {
+  const [count, setCount] = useState(0)
+  const ref  = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+
+  useEffect(() => {
+    if (!inView) return
+    let frame: number
+    const start = performance.now()
+    const duration = 1600
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1)
+      // ease out quad
+      const eased = 1 - (1 - progress) * (1 - progress)
+      setCount(Math.floor(eased * target))
+      if (progress < 1) frame = requestAnimationFrame(tick)
+      else setCount(target)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [inView, target])
+
+  return (
+    <div ref={ref}>
+      <p style={{ fontSize: '32px', fontWeight: 900, color: P, lineHeight: 1 }}>
+        {count}{suffix}
+      </p>
+      <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '6px', fontWeight: 500 }}>
+        {label}
+      </p>
+    </div>
+  )
+}
+
 const previewCards = [
-  { titulo: 'Prr Love', cat: 'Branding', g: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
-  { titulo: 'Malasaña Store', cat: 'E-commerce', g: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
-  { titulo: 'Magic All Stars', cat: 'Marketing', g: 'linear-gradient(135deg,#FDE68A,#F59E0B)' },
+  { titulo: 'Prr Love',       cat: 'Branding',          g: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
+  { titulo: 'Malasaña Store', cat: 'E-commerce',        g: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
+  { titulo: 'Magic All Stars',cat: 'Marketing Digital', g: 'linear-gradient(135deg,#FDE68A,#F59E0B)' },
 ]
 
 export default function Hero() {
-  const [cardIdx, setCardIdx] = useState(0)
+  const [cardIdx,  setCardIdx]  = useState(0)
   const [btnHover, setBtnHover] = useState(false)
+  const [scrollY,  setScrollY]  = useState(0)
 
   useEffect(() => {
+    // Rotación de cards
     const t = setInterval(() => setCardIdx(i => (i + 1) % previewCards.length), 2400)
-    return () => clearInterval(t)
+    // Parallax
+    const onScroll = () => setScrollY(window.scrollY)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      clearInterval(t)
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
 
   const card = previewCards[cardIdx]
@@ -27,19 +82,34 @@ export default function Hero() {
       background: 'linear-gradient(135deg,#ffffff 55%,rgba(147,51,234,0.06) 100%)',
       position: 'relative', overflow: 'hidden',
     }}>
+      {/* Parallax glow */}
       <div style={{
         position: 'absolute', top: '-200px', right: '-200px',
         width: '700px', height: '700px',
         background: 'radial-gradient(ellipse,rgba(147,51,234,0.1) 0%,transparent 65%)',
         pointerEvents: 'none',
+        transform: `translateY(${scrollY * 0.18}px)`,
+        transition: 'transform 0.1s linear',
+      }} />
+      {/* Second glow bottom-left */}
+      <div style={{
+        position: 'absolute', bottom: '-100px', left: '-100px',
+        width: '400px', height: '400px',
+        background: 'radial-gradient(ellipse,rgba(250,204,21,0.07) 0%,transparent 65%)',
+        pointerEvents: 'none',
+        transform: `translateY(${scrollY * -0.1}px)`,
+        transition: 'transform 0.1s linear',
       }} />
 
       <div style={{
         maxWidth: '1200px', margin: '0 auto', width: '100%',
         display: 'flex', alignItems: 'center', gap: '64px', flexWrap: 'wrap',
       }}>
-        {/* Left 60% */}
+
+        {/* ── Left ── */}
         <div style={{ flex: '1 1 380px', maxWidth: '600px' }}>
+
+          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -54,37 +124,45 @@ export default function Hero() {
             📍 Estrategia & Diseño desde Manizales
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              fontSize: 'clamp(38px,5.5vw,64px)', fontWeight: 900,
-              lineHeight: 1.06, letterSpacing: '-2px', color: '#111827',
-              marginBottom: '20px',
-            }}
-          >
-            Convertimos tu{' '}
-            <span style={{ color: P }}>visión</span>
-            {' '}en{' '}
-            <span style={{ color: P }}>realidad</span>
-            {' '}digital
-          </motion.h1>
+          {/* Headline — palabra por palabra */}
+          <h1 style={{
+            fontSize: 'clamp(38px,5.5vw,64px)', fontWeight: 900,
+            lineHeight: 1.08, letterSpacing: '-2px',
+            marginBottom: '20px',
+          }}>
+            {headline.map((item, i) => (
+              <motion.span
+                key={item.word}
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.1 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  display: 'inline-block',
+                  color: item.colored ? P : '#111827',
+                  marginRight: '0.27em',
+                }}
+              >
+                {item.word}
+              </motion.span>
+            ))}
+          </h1>
 
+          {/* Subtítulo */}
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.58 }}
             style={{ fontSize: '18px', lineHeight: 1.65, color: '#4B5563', marginBottom: '40px', maxWidth: '480px' }}
           >
             Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia
             y generan resultados medibles.
           </motion.p>
 
+          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.45 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
             style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}
           >
             <a
@@ -112,10 +190,11 @@ export default function Hero() {
             </a>
           </motion.div>
 
+          {/* Contadores animados */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.7 }}
+            transition={{ duration: 0.7, delay: 0.85 }}
             style={{
               marginTop: '56px',
               paddingTop: '32px',
@@ -124,27 +203,26 @@ export default function Hero() {
             }}
           >
             {[
-              { n: '150+', label: 'Proyectos entregados' },
-              { n: '6',    label: 'Años de experiencia' },
-              { n: '98%',  label: 'Clientes satisfechos' },
+              { target: 150, suffix: '+', label: 'Proyectos entregados' },
+              { target: 6,   suffix: '',  label: 'Años de experiencia'  },
+              { target: 98,  suffix: '%', label: 'Clientes satisfechos' },
             ].map((s, i) => (
               <div
                 key={s.label}
                 style={{
                   flex: '1 1 80px',
-                  paddingRight: '32px',
+                  paddingRight: i < 2 ? '32px' : 0,
                   borderRight: i < 2 ? '1px solid #E5E7EB' : 'none',
                   marginRight: i < 2 ? '32px' : 0,
                 }}
               >
-                <p style={{ fontSize: '32px', fontWeight: 900, color: P, lineHeight: 1 }}>{s.n}</p>
-                <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '6px', fontWeight: 500 }}>{s.label}</p>
+                <Counter target={s.target} suffix={s.suffix} label={s.label} />
               </div>
             ))}
           </motion.div>
         </div>
 
-        {/* Right 40% — browser mockup */}
+        {/* ── Right: browser mockup ── */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -185,12 +263,13 @@ export default function Hero() {
             <span style={{ fontSize: '12px', fontWeight: 700, color: '#374151' }}>Cliente satisfecho</span>
           </motion.div>
 
+          {/* Browser mockup */}
           <div style={{
             background: '#fff', borderRadius: '20px',
             boxShadow: '0 40px 100px rgba(107,33,168,0.18)',
             overflow: 'hidden', border: '1px solid #E5E7EB',
           }}>
-            {/* Chrome */}
+            {/* Chrome bar */}
             <div style={{
               background: '#F9FAFB', padding: '12px 16px',
               display: 'flex', alignItems: 'center', gap: '6px',
@@ -240,7 +319,7 @@ export default function Hero() {
                 <p style={{ fontSize: '12px', color: PL, marginTop: '4px', fontWeight: 600 }}>{card.cat}</p>
               </motion.div>
 
-              {/* Bottom color row */}
+              {/* Color row */}
               <div style={{ display: 'flex', gap: '10px' }}>
                 {[P, '#9333EA', '#C026D3'].map((c, i) => (
                   <div key={i} style={{

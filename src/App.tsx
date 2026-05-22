@@ -1,38 +1,46 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './index.css'
-import Hero from './sections/Hero'
-import Manifiesto from './sections/Manifiesto'
+import Hero        from './sections/Hero'
+import Clientes    from './sections/Clientes'
+import Manifiesto  from './sections/Manifiesto'
+import Proceso     from './sections/Proceso'
 import ServiciosTabs from './sections/ServiciosTabs'
-import Academia from './sections/Academia'
-import LeadMagnet from './sections/LeadMagnet'
-import Portafolio from './sections/Portafolio'
-import FAQ from './sections/FAQ'
+import Academia    from './sections/Academia'
+import LeadMagnet  from './sections/LeadMagnet'
+import Portafolio  from './sections/Portafolio'
 import Testimonios from './sections/Testimonios'
-import Contacto from './sections/Contacto'
+import FAQ         from './sections/FAQ'
+import Contacto    from './sections/Contacto'
 import WhatsAppFloat from './components/WhatsAppFloat'
+import CustomCursor  from './components/CustomCursor'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
 
 const NAV_LINKS = [
-  { label: 'Inicio',     href: '#inicio' },
-  { label: 'Agencia',    href: '#agencia' },
-  { label: 'Servicios',  href: '#servicios' },
-  { label: 'Academia',   href: '#academia' },
-  { label: 'Portafolio', href: '#portafolio' },
+  { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
+  { label: 'Agencia',    href: '#agencia',   id: 'agencia'   },
+  { label: 'Servicios',  href: '#servicios', id: 'servicios' },
+  { label: 'Academia',   href: '#academia',  id: 'academia'  },
+  { label: 'Portafolio', href: '#portafolio',id: 'portafolio'},
 ]
 
-/* ── Desktop NavLink ─────────────────────────────────────────────────── */
-function NavLink({ label, href, onClick }: { label: string; href: string; onClick?: () => void }) {
+/* ── Desktop NavLink ─────────────────────────────────────── */
+function NavLink({ label, href, onClick, active }: {
+  label: string; href: string; onClick?: () => void; active?: boolean
+}) {
   const [hovered, setHovered] = useState(false)
+  const lit = active || hovered
+
   return (
     <a
       href={href}
       onClick={onClick}
       style={{
-        color: hovered ? P : '#374151',
-        fontSize: '14px', fontWeight: 500,
+        color: lit ? P : '#374151',
+        fontSize: '14px', fontWeight: lit ? 600 : 500,
         textDecoration: 'none', padding: '6px 12px', borderRadius: '8px',
-        transition: 'color 0.2s ease', position: 'relative', display: 'inline-block',
+        transition: 'color 0.2s ease, font-weight 0.2s ease',
+        position: 'relative', display: 'inline-block',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -41,13 +49,14 @@ function NavLink({ label, href, onClick }: { label: string; href: string; onClic
       <span style={{
         position: 'absolute', bottom: 2, left: '12px', right: '12px',
         height: '2px', background: Y, borderRadius: '2px',
-        opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease',
+        opacity: lit ? 1 : 0,
+        transition: 'opacity 0.2s ease',
       }} />
     </a>
   )
 }
 
-/* ── Hamburger icon ──────────────────────────────────────────────────── */
+/* ── Hamburger ───────────────────────────────────────────── */
 function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
   return (
     <button
@@ -55,37 +64,51 @@ function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
       aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
       style={{
         background: 'none', border: 'none', cursor: 'pointer',
-        padding: '8px', borderRadius: '8px', display: 'flex',
-        flexDirection: 'column', gap: '5px', alignItems: 'center', justifyContent: 'center',
+        padding: '8px', borderRadius: '8px',
+        display: 'flex', flexDirection: 'column',
+        gap: '5px', alignItems: 'center', justifyContent: 'center',
       }}
     >
-      <span style={{
-        display: 'block', width: '22px', height: '2px', background: P, borderRadius: '2px',
-        transition: 'all 0.3s ease',
-        transform: open ? 'translateY(7px) rotate(45deg)' : 'none',
-      }} />
-      <span style={{
-        display: 'block', width: '22px', height: '2px', background: P, borderRadius: '2px',
-        transition: 'all 0.3s ease',
-        opacity: open ? 0 : 1,
-      }} />
-      <span style={{
-        display: 'block', width: '22px', height: '2px', background: P, borderRadius: '2px',
-        transition: 'all 0.3s ease',
-        transform: open ? 'translateY(-7px) rotate(-45deg)' : 'none',
-      }} />
+      {[
+        open ? 'translateY(7px) rotate(45deg)'  : 'none',
+        undefined,
+        open ? 'translateY(-7px) rotate(-45deg)' : 'none',
+      ].map((transform, i) => (
+        i === 1 ? (
+          <span key={i} style={{
+            display: 'block', width: '22px', height: '2px',
+            background: P, borderRadius: '2px',
+            transition: 'all 0.3s ease',
+            opacity: open ? 0 : 1,
+          }} />
+        ) : (
+          <span key={i} style={{
+            display: 'block', width: '22px', height: '2px',
+            background: P, borderRadius: '2px',
+            transition: 'all 0.3s ease',
+            transform: transform ?? undefined,
+          }} />
+        )
+      ))}
     </button>
   )
 }
 
-/* ── App ─────────────────────────────────────────────────────────────── */
+/* ── App ─────────────────────────────────────────────────── */
 export default function App() {
-  const [scrolled,  setScrolled]  = useState(false)
-  const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768)
-  const [menuOpen,  setMenuOpen]  = useState(false)
+  const [scrolled,       setScrolled]       = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
+  const [menuOpen,       setMenuOpen]       = useState(false)
+  const [activeSection,  setActiveSection]  = useState('inicio')
 
+  /* Scroll + resize */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40)
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40)
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      setScrollProgress(total > 0 ? (window.scrollY / total) * 100 : 0)
+    }
     const onResize = () => {
       const mobile = window.innerWidth < 768
       setIsMobile(mobile)
@@ -99,7 +122,23 @@ export default function App() {
     }
   }, [])
 
-  // Bloquear scroll del body cuando el menú móvil está abierto
+  /* Sección activa via IntersectionObserver */
+  useEffect(() => {
+    const ids = NAV_LINKS.map(l => l.id)
+    const observers = ids.map(id => {
+      const el = document.getElementById(id)
+      if (!el) return null
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id) },
+        { threshold: 0.35 }
+      )
+      obs.observe(el)
+      return obs
+    })
+    return () => observers.forEach(obs => obs?.disconnect())
+  }, [])
+
+  /* Bloquear scroll con menú abierto */
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -107,10 +146,25 @@ export default function App() {
 
   const closeMenu = () => setMenuOpen(false)
 
-  const logoHeight = scrolled ? '56px' : '72px'
-
   return (
     <div style={{ background: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
+
+      {/* Custom cursor */}
+      <CustomCursor />
+
+      {/* Scroll progress bar */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        zIndex: 300, height: '3px', pointerEvents: 'none',
+      }}>
+        <div style={{
+          height: '100%',
+          background: `linear-gradient(90deg, ${P}, #9333EA, ${Y})`,
+          width: `${scrollProgress}%`,
+          transition: 'width 0.08s linear',
+          borderRadius: '0 2px 2px 0',
+        }} />
+      </div>
 
       {/* ── Navbar ── */}
       <nav style={{
@@ -140,16 +194,23 @@ export default function App() {
               <img
                 src="/alma-logo.png"
                 alt="Alma Agencia Creativa"
-                style={{ height: logoHeight, width: 'auto', transition: 'height 0.3s ease' }}
+                style={{ height: scrolled ? '56px' : '72px', width: 'auto', transition: 'height 0.3s ease' }}
               />
             </div>
           </a>
 
-          {/* Desktop: links + CTA */}
+          {/* Desktop links + CTA */}
           {!isMobile && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {NAV_LINKS.map(link => <NavLink key={link.href} {...link} />)}
+                {NAV_LINKS.map(link => (
+                  <NavLink
+                    key={link.href}
+                    label={link.label}
+                    href={link.href}
+                    active={activeSection === link.id}
+                  />
+                ))}
               </div>
               <a
                 href={WA_PROYECTO}
@@ -169,11 +230,11 @@ export default function App() {
             </>
           )}
 
-          {/* Mobile: hamburger */}
+          {/* Mobile hamburger */}
           {isMobile && <Hamburger open={menuOpen} onClick={() => setMenuOpen(o => !o)} />}
         </div>
 
-        {/* ── Mobile menu (slide down) ── */}
+        {/* Mobile menu */}
         <AnimatePresence>
           {isMobile && menuOpen && (
             <motion.div
@@ -198,20 +259,19 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05, duration: 0.25 }}
                     style={{
-                      color: '#111827', fontSize: '16px', fontWeight: 600,
+                      color: activeSection === link.id ? P : '#111827',
+                      fontSize: '16px', fontWeight: 600,
                       textDecoration: 'none', padding: '12px 8px',
                       borderBottom: '1px solid #F3F4F6',
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.color = P)}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#111827')}
+                    onMouseLeave={e => (e.currentTarget.style.color = activeSection === link.id ? P : '#111827')}
                   >
                     {link.label}
                     <span style={{ color: Y, fontWeight: 900, fontSize: '18px' }}>›</span>
                   </motion.a>
                 ))}
-
-                {/* CTA móvil */}
                 <motion.a
                   href={WA_PROYECTO}
                   target="_blank"
@@ -221,8 +281,7 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: NAV_LINKS.length * 0.05 + 0.05, duration: 0.25 }}
                   style={{
-                    marginTop: '12px',
-                    display: 'block', textAlign: 'center',
+                    marginTop: '12px', display: 'block', textAlign: 'center',
                     background: P, color: '#fff',
                     padding: '14px', borderRadius: '12px',
                     fontWeight: 700, fontSize: '15px', textDecoration: 'none',
@@ -236,15 +295,18 @@ export default function App() {
         </AnimatePresence>
       </nav>
 
+      {/* ── Secciones ── */}
       <div id="inicio"><Hero /></div>
+      <Clientes />
       <div id="agencia"><Manifiesto /></div>
+      <Proceso />
       <div id="servicios"><ServiciosTabs /></div>
       <div id="academia"><Academia /></div>
       <LeadMagnet />
       <div id="portafolio"><Portafolio /></div>
       <Testimonios />
       <FAQ />
-      <Contacto />
+      <div id="contacto"><Contacto /></div>
       <WhatsAppFloat />
     </div>
   )
