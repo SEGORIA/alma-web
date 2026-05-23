@@ -2,6 +2,9 @@ import { motion, useInView } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
 import { P, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getHeroContent } from '../lib/db'
+import { heroStatsDefault, heroSubtituloDefault } from '../data/config'
+import type { HeroStat } from '../data/config'
 
 const headline = [
   { word: 'Convertimos', colored: false },
@@ -45,11 +48,19 @@ export default function Hero() {
   const isMobile               = useIsMobile()
   const [btnHover, setBtnHover] = useState(false)
   const [scrollY,  setScrollY]  = useState(0)
+  const [stats,    setStats]    = useState<HeroStat[]>(heroStatsDefault)
+  const [subtitulo,setSubtitulo]= useState(heroSubtituloDefault)
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    getHeroContent().then(({ stats: s, subtitulo: sub }) => {
+      setStats(s); setSubtitulo(sub)
+    })
   }, [])
 
   return (
@@ -131,8 +142,7 @@ export default function Hero() {
               maxWidth: '480px',
             }}
           >
-            Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia
-            y generan resultados medibles.
+            {subtitulo}
           </motion.p>
 
           {/* CTAs */}
@@ -184,11 +194,7 @@ export default function Hero() {
               display: 'flex', gap: '0', flexWrap: 'wrap',
             }}
           >
-            {[
-              { target: 150, suffix: '+', label: 'Proyectos entregados' },
-              { target: 6,   suffix: '',  label: 'Años de experiencia'  },
-              { target: 98,  suffix: '%', label: 'Clientes satisfechos' },
-            ].map((s, i) => (
+            {stats.map((s, i) => (
               <div key={s.label} style={{
                 flex: '1 1 70px',
                 paddingRight: i < 2 ? (isMobile ? '16px' : '32px') : 0,

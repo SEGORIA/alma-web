@@ -34,9 +34,27 @@ export type FaqItem = {
   orden?: number
 }
 
+export type ContactoInfo = {
+  whatsapp:  string   // número puro: '573188006436'
+  telefono:  string   // texto a mostrar: '+57 301 336 9325'
+  email:     string
+  ubicacion: string
+  instagram: string
+  academia:  string
+}
+
+export type HeroStat = {
+  target: number
+  suffix: string
+  label:  string
+}
+
 export type SiteConfig = {
-  secciones: SeccionesConfig
-  clientes:  string[]
+  secciones:      SeccionesConfig
+  clientes:       string[]
+  contactoInfo?:  ContactoInfo
+  heroStats?:     HeroStat[]
+  heroSubtitulo?: string
 }
 
 // ── Secciones — información para el admin ─────────────────────
@@ -60,6 +78,25 @@ export const seccionesInfo: {
   { id: 'blog',        icon: '📝', label: 'Blog (inicio)',        desc: 'Últimos artículos en el inicio' },
   { id: 'faq',         icon: '❓', label: 'Preguntas Frecuentes', desc: 'Acordeón de preguntas y respuestas' },
 ]
+
+// ── Defaults de contacto y hero ──────────────────────────────
+
+export const contactoDefault: ContactoInfo = {
+  whatsapp:  '573188006436',
+  telefono:  '+57 301 336 9325',
+  email:     'alma.directivo@gmail.com',
+  ubicacion: 'Manizales, Colombia',
+  instagram: 'https://instagram.com/almaagenciacreativa',
+  academia:  'https://edu.almaagenciacreativa.com',
+}
+
+export const heroStatsDefault: HeroStat[] = [
+  { target: 150, suffix: '+', label: 'Proyectos entregados' },
+  { target: 6,   suffix: '',  label: 'Años de experiencia'  },
+  { target: 98,  suffix: '%', label: 'Clientes satisfechos' },
+]
+
+export const heroSubtituloDefault = 'Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia y generan resultados medibles.'
 
 // ── Defaults estáticos ────────────────────────────────────────
 

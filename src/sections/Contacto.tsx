@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { PD, Y, WA_CONTACTO as WA, PHONE } from '../tokens'
+import { PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
+import type { ContactoInfo } from '../data/config'
 
 function Field({ label, type = 'text', name, placeholder, multiline = false }: {
   label: string; type?: string; name: string; placeholder: string; multiline?: boolean
@@ -29,6 +32,14 @@ function Field({ label, type = 'text', name, placeholder, multiline = false }: {
 export default function Contacto() {
   const isMobile        = useIsMobile()
   const [sent, setSent] = useState(false)
+  const [contacto, setContacto] = useState<ContactoInfo>(contactoDefault)
+
+  useEffect(() => {
+    getContactoInfo().then(setContacto)
+  }, [])
+
+  const WA    = `https://wa.me/${contacto.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`
+  const PHONE = contacto.whatsapp
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,14 +52,14 @@ export default function Contacto() {
   }
 
   const info = [
-    { icon: '📱', label: 'WhatsApp',  value: '+57 318 800 6436',        href: WA },
-    { icon: '📞', label: 'Teléfono',  value: '301 336 9325',            href: 'tel:+573013369325' },
-    { icon: '✉️', label: 'Email',     value: 'alma.directivo@gmail.com', href: 'mailto:alma.directivo@gmail.com' },
-    { icon: '📍', label: 'Ubicación', value: 'Manizales, Colombia',      href: undefined },
+    { icon: '📱', label: 'WhatsApp',  value: '+57 ' + contacto.whatsapp.replace(/^57/, ''),  href: WA },
+    { icon: '📞', label: 'Teléfono',  value: contacto.telefono,                               href: `tel:+${contacto.whatsapp}` },
+    { icon: '✉️', label: 'Email',     value: contacto.email,                                  href: `mailto:${contacto.email}` },
+    { icon: '📍', label: 'Ubicación', value: contacto.ubicacion,                              href: undefined },
   ]
 
   const social = [
-    { label: 'Instagram', icon: '📷', href: 'https://instagram.com/almaagenciacreativa' },
+    { label: 'Instagram', icon: '📷', href: contacto.instagram },
     { label: 'WhatsApp',  icon: '💬', href: WA },
   ]
 
@@ -158,8 +169,8 @@ export default function Contacto() {
         }}>
           <span>© {new Date().getFullYear()} Alma Agencia Creativa · Manizales, Colombia</span>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <a href="https://edu.almaagenciacreativa.com" style={{ color: 'rgba(250,204,21,0.65)', textDecoration: 'none' }}>Academia →</a>
-            <a href="mailto:alma.directivo@gmail.com" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>alma.directivo@gmail.com</a>
+            <a href={contacto.academia} style={{ color: 'rgba(250,204,21,0.65)', textDecoration: 'none' }}>Academia →</a>
+            <a href={`mailto:${contacto.email}`} style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{contacto.email}</a>
             <Link to="/admin/login" style={{ color: 'rgba(255,255,255,0.18)', textDecoration: 'none', fontSize: '11px' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}

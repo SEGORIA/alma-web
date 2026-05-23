@@ -27,6 +27,7 @@ import PortafolioAdmin from './pages/admin/PortafolioAdmin'
 import PortafolioEditor from './pages/admin/PortafolioEditor'
 import PreciosAdmin from './pages/admin/PreciosAdmin'
 import ConfigAdmin from './pages/admin/ConfigAdmin'
+import ContenidoAdmin from './pages/admin/ContenidoAdmin'
 import { getConfig } from './lib/db'
 import { seccionesDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
@@ -403,8 +404,9 @@ export default function App() {
       <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
       <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
       <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
-      <Route path="/admin/precios" element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
-      <Route path="/admin/config"  element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
+      <Route path="/admin/precios"   element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
+      <Route path="/admin/contenido" element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
+      <Route path="/admin/config"    element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
     </Routes>
   )
 }

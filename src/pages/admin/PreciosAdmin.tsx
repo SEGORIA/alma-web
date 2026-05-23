@@ -321,6 +321,9 @@ export default function PreciosAdmin() {
     setSeeding(false)
   }
 
+  /* ── Detección de datos migrados ── */
+  const isMigrated = planes.some(p => !!p._id) && extras.some(e => !!e._id)
+
   /* ── Render helpers ── */
   const cardStyle: React.CSSProperties = {
     background: '#fff', borderRadius: '16px',
@@ -329,15 +332,17 @@ export default function PreciosAdmin() {
     justifyContent: 'space-between', gap: '16px',
   }
 
-  const actionBtn = (label: string, onClick: () => void, danger = false): React.JSX.Element => (
+  const actionBtn = (label: string, onClick: () => void, danger = false, disabled = false): React.JSX.Element => (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       style={{
-        background: danger ? 'rgba(239,68,68,0.08)' : `${P}15`,
-        color: danger ? '#EF4444' : P,
-        border: `1px solid ${danger ? 'rgba(239,68,68,0.2)' : `${P}30`}`,
+        background: disabled ? '#F3F4F6' : danger ? 'rgba(239,68,68,0.08)' : `${P}15`,
+        color: disabled ? '#D1D5DB' : danger ? '#EF4444' : P,
+        border: `1px solid ${disabled ? '#E5E7EB' : danger ? 'rgba(239,68,68,0.2)' : `${P}30`}`,
         padding: '5px 12px', borderRadius: '8px',
-        fontWeight: 600, fontSize: '12px', cursor: 'pointer',
+        fontWeight: 600, fontSize: '12px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         whiteSpace: 'nowrap',
       }}
     >{label}</button>
@@ -348,7 +353,7 @@ export default function PreciosAdmin() {
       <div style={{ padding: '40px 32px', maxWidth: '900px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: isMigrated ? '32px' : '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
               Precios & Servicios
@@ -361,7 +366,7 @@ export default function PreciosAdmin() {
             onClick={handleSeed}
             disabled={seeding}
             style={{
-              background: seeding ? '#E5E7EB' : `${Y}33`,
+              background: seeding ? '#E5E7EB' : isMigrated ? `${Y}33` : Y,
               color: seeding ? '#9CA3AF' : '#92400E',
               border: `1px solid ${seeding ? '#E5E7EB' : Y}`,
               padding: '10px 18px', borderRadius: '10px',
@@ -371,6 +376,26 @@ export default function PreciosAdmin() {
             {seeding ? 'Migrando…' : '🌱 Migrar datos a Firestore'}
           </button>
         </div>
+
+        {/* Banner migración */}
+        {!loading && !isMigrated && (
+          <div style={{
+            background: '#FEF9C3', border: '1px solid #FCD34D',
+            borderRadius: '14px', padding: '16px 20px', marginBottom: '28px',
+            display: 'flex', alignItems: 'center', gap: '14px',
+          }}>
+            <span style={{ fontSize: '22px', flexShrink: 0 }}>⚠️</span>
+            <div>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: '#92400E', marginBottom: '4px' }}>
+                Estás viendo datos de ejemplo — no se pueden editar aún
+              </p>
+              <p style={{ fontSize: '13px', color: '#B45309', lineHeight: 1.5 }}>
+                Haz clic en <strong>"🌱 Migrar datos a Firestore"</strong> para guardar los precios en la base de datos. Después podrás editarlos, agregarlos y eliminarlos libremente.
+              </p>
+            </div>
+          </div>
+        )}
+
 
         {loading && (
           <p style={{ color: '#9CA3AF', fontSize: '14px' }}>Cargando precios…</p>
@@ -387,7 +412,7 @@ export default function PreciosAdmin() {
                     <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span>{cat.emoji}</span> {cat.label}
                     </h2>
-                    {!addingInTab && (
+                    {!addingInTab && isMigrated && (
                       <button
                         onClick={() => { setAddingInTab(cat.id); setEditingPlanId(null) }}
                         style={{
@@ -405,7 +430,7 @@ export default function PreciosAdmin() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {catPlanes.map(plan => (
                       <div key={plan._id ?? plan.nombre}>
-                        {editingPlanId === plan._id ? (
+                        {plan._id && editingPlanId === plan._id ? (
                           <PlanForm
                             initial={{ tabId: plan.tabId, nombre: plan.nombre, precioNum: plan.precioNum, periodo: plan.periodo ?? '', destacado: plan.destacado ?? false, items: [...plan.items] }}
                             onSave={handleSavePlan}
@@ -413,7 +438,7 @@ export default function PreciosAdmin() {
                             saving={savingPlan}
                           />
                         ) : (
-                          <div style={cardStyle}>
+                          <div style={{ ...cardStyle, opacity: plan._id ? 1 : 0.65 }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{plan.nombre}</span>
@@ -429,8 +454,8 @@ export default function PreciosAdmin() {
                               </p>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                              {actionBtn('✏️ Editar', () => { setEditingPlanId(plan._id ?? null); setAddingInTab(null) })}
-                              {actionBtn('🗑 Eliminar', () => handleDeletePlan(plan), true)}
+                              {actionBtn('✏️ Editar',   () => { setEditingPlanId(plan._id!); setAddingInTab(null) }, false, !plan._id)}
+                              {actionBtn('🗑 Eliminar', () => handleDeletePlan(plan), true, !plan._id)}
                             </div>
                           </div>
                         )}
@@ -468,7 +493,7 @@ export default function PreciosAdmin() {
                     Servicios adicionales que el cliente puede sumar al presupuesto.
                   </p>
                 </div>
-                {!addingExtra && (
+                {!addingExtra && isMigrated && (
                   <button
                     onClick={() => { setAddingExtra(true); setEditingExtraId(null) }}
                     style={{
@@ -485,7 +510,7 @@ export default function PreciosAdmin() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {extras.map(extra => (
                   <div key={extra._id ?? extra.label}>
-                    {editingExtraId === extra._id ? (
+                    {extra._id && editingExtraId === extra._id ? (
                       <ExtraForm
                         initial={{ emoji: extra.emoji, label: extra.label, precioNum: extra.precioNum }}
                         onSave={handleSaveExtra}
@@ -493,7 +518,7 @@ export default function PreciosAdmin() {
                         saving={savingExtra}
                       />
                     ) : (
-                      <div style={cardStyle}>
+                      <div style={{ ...cardStyle, opacity: extra._id ? 1 : 0.65 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                           <span style={{ fontSize: '22px' }}>{extra.emoji}</span>
                           <div>
@@ -502,8 +527,8 @@ export default function PreciosAdmin() {
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                          {actionBtn('✏️ Editar', () => { setEditingExtraId(extra._id ?? null); setAddingExtra(false) })}
-                          {actionBtn('🗑 Eliminar', () => handleDeleteExtra(extra), true)}
+                          {actionBtn('✏️ Editar',   () => { setEditingExtraId(extra._id!); setAddingExtra(false) }, false, !extra._id)}
+                          {actionBtn('🗑 Eliminar', () => handleDeleteExtra(extra), true, !extra._id)}
                         </div>
                       </div>
                     )}

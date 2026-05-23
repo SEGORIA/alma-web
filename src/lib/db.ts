@@ -8,11 +8,14 @@ import { proyectosEstaticos } from '../data/portafolio'
 import { planesEstaticos, extrasEstaticos } from '../data/precios'
 import {
   seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
+  contactoDefault, heroStatsDefault, heroSubtituloDefault,
 } from '../data/config'
+import { pasosEstaticos, equipoEstatico } from '../data/contenido'
 import type { Articulo } from '../data/articulos'
 import type { Proyecto } from '../data/portafolio'
 import type { Plan, Extra } from '../data/precios'
-import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem } from '../data/config'
+import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat } from '../data/config'
+import type { PasoItem, EquipoMember } from '../data/contenido'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -22,6 +25,8 @@ function extrasCol()      { return collection(db!, 'precios_extras') }
 function configDoc()      { return doc(db!, 'config', 'site') }
 function testimoniosCol() { return collection(db!, 'testimonios') }
 function faqsCol()        { return collection(db!, 'faqs') }
+function pasosCol()       { return collection(db!, 'proceso') }
+function equipoCol()      { return collection(db!, 'equipo') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -163,19 +168,38 @@ export async function seedPrecios() {
 /* ══ CONFIGURACIÓN DEL SITIO ════════════════════════════════ */
 
 export async function getConfig(): Promise<SiteConfig> {
-  const fallback: SiteConfig = { secciones: seccionesDefault, clientes: clientesEstaticos }
+  const fallback: SiteConfig = {
+    secciones:      seccionesDefault,
+    clientes:       clientesEstaticos,
+    contactoInfo:   contactoDefault,
+    heroStats:      heroStatsDefault,
+    heroSubtitulo:  heroSubtituloDefault,
+  }
   if (!firebaseReady || !db) return fallback
   try {
     const snap = await getDoc(configDoc())
     if (!snap.exists()) return fallback
     const data = snap.data() as Partial<SiteConfig>
     return {
-      secciones: { ...seccionesDefault, ...(data.secciones ?? {}) } as SeccionesConfig,
-      clientes:  data.clientes ?? clientesEstaticos,
+      secciones:      { ...seccionesDefault, ...(data.secciones ?? {}) } as SeccionesConfig,
+      clientes:       data.clientes      ?? clientesEstaticos,
+      contactoInfo:   data.contactoInfo  ?? contactoDefault,
+      heroStats:      data.heroStats     ?? heroStatsDefault,
+      heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
     }
   } catch {
     return fallback
   }
+}
+
+export async function getContactoInfo(): Promise<ContactoInfo> {
+  const cfg = await getConfig()
+  return cfg.contactoInfo ?? contactoDefault
+}
+
+export async function getHeroContent(): Promise<{ stats: HeroStat[]; subtitulo: string }> {
+  const cfg = await getConfig()
+  return { stats: cfg.heroStats ?? heroStatsDefault, subtitulo: cfg.heroSubtitulo ?? heroSubtituloDefault }
 }
 
 export async function updateConfig(data: Partial<SiteConfig>) {
@@ -234,17 +258,78 @@ export async function deleteFaq(id: string) {
   await deleteDoc(doc(db!, 'faqs', id))
 }
 
+/* ══ PROCESO ════════════════════════════════════════════════ */
+
+export async function getPasos(): Promise<PasoItem[]> {
+  if (!firebaseReady || !db) return pasosEstaticos
+  try {
+    const snap = await getDocs(query(pasosCol(), orderBy('orden', 'asc')))
+    if (snap.empty) return pasosEstaticos
+    return snap.docs.map(d => ({ ...(d.data() as PasoItem), _id: d.id }))
+  } catch {
+    return pasosEstaticos
+  }
+}
+
+export async function createPaso(data: Omit<PasoItem, '_id'>): Promise<string> {
+  const ref = await addDoc(pasosCol(), { ...data, createdAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function updatePaso(id: string, data: Partial<PasoItem>) {
+  await updateDoc(doc(db!, 'proceso', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deletePaso(id: string) {
+  await deleteDoc(doc(db!, 'proceso', id))
+}
+
+/* ══ EQUIPO ═════════════════════════════════════════════════ */
+
+export async function getEquipo(): Promise<EquipoMember[]> {
+  if (!firebaseReady || !db) return equipoEstatico
+  try {
+    const snap = await getDocs(query(equipoCol(), orderBy('orden', 'asc')))
+    if (snap.empty) return equipoEstatico
+    return snap.docs.map(d => ({ ...(d.data() as EquipoMember), _id: d.id }))
+  } catch {
+    return equipoEstatico
+  }
+}
+
+export async function createEquipoMember(data: Omit<EquipoMember, '_id'>): Promise<string> {
+  const ref = await addDoc(equipoCol(), { ...data, createdAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function updateEquipoMember(id: string, data: Partial<EquipoMember>) {
+  await updateDoc(doc(db!, 'equipo', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deleteEquipoMember(id: string) {
+  await deleteDoc(doc(db!, 'equipo', id))
+}
+
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 
 export async function seedConfig() {
   await setDoc(configDoc(), {
-    secciones: seccionesDefault,
-    clientes:  clientesEstaticos,
+    secciones:     seccionesDefault,
+    clientes:      clientesEstaticos,
+    contactoInfo:  contactoDefault,
+    heroStats:     heroStatsDefault,
+    heroSubtitulo: heroSubtituloDefault,
   })
   for (let i = 0; i < testimoniosEstaticos.length; i++) {
     await addDoc(testimoniosCol(), { ...testimoniosEstaticos[i], orden: i, createdAt: serverTimestamp() })
   }
   for (let i = 0; i < faqsEstaticos.length; i++) {
     await addDoc(faqsCol(), { ...faqsEstaticos[i], orden: i, createdAt: serverTimestamp() })
+  }
+  for (let i = 0; i < pasosEstaticos.length; i++) {
+    await addDoc(pasosCol(), { ...pasosEstaticos[i], orden: i, createdAt: serverTimestamp() })
+  }
+  for (let i = 0; i < equipoEstatico.length; i++) {
+    await addDoc(equipoCol(), { ...equipoEstatico[i], orden: i, createdAt: serverTimestamp() })
   }
 }

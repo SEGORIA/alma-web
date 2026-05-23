@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
 import { P, Y } from '../../tokens'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 export default function AdminDashboard() {
   const [nArticulos,  setNArticulos]  = useState<number | null>(null)
@@ -75,13 +76,15 @@ export default function AdminDashboard() {
     },
   ]
 
+  const isMobile = useIsMobile()
+
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px' }}>
+      <div style={{ padding: isMobile ? '24px 16px' : '40px 32px' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
+        <div style={{ marginBottom: '28px' }}>
+          <h1 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
             Dashboard
           </h1>
           <p style={{ fontSize: '14px', color: '#6B7280' }}>
@@ -90,36 +93,36 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(240px, 1fr))', gap: isMobile ? '12px' : '20px', marginBottom: isMobile ? '24px' : '40px' }}>
           {cards.map(c => (
             <div key={c.label} style={{
-              background: '#fff', borderRadius: '20px',
-              padding: '24px', border: '1px solid #E5E7EB',
+              background: '#fff', borderRadius: '16px',
+              padding: isMobile ? '16px 14px' : '24px', border: '1px solid #E5E7EB',
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <span style={{ fontSize: '28px' }}>{c.icon}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '10px' : '16px' }}>
+                <span style={{ fontSize: isMobile ? '20px' : '28px' }}>{c.icon}</span>
                 <span style={{
                   background: `${c.color}15`, color: c.color,
-                  fontSize: '11px', fontWeight: 700, padding: '4px 10px',
+                  fontSize: '10px', fontWeight: 700, padding: '3px 8px',
                   borderRadius: '20px', letterSpacing: '0.5px',
                 }}>
                   ACTIVO
                 </span>
               </div>
-              <p style={{ fontSize: '36px', fontWeight: 900, color: '#111827', marginBottom: '4px' }}>
+              <p style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, color: '#111827', marginBottom: '4px' }}>
                 {c.value}
               </p>
-              <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+              <p style={{ fontSize: isMobile ? '11px' : '13px', color: '#6B7280', marginBottom: isMobile ? '12px' : '20px', lineHeight: 1.3 }}>
                 {c.label}
               </p>
               <Link
                 to={c.to}
                 style={{
-                  display: 'inline-block', padding: '9px 18px',
+                  display: 'inline-block', padding: isMobile ? '7px 12px' : '9px 18px',
                   background: c.color, color: '#fff',
                   borderRadius: '10px', textDecoration: 'none',
-                  fontSize: '13px', fontWeight: 700,
+                  fontSize: isMobile ? '11px' : '13px', fontWeight: 700,
                   transition: 'opacity 0.2s ease',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
@@ -132,14 +135,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Acciones rápidas */}
-        <div style={{ background: '#fff', borderRadius: '20px', padding: '28px', border: '1px solid #E5E7EB' }}>
+        <div style={{ background: '#fff', borderRadius: '20px', padding: isMobile ? '20px 16px' : '28px', border: '1px solid #E5E7EB' }}>
           <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#111827', marginBottom: '6px' }}>
             Acciones rápidas
           </h2>
           <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
             Primera vez aquí: migra los datos estáticos a Firestore para empezar a editarlos.
           </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
             <Link
               to="/admin/blog/nuevo"
               style={{

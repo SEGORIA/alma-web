@@ -1,35 +1,10 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { P, WA_PROYECTO } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-
-// ── Actualiza estos datos con la info real del equipo ──────────────────────
-const equipo = [
-  {
-    nombre: 'Alejandra Giraldo Márquez',
-    rol: 'CEO & Fundadora',
-    desc: 'Lidera la visión y dirección de Alma. Apasionada por construir marcas que conectan emocionalmente con las personas y generan resultados reales.',
-    iniciales: 'AG',
-    emoji: '🚀',
-    color: 'linear-gradient(135deg, #E11D48, #F43F5E)',
-  },
-  {
-    nombre: 'Sebastián González',
-    rol: 'Gerente Operativo & Co-founder',
-    desc: 'Garantiza que cada proyecto fluya con precisión, desde la estrategia hasta la entrega. Más de 6 años convirtiendo ideas en experiencias digitales.',
-    iniciales: 'SG',
-    emoji: '🎨',
-    color: `linear-gradient(135deg, #6B21A8, #9333EA)`,
-  },
-  {
-    nombre: 'Lina Márquez',
-    rol: 'Coordinadora de Clientes',
-    desc: 'El puente entre el equipo y cada cliente. Asegura que cada experiencia sea clara, cercana y que los proyectos avancen con total tranquilidad.',
-    iniciales: 'LM',
-    emoji: '🤝',
-    color: 'linear-gradient(135deg, #0284C7, #38BDF8)',
-  },
-]
+import { getEquipo } from '../lib/db'
+import { equipoEstatico } from '../data/contenido'
+import type { EquipoMember } from '../data/contenido'
 
 const valores = [
   { icon: '🎯', label: 'Orientados a resultados' },
@@ -39,7 +14,7 @@ const valores = [
   { icon: '❤️', label: 'Trabajo con propósito' },
 ]
 
-function TeamCard({ m, index }: { m: typeof equipo[0]; index: number }) {
+function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -96,6 +71,11 @@ function TeamCard({ m, index }: { m: typeof equipo[0]; index: number }) {
 
 export default function Nosotros() {
   const isMobile = useIsMobile()
+  const [equipo, setEquipo] = useState<EquipoMember[]>(equipoEstatico)
+
+  useEffect(() => {
+    getEquipo().then(setEquipo)
+  }, [])
 
   return (
     <section id="nosotros" style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
@@ -208,7 +188,7 @@ export default function Nosotros() {
           gap: isMobile ? '14px' : '20px',
           marginBottom: isMobile ? '40px' : '64px',
         }}>
-          {equipo.map((m, i) => <TeamCard key={m.nombre} m={m} index={i} />)}
+          {equipo.map((m, i) => <TeamCard key={m._id ?? m.nombre} m={m} index={i} />)}
         </div>
 
         {/* ── Valores / Pills ── */}

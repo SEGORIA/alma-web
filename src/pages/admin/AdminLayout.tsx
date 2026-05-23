@@ -7,6 +7,7 @@ const NAV = [
   { label: '✍️ Blog',           to: '/admin/blog' },
   { label: '🖼️ Portafolio',     to: '/admin/portafolio' },
   { label: '💰 Precios',        to: '/admin/precios' },
+  { label: '📄 Contenido',      to: '/admin/contenido' },
   { label: '⚙️ Configuración',  to: '/admin/config' },
 ]
 
