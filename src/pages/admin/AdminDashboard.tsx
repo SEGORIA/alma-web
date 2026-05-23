@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
-import { getArticulos, getProyectos, getPlanes, getExtras, seedArticulos, seedPortafolio, seedPrecios } from '../../lib/db'
+import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
 import { P, Y } from '../../tokens'
 
 export default function AdminDashboard() {
@@ -9,6 +9,8 @@ export default function AdminDashboard() {
   const [nProyectos,  setNProyectos]  = useState<number | null>(null)
   const [nPlanes,     setNPlanes]     = useState<number | null>(null)
   const [nExtras,     setNExtras]     = useState<number | null>(null)
+  const [nTestimonios,setNTestimonios]= useState<number | null>(null)
+  const [nFaqs,       setNFaqs]       = useState<number | null>(null)
   const [seeding,     setSeeding]     = useState(false)
   const [seeded,      setSeeded]      = useState(false)
 
@@ -17,6 +19,8 @@ export default function AdminDashboard() {
     getProyectos().then(p => setNProyectos(p.length))
     getPlanes().then(p => setNPlanes(p.length))
     getExtras().then(e => setNExtras(e.length))
+    getTestimonios().then(t => setNTestimonios(t.length))
+    getFaqs().then(f => setNFaqs(f.length))
   }, [seeded])
 
   const handleSeed = async () => {
@@ -26,6 +30,7 @@ export default function AdminDashboard() {
       await seedArticulos()
       await seedPortafolio()
       await seedPrecios()
+      await seedConfig()
       setSeeded(s => !s)
       alert('✅ Datos migrados correctamente a Firestore')
     } catch (err) {
@@ -59,6 +64,14 @@ export default function AdminDashboard() {
       color:  '#059669',
       to:     '/admin/precios',
       action: 'Gestionar precios',
+    },
+    {
+      label:  `Testimonios (${nTestimonios ?? '…'}) · FAQ (${nFaqs ?? '…'})`,
+      value:  nTestimonios !== null && nFaqs !== null ? nTestimonios + nFaqs : '…',
+      icon:   '⚙️',
+      color:  '#7C3AED',
+      to:     '/admin/config',
+      action: 'Configuración',
     },
   ]
 

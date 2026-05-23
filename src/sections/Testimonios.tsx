@@ -1,28 +1,16 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getTestimonios } from '../lib/db'
+import { testimoniosEstaticos } from '../data/config'
+import type { Testimonio } from '../data/config'
 
 const StarIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill={Y}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 )
-
-type Testimonio = { nombre: string; rol: string; empresa: string; texto: string; iniciales: string; color: string }
-
-const fila1: Testimonio[] = [
-  { nombre: 'María Londoño',    rol: 'Fundadora',        empresa: 'Café Ritual',    texto: 'Alma transformó nuestra marca por completo. El branding que crearon nos hizo destacar en un mercado muy competitivo. Cada detalle refleja exactamente quiénes somos.',            iniciales: 'ML', color: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
-  { nombre: 'Carlos Restrepo',  rol: 'Director Comercial',empresa: 'Malasaña Store', texto: 'La tienda virtual que desarrollaron superó todas nuestras expectativas. Las ventas aumentaron un 40% el primer mes. El panel de administración es súper fácil de usar.',     iniciales: 'CR', color: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
-  { nombre: 'Valentina Torres', rol: 'CEO',               empresa: 'Prr Love',       texto: 'El equipo de Alma entiende perfectamente lo que necesita una marca. Creatividad y estrategia en perfecto balance. El resultado fue mucho mejor de lo que imaginé.',           iniciales: 'VT', color: 'linear-gradient(135deg,#FECDD3,#E11D48)' },
-  { nombre: 'Andrés Gómez',     rol: 'Director',          empresa: 'Magic All Stars', texto: 'Gracias a la gestión de redes con Alma, pasamos de 500 a 8.000 seguidores en 3 meses. El contenido que crean conecta de verdad con nuestra audiencia.',                     iniciales: 'AG', color: 'linear-gradient(135deg,#FDE68A,#F59E0B)' },
-]
-
-const fila2: Testimonio[] = [
-  { nombre: 'Sofía Ramírez',    rol: 'Socia Directora',   empresa: 'Nexo Legal',     texto: 'Profesionalismo, creatividad y resultados reales. Alma es la agencia que todo negocio necesita. Nuestro sitio web ahora genera consultas todos los días.',                   iniciales: 'SR', color: 'linear-gradient(135deg,#BAE6FD,#0284C7)' },
-  { nombre: 'Laura Díaz',       rol: 'Propietaria',        empresa: 'Bloom Spa',      texto: 'Nuestro spa nunca había tenido tanta visibilidad digital. El contenido que crea Alma es hermoso y profesional. Las reservas online aumentaron un 60%.',                       iniciales: 'LD', color: 'linear-gradient(135deg,#D1FAE5,#059669)' },
-  { nombre: 'Sebastián Moreno', rol: 'Gerente General',    empresa: 'Café Ritual',    texto: 'El proceso fue fluido desde el inicio. Entendieron nuestra esencia y la tradujeron perfectamente al diseño. Definitivamente los recomiendo sin dudarlo.',                     iniciales: 'SM', color: 'linear-gradient(135deg,#FED7AA,#EA580C)' },
-  { nombre: 'Daniela Ospina',   rol: 'Consultora',         empresa: 'Marca Personal', texto: 'Contratamos el plan Marketing Pro y en 2 meses ya teníamos lista de espera. El equipo de Alma se convirtió en parte estratégica de nuestro negocio.',                       iniciales: 'DO', color: 'linear-gradient(135deg,#E0E7FF,#6366F1)' },
-]
 
 function TestimonioCard({ t }: { t: Testimonio }) {
   return (
@@ -49,6 +37,7 @@ function TestimonioCard({ t }: { t: Testimonio }) {
 }
 
 function MarqueeRow({ items, direction }: { items: Testimonio[]; direction: 'left' | 'right' }) {
+  if (items.length === 0) return null
   const doubled  = [...items, ...items]
   const animFrom = direction === 'left' ? '0%'   : '-50%'
   const animTo   = direction === 'left' ? '-50%' : '0%'
@@ -59,10 +48,8 @@ function MarqueeRow({ items, direction }: { items: Testimonio[]; direction: 'lef
         animate={{ x: [animFrom, animTo] }}
         transition={{ duration: direction === 'left' ? 32 : 38, ease: 'linear', repeat: Infinity }}
         style={{ display: 'flex', gap: '16px', width: 'max-content', cursor: 'default' }}
-        onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.animationPlayState = 'paused'}
-        onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.animationPlayState = 'running'}
       >
-        {doubled.map((t, i) => <TestimonioCard key={`${t.nombre}-${i}`} t={t} />)}
+        {doubled.map((t, i) => <TestimonioCard key={`${t._id ?? t.nombre}-${i}`} t={t} />)}
       </motion.div>
     </div>
   )
@@ -70,6 +57,14 @@ function MarqueeRow({ items, direction }: { items: Testimonio[]; direction: 'lef
 
 export default function Testimonios() {
   const isMobile = useIsMobile()
+  const [testimonios, setTestimonios] = useState<Testimonio[]>(testimoniosEstaticos)
+
+  useEffect(() => {
+    getTestimonios().then(setTestimonios)
+  }, [])
+
+  const fila1 = testimonios.filter(t => t.fila === 1)
+  const fila2 = testimonios.filter(t => t.fila === 2)
 
   return (
     <section style={{ background: '#F9FAFB', padding: isMobile ? '60px 0' : '100px 0', overflow: 'hidden' }}>
@@ -93,9 +88,8 @@ export default function Testimonios() {
 
       {/* Filas */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '14px' : '20px' }}>
-        <MarqueeRow items={fila1} direction="left" />
-        {/* Segunda fila: solo en desktop para ahorrar espacio */}
-        {!isMobile && <MarqueeRow items={fila2} direction="right" />}
+        <MarqueeRow items={fila1.length > 0 ? fila1 : testimonios} direction="left" />
+        {!isMobile && fila2.length > 0 && <MarqueeRow items={fila2} direction="right" />}
       </div>
 
       {/* Badge */}

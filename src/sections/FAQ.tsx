@@ -1,18 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getFaqs } from '../lib/db'
+import { faqsEstaticos } from '../data/config'
+import type { FaqItem } from '../data/config'
 
-const faqs = [
-  { q: '¿Cuánto tiempo tarda la entrega de un proyecto web?',   a: 'Una landing page tarda entre 5 y 7 días hábiles. Un sitio corporativo completo entre 10 y 15 días. Una tienda virtual entre 15 y 25 días hábiles.' },
-  { q: '¿Puedo hacer cambios después de recibir el proyecto?',  a: 'Sí. Todos nuestros planes incluyen una ronda de revisiones sin costo adicional. Cambios fuera del alcance inicial tienen un costo según el trabajo requerido.' },
-  { q: '¿Trabajan con negocios de cualquier ciudad o país?',    a: 'Trabajamos 100% de forma remota y atendemos clientes en toda Colombia, Latinoamérica y el mundo de habla hispana.' },
-  { q: '¿Qué necesito para comenzar un proyecto de branding?', a: 'Solo un brief básico con tus referencias, colores que te gustan y la esencia de tu marca. Nosotros te guiamos en todo el proceso creativo.' },
-  { q: '¿El hosting y dominio están incluidos en los planes web?', a: 'No están incluidos, pero te asesoramos para configurarlos correctamente. El costo promedio es entre $80.000 y $120.000 anuales.' },
-  { q: '¿Cómo es el proceso de trabajo con Alma?',             a: 'Briefing → Propuesta creativa → Desarrollo → Revisión → Entrega final. Tendrás acceso directo a tu asesor vía WhatsApp durante todo el proceso.' },
-]
-
-function FAQItem({ faq, idx }: { faq: typeof faqs[0]; idx: number }) {
+function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -60,6 +54,11 @@ function FAQItem({ faq, idx }: { faq: typeof faqs[0]; idx: number }) {
 
 export default function FAQ() {
   const isMobile = useIsMobile()
+  const [faqs, setFaqs] = useState<FaqItem[]>(faqsEstaticos)
+
+  useEffect(() => {
+    getFaqs().then(setFaqs)
+  }, [])
 
   return (
     <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
@@ -75,7 +74,7 @@ export default function FAQ() {
           </h2>
         </motion.div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {faqs.map((f, i) => <FAQItem key={f.q} faq={f} idx={i} />)}
+          {faqs.map((f, i) => <FAQItem key={f._id ?? f.q} faq={f} idx={i} />)}
         </div>
       </div>
     </section>

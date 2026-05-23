@@ -26,6 +26,10 @@ import BlogEditor      from './pages/admin/BlogEditor'
 import PortafolioAdmin from './pages/admin/PortafolioAdmin'
 import PortafolioEditor from './pages/admin/PortafolioEditor'
 import PreciosAdmin from './pages/admin/PreciosAdmin'
+import ConfigAdmin from './pages/admin/ConfigAdmin'
+import { getConfig } from './lib/db'
+import { seccionesDefault } from './data/config'
+import type { SeccionesConfig } from './data/config'
 import { useAuth }     from './hooks/useAuth'
 import { Navigate }    from 'react-router-dom'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
@@ -138,6 +142,11 @@ function Landing() {
   const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
   const [menuOpen,       setMenuOpen]       = useState(false)
   const [activeSection,  setActiveSection]  = useState('inicio')
+  const [sec,            setSec]            = useState<SeccionesConfig>(seccionesDefault)
+
+  useEffect(() => {
+    getConfig().then(cfg => setSec(cfg.secciones))
+  }, [])
 
   useEffect(() => {
     const onScroll = () => {
@@ -349,18 +358,18 @@ function Landing() {
 
       {/* ── Secciones ── */}
       <div id="inicio"><Hero /></div>
-      <Clientes />
-      <Nosotros />
-      <div id="agencia"><Manifiesto /></div>
-      <Proceso />
-      <div id="servicios"><ServiciosTabs /></div>
-      <div id="academia"><Academia /></div>
-      <LeadMagnet />
-      <div id="portafolio"><Portafolio /></div>
-      <Calculadora />
-      <Testimonios />
-      <Blog />
-      <FAQ />
+      {sec.clientes    && <Clientes />}
+      {sec.nosotros    && <Nosotros />}
+      {sec.manifiesto  && <div id="agencia"><Manifiesto /></div>}
+      {sec.proceso     && <Proceso />}
+      {sec.servicios   && <div id="servicios"><ServiciosTabs /></div>}
+      {sec.academia    && <div id="academia"><Academia /></div>}
+      {sec.leadMagnet  && <LeadMagnet />}
+      {sec.portafolio  && <div id="portafolio"><Portafolio /></div>}
+      {sec.calculadora && <Calculadora />}
+      {sec.testimonios && <Testimonios />}
+      {sec.blog        && <Blog />}
+      {sec.faq         && <FAQ />}
       <div id="contacto"><Contacto /></div>
       <WhatsAppFloat />
     </div>
@@ -395,6 +404,7 @@ export default function App() {
       <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
       <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
       <Route path="/admin/precios" element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
+      <Route path="/admin/config"  element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
     </Routes>
   )
 }

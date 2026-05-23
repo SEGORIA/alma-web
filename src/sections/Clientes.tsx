@@ -1,18 +1,8 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { P } from '../tokens'
-
-const clientes = [
-  'Prr Love',
-  'Malasaña Store',
-  'Magic All Stars',
-  'Café Ritual',
-  'Nexo Legal',
-  'Bloom Spa',
-  'Studio Norte',
-  'Vereda Digital',
-  'Casa Creativa',
-  'Forma Studio',
-]
+import { getConfig } from '../lib/db'
+import { clientesEstaticos } from '../data/config'
 
 function ClienteItem({ nombre }: { nombre: string }) {
   return (
@@ -20,8 +10,7 @@ function ClienteItem({ nombre }: { nombre: string }) {
       <span style={{
         fontSize: '15px', fontWeight: 700,
         color: 'rgba(255,255,255,0.55)',
-        whiteSpace: 'nowrap',
-        letterSpacing: '0.3px',
+        whiteSpace: 'nowrap', letterSpacing: '0.3px',
         transition: 'color 0.2s ease',
       }}
         onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
@@ -29,47 +18,32 @@ function ClienteItem({ nombre }: { nombre: string }) {
       >
         {nombre}
       </span>
-      <span style={{
-        width: '4px', height: '4px', borderRadius: '50%',
-        background: 'rgba(250,204,21,0.5)', flexShrink: 0,
-      }} />
+      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(250,204,21,0.5)', flexShrink: 0 }} />
     </div>
   )
 }
 
 export default function Clientes() {
+  const [clientes, setClientes] = useState<string[]>(clientesEstaticos)
+
+  useEffect(() => {
+    getConfig().then(cfg => setClientes(cfg.clientes))
+  }, [])
+
   const doubled = [...clientes, ...clientes]
 
   return (
     <section style={{
-      background: P,
-      padding: '20px 0',
-      overflow: 'hidden',
+      background: P, padding: '20px 0', overflow: 'hidden',
       borderTop: '1px solid rgba(255,255,255,0.06)',
       borderBottom: '1px solid rgba(255,255,255,0.06)',
     }}>
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        gap: '0',
-      }}>
-        {/* Label fijo */}
-        <div style={{
-          flexShrink: 0,
-          padding: '0 28px',
-          borderRight: '1px solid rgba(255,255,255,0.15)',
-          marginRight: '28px',
-        }}>
-          <p style={{
-            fontSize: '10px', fontWeight: 700,
-            color: 'rgba(255,255,255,0.4)',
-            letterSpacing: '2px', textTransform: 'uppercase',
-            whiteSpace: 'nowrap',
-          }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ flexShrink: 0, padding: '0 28px', borderRight: '1px solid rgba(255,255,255,0.15)', marginRight: '28px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
             Confían en Alma
           </p>
         </div>
-
-        {/* Marquee */}
         <div style={{ overflow: 'hidden', flex: 1 }}>
           <motion.div
             animate={{ x: ['0%', '-50%'] }}

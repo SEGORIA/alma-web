@@ -3,10 +3,11 @@ import { useAuth } from '../../hooks/useAuth'
 import { P } from '../../tokens'
 
 const NAV = [
-  { label: '📊 Dashboard',   to: '/admin' },
-  { label: '✍️ Blog',        to: '/admin/blog' },
-  { label: '🖼️ Portafolio',  to: '/admin/portafolio' },
-  { label: '💰 Precios',     to: '/admin/precios' },
+  { label: '📊 Dashboard',      to: '/admin' },
+  { label: '✍️ Blog',           to: '/admin/blog' },
+  { label: '🖼️ Portafolio',     to: '/admin/portafolio' },
+  { label: '💰 Precios',        to: '/admin/precios' },
+  { label: '⚙️ Configuración',  to: '/admin/config' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
