@@ -177,7 +177,6 @@ export default function PortafolioEditor() {
             </p>
             <ImageUploader
               currentUrl={imagen}
-              folder="portafolio"
               onUploaded={setImagen}
               height={200}
             />

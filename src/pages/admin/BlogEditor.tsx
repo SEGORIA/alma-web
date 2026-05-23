@@ -110,7 +110,6 @@ function BloqueEditor({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <ImageUploader
           currentUrl={b.url}
-          folder="blog"
           onUploaded={url => onChange({ ...b, url })}
           height={180}
         />
