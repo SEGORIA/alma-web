@@ -4,6 +4,7 @@ import AdminLayout from './AdminLayout'
 import { getProyectos, createProyecto, updateProyecto } from '../../lib/db'
 import { gradientesDisponibles, filtrosPortafolio } from '../../data/portafolio'
 import type { Proyecto } from '../../data/portafolio'
+import ImageUploader from '../../components/ImageUploader'
 
 const CATS = filtrosPortafolio.filter(f => f !== 'Todos')
 
@@ -22,6 +23,7 @@ export default function PortafolioEditor() {
   const [año,       setAño]       = useState(String(new Date().getFullYear()))
   const [tagsStr,   setTagsStr]   = useState('')        // comma-separated
   const [gradient,  setGradient]  = useState(gradientesDisponibles[0].value)
+  const [imagen,    setImagen]    = useState('')
   const [featured,  setFeatured]  = useState(false)
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function PortafolioEditor() {
         setAño(found.año)
         setTagsStr(found.tags.join(', '))
         setGradient(found.g)
+        setImagen(found.imagen ?? '')
         setFeatured(!!found.featured)
         setDocId(found._id ?? null)
       }
@@ -54,6 +57,7 @@ export default function PortafolioEditor() {
         año,
         tags: tagsStr.split(',').map(t => t.trim()).filter(Boolean),
         g: gradient,
+        ...(imagen ? { imagen } : {}),
         featured,
       }
       if (isNew || !docId) {
@@ -161,6 +165,22 @@ export default function PortafolioEditor() {
                 </label>
               </div>
             </div>
+          </div>
+
+          {/* Imagen de portada */}
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Imagen de portada
+            </h2>
+            <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '16px' }}>
+              Si subes una imagen se mostrará en la tarjeta del portafolio. Si no, se usa el color de fondo.
+            </p>
+            <ImageUploader
+              currentUrl={imagen}
+              folder="portafolio"
+              onUploaded={setImagen}
+              height={200}
+            />
           </div>
 
           {/* Color / gradiente */}

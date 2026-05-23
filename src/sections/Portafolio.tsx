@@ -33,14 +33,29 @@ function ProyectoCard({ p, index }: { p: Proyecto; index: number }) {
     >
       {/* Visual */}
       <div style={{ position: 'relative', height: p.featured ? '200px' : '170px', background: p.g, overflow: 'hidden', flexShrink: 0 }}>
-        <div style={{ position: 'absolute', bottom: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
-        <div style={{ position: 'absolute', top: -20, left: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+        {/* Imagen de portada si existe */}
+        {p.imagen && (
+          <img
+            src={p.imagen}
+            alt={p.titulo}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        )}
+        {/* Decoración solo si no hay imagen */}
+        {!p.imagen && (
+          <>
+            <div style={{ position: 'absolute', bottom: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+            <div style={{ position: 'absolute', top: -20, left: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+            <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ height: '8px', width: '60%', background: 'rgba(255,255,255,0.5)', borderRadius: '4px' }} />
+              <div style={{ height: '6px', width: '40%', background: 'rgba(255,255,255,0.3)', borderRadius: '4px' }} />
+            </div>
+          </>
+        )}
+        {/* Overlay cuando hay imagen para legibilidad de badges */}
+        {p.imagen && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)' }} />}
         <div style={{ position: 'absolute', top: '14px', left: '14px', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)', padding: '5px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, color: P }}>{p.cat}</div>
-        <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(0,0,0,0.18)', backdropFilter: 'blur(8px)', padding: '5px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, color: '#fff' }}>{p.año}</div>
-        <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ height: '8px', width: '60%', background: 'rgba(255,255,255,0.5)', borderRadius: '4px' }} />
-          <div style={{ height: '6px', width: '40%', background: 'rgba(255,255,255,0.3)', borderRadius: '4px' }} />
-        </div>
+        <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', padding: '5px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, color: '#fff' }}>{p.año}</div>
       </div>
 
       {/* Content */}

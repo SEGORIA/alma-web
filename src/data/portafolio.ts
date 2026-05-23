@@ -5,7 +5,8 @@ export type Proyecto = {
   desc:     string
   año:      string
   tags:     string[]
-  g:        string   // gradient CSS
+  g:        string    // gradient CSS (fallback si no hay imagen)
+  imagen?:  string    // URL de imagen de portada (Firebase Storage)
   featured?: boolean
   orden?:   number
 }

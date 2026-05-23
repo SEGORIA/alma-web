@@ -117,6 +117,32 @@ function RenderBloque({ b }: { b: Bloque }) {
         </div>
       )
 
+    case 'imagen':
+      if (!b.url) return null
+      return (
+        <figure style={{ margin: '36px 0' }}>
+          <img
+            src={b.url}
+            alt={b.alt ?? ''}
+            style={{
+              width: '100%', borderRadius: '16px',
+              display: 'block', maxHeight: '500px',
+              objectFit: 'cover',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
+            }}
+          />
+          {b.caption && (
+            <figcaption style={{
+              textAlign: 'center', fontSize: '13px',
+              color: '#9CA3AF', marginTop: '10px',
+              fontStyle: 'italic',
+            }}>
+              {b.caption}
+            </figcaption>
+          )}
+        </figure>
+      )
+
     default:
       return null
   }

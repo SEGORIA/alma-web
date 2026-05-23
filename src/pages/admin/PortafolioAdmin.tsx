@@ -85,23 +85,32 @@ export default function PortafolioAdmin() {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}
               >
-                {/* Color preview */}
+                {/* Visual preview */}
                 <div style={{
-                  height: '100px', background: p.g,
+                  height: '100px', background: p.g, overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   position: 'relative',
                 }}>
+                  {p.imagen && (
+                    <img
+                      src={p.imagen}
+                      alt={p.titulo}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  )}
+                  {p.imagen && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.2)' }} />}
                   {p.featured && (
                     <span style={{
-                      position: 'absolute', top: '10px', left: '10px',
+                      position: 'absolute', top: '8px', left: '8px',
                       background: 'rgba(255,255,255,0.9)', color: '#92400E',
                       fontSize: '10px', fontWeight: 800, padding: '3px 10px',
-                      borderRadius: '20px',
+                      borderRadius: '20px', zIndex: 1,
                     }}>
                       ★ Destacado
                     </span>
                   )}
                   <span style={{
+                    position: 'relative', zIndex: 1,
                     background: 'rgba(255,255,255,0.9)', color: P,
                     fontSize: '11px', fontWeight: 700,
                     padding: '4px 12px', borderRadius: '20px',

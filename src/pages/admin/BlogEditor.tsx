@@ -5,6 +5,7 @@ import { getArticulos, createArticulo, updateArticulo } from '../../lib/db'
 import { P } from '../../tokens'
 import type { Bloque } from '../../data/articulos'
 import { categorias } from '../../data/articulos'
+import ImageUploader from '../../components/ImageUploader'
 
 const GRADIENTS = [
   { label: 'Morado',   value: 'linear-gradient(135deg, #6B21A8 0%, #9333EA 100%)' },
@@ -105,12 +106,33 @@ function BloqueEditor({
         </button>
       </div>
     )
+    if (b.tipo === 'imagen') return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <ImageUploader
+          currentUrl={b.url}
+          folder="blog"
+          onUploaded={url => onChange({ ...b, url })}
+          height={180}
+        />
+        <input
+          type="text" value={b.alt ?? ''} style={inputStyle}
+          onChange={e => onChange({ ...b, alt: e.target.value })}
+          placeholder="Texto alternativo (accesibilidad)…"
+        />
+        <input
+          type="text" value={b.caption ?? ''} style={inputStyle}
+          onChange={e => onChange({ ...b, caption: e.target.value })}
+          placeholder="Pie de foto (opcional)…"
+        />
+      </div>
+    )
     return null
   }
 
   const tipoLabel: Record<string, string> = {
     p: 'Párrafo', h2: 'Título H2', h3: 'Título H3',
-    lista: 'Lista', destacado: 'Destacado', tip: 'Tip', separador: 'Separador',
+    lista: 'Lista', destacado: 'Destacado', tip: 'Tip',
+    separador: 'Separador', imagen: '🖼️ Imagen',
   }
 
   return (
@@ -210,6 +232,7 @@ export default function BlogEditor() {
       destacado:  { tipo: 'destacado', texto: '' },
       tip:        { tipo: 'tip', titulo: '', texto: '' },
       separador:  { tipo: 'separador' },
+      imagen:     { tipo: 'imagen', url: '', alt: '', caption: '' },
     }
     setBloques(prev => [...prev, defaults[tipo]])
   }
@@ -416,7 +439,7 @@ export default function BlogEditor() {
                 Contenido del artículo
               </h2>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {(['p','h2','h3','lista','destacado','tip','separador'] as Bloque['tipo'][]).map(tipo => (
+                {(['p','h2','h3','lista','destacado','tip','imagen','separador'] as Bloque['tipo'][]).map(tipo => (
                   <button key={tipo} onClick={() => addBloque(tipo)}
                     style={{
                       padding: '5px 12px', borderRadius: '8px', cursor: 'pointer',
@@ -427,7 +450,7 @@ export default function BlogEditor() {
                     onMouseEnter={e => { e.currentTarget.style.background = `${P}15`; e.currentTarget.style.borderColor = P; e.currentTarget.style.color = P }}
                     onMouseLeave={e => { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#374151' }}
                   >
-                    + {tipo === 'p' ? 'párrafo' : tipo === 'h2' ? 'H2' : tipo === 'h3' ? 'H3' : tipo}
+                    {tipo === 'imagen' ? '🖼️ imagen' : `+ ${tipo === 'p' ? 'párrafo' : tipo === 'h2' ? 'H2' : tipo === 'h3' ? 'H3' : tipo}`}
                   </button>
                 ))}
               </div>

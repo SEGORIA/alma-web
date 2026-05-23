@@ -7,6 +7,7 @@ export type Bloque =
   | { tipo: 'destacado'; texto: string }
   | { tipo: 'tip';       titulo: string; texto: string }
   | { tipo: 'separador' }
+  | { tipo: 'imagen';    url: string; alt?: string; caption?: string }
 
 export type Articulo = {
   _id?:      string
