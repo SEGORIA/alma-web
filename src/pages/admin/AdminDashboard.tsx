@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
-import { getArticulos } from '../../lib/db'
-import { getProyectos } from '../../lib/db'
-import { seedArticulos, seedPortafolio } from '../../lib/db'
+import { getArticulos, getProyectos, getPlanes, getExtras, seedArticulos, seedPortafolio, seedPrecios } from '../../lib/db'
 import { P, Y } from '../../tokens'
 
 export default function AdminDashboard() {
   const [nArticulos,  setNArticulos]  = useState<number | null>(null)
   const [nProyectos,  setNProyectos]  = useState<number | null>(null)
+  const [nPlanes,     setNPlanes]     = useState<number | null>(null)
+  const [nExtras,     setNExtras]     = useState<number | null>(null)
   const [seeding,     setSeeding]     = useState(false)
   const [seeded,      setSeeded]      = useState(false)
 
   useEffect(() => {
     getArticulos().then(a => setNArticulos(a.length))
     getProyectos().then(p => setNProyectos(p.length))
+    getPlanes().then(p => setNPlanes(p.length))
+    getExtras().then(e => setNExtras(e.length))
   }, [seeded])
 
   const handleSeed = async () => {
@@ -23,6 +25,7 @@ export default function AdminDashboard() {
     try {
       await seedArticulos()
       await seedPortafolio()
+      await seedPrecios()
       setSeeded(s => !s)
       alert('✅ Datos migrados correctamente a Firestore')
     } catch (err) {
@@ -48,6 +51,14 @@ export default function AdminDashboard() {
       color:  '#0284C7',
       to:     '/admin/portafolio',
       action: 'Gestionar portafolio',
+    },
+    {
+      label:  `Planes (${nPlanes ?? '…'}) + Extras (${nExtras ?? '…'})`,
+      value:  nPlanes !== null && nExtras !== null ? nPlanes + nExtras : '…',
+      icon:   '💰',
+      color:  '#059669',
+      to:     '/admin/precios',
+      action: 'Gestionar precios',
     },
   ]
 

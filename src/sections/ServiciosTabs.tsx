@@ -1,37 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y, WA_COTIZAR as WA } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-
-type Plan = { nombre: string; precio: string; periodo?: string; destacado?: boolean; items: string[] }
-type Tab  = { id: string; label: string; planes: Plan[] }
-
-const tabs: Tab[] = [
-  {
-    id: 'web', label: 'Desarrollo Web',
-    planes: [
-      { nombre: 'Básico',      precio: "$1'580.000", items: ['Landing page profesional', 'Diseño responsive', 'SEO básico', 'Hasta 5 secciones', 'Formulario de contacto', 'Entrega en 7 días hábiles'] },
-      { nombre: 'Empresarial', precio: "$2'130.000", destacado: true, items: ['Sitio corporativo completo', 'Blog integrado', 'Formulario avanzado', 'Hasta 8 secciones', 'Google Analytics', 'Entrega en 12 días hábiles'] },
-      { nombre: 'Tienda Virtual', precio: "$3'800.000", items: ['E-commerce completo', 'Pasarela de pagos', 'Gestión de inventario', 'Productos ilimitados', 'Panel administrativo', 'Entrega en 20 días hábiles'] },
-    ],
-  },
-  {
-    id: 'branding', label: 'Branding',
-    planes: [
-      { nombre: 'Identidad Básica',  precio: '$680.000',      items: ['Logo profesional', 'Paleta de colores', 'Tipografías', '2 variaciones del logo', 'Archivos editables', 'Entrega en 5 días hábiles'] },
-      { nombre: 'Branding Completo', precio: "$1'200.000",    destacado: true, items: ['Todo de Identidad Básica', 'Manual de marca', 'Papelería digital', 'Assets para redes sociales', '5 variaciones del logo', 'Entrega en 10 días hábiles'] },
-      { nombre: 'Premium',           precio: "$2'000.000",    items: ['Todo de Branding Completo', 'Mockups en 3D', 'Estrategia de marca', 'Guía de voz y tono', 'Asesoría de implementación', 'Soporte 30 días'] },
-    ],
-  },
-  {
-    id: 'marketing', label: 'Marketing Digital',
-    planes: [
-      { nombre: 'Gestión Social', precio: '$800.000',    periodo: '/mes', items: ['3 redes sociales', '12 contenidos al mes', 'Diseño gráfico incluido', 'Calendario editorial', 'Reporte mensual', 'Soporte vía WhatsApp'] },
-      { nombre: 'Marketing Pro',  precio: "$1'500.000",  periodo: '/mes', destacado: true, items: ['5 redes sociales', '20 contenidos al mes', 'Pauta básica incluida', 'Reportes semanales', 'Estrategia mensual', 'Asesor dedicado'] },
-      { nombre: 'Full Service',   precio: "$2'800.000",  periodo: '/mes', items: ['Canales ilimitados', 'Contenido ilimitado', 'Pauta avanzada', 'Mentoría mensual', 'Estrategia integral', 'Prioridad absoluta'] },
-    ],
-  },
-]
+import { getPlanes } from '../lib/db'
+import { categoriasEstaticas, planesEstaticos, fmtPrecio, type Plan } from '../data/precios'
 
 function PlanCard({ plan }: { plan: Plan }) {
   const [hover, setHover] = useState(false)
@@ -52,12 +24,12 @@ function PlanCard({ plan }: { plan: Plan }) {
       )}
       <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#111827', marginBottom: '12px' }}>{plan.nombre}</h3>
       <div style={{ marginBottom: '20px' }}>
-        <span style={{ fontSize: '34px', fontWeight: 900, color: P, lineHeight: 1 }}>{plan.precio}</span>
+        <span style={{ fontSize: '34px', fontWeight: 900, color: P, lineHeight: 1 }}>{fmtPrecio(plan.precioNum)}</span>
         {plan.periodo && <span style={{ fontSize: '15px', color: '#6B7280', fontWeight: 500 }}>{plan.periodo}</span>}
       </div>
       <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', marginBottom: '24px' }}>
-        {plan.items.map(item => (
-          <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: '#374151' }}>
+        {plan.items.map((item, i) => (
+          <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: '#374151' }}>
             <span style={{ color: P, fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>✓</span>{item}
           </li>
         ))}
@@ -80,9 +52,16 @@ function PlanCard({ plan }: { plan: Plan }) {
 }
 
 export default function ServiciosTabs() {
-  const isMobile      = useIsMobile()
+  const isMobile = useIsMobile()
   const [active, setActive] = useState('web')
-  const tab = tabs.find(t => t.id === active)!
+  const [planes, setPlanes] = useState<Plan[]>(planesEstaticos)
+
+  useEffect(() => {
+    getPlanes().then(setPlanes)
+  }, [])
+
+  const tabs  = categoriasEstaticas
+  const planesActivos = planes.filter(p => p.tabId === active)
 
   return (
     <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
@@ -129,7 +108,7 @@ export default function ServiciosTabs() {
               gap: isMobile ? '16px' : '24px',
             }}
           >
-            {tab.planes.map(plan => <PlanCard key={plan.nombre} plan={plan} />)}
+            {planesActivos.map(plan => <PlanCard key={plan._id ?? plan.nombre} plan={plan} />)}
           </motion.div>
         </AnimatePresence>
       </div>

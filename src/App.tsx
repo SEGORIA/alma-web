@@ -25,6 +25,7 @@ import BlogAdmin       from './pages/admin/BlogAdmin'
 import BlogEditor      from './pages/admin/BlogEditor'
 import PortafolioAdmin from './pages/admin/PortafolioAdmin'
 import PortafolioEditor from './pages/admin/PortafolioEditor'
+import PreciosAdmin from './pages/admin/PreciosAdmin'
 import { useAuth }     from './hooks/useAuth'
 import { Navigate }    from 'react-router-dom'
 import { P, PD, Y, WA_PROYECTO } from './tokens'
@@ -393,6 +394,7 @@ export default function App() {
       <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
       <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
       <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
+      <Route path="/admin/precios" element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
     </Routes>
   )
 }
