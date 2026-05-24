@@ -2,20 +2,23 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { P, PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getPlanes, getExtras } from '../lib/db'
+import { getPlanes, getExtras, getContactoInfo } from '../lib/db'
 import { categoriasEstaticas, planesEstaticos, extrasEstaticos, fmtPrecio, type Plan, type Extra } from '../data/precios'
+import { contactoDefault, type ContactoInfo } from '../data/config'
 
 const STEPS = ['Servicio', 'Plan', 'Extras', 'Resumen']
 
 export default function Calculadora() {
   const isMobile = useIsMobile()
 
-  const [planes, setPlanes] = useState<Plan[]>(planesEstaticos)
-  const [extras, setExtras] = useState<Extra[]>(extrasEstaticos)
+  const [planes,   setPlanes]   = useState<Plan[]>(planesEstaticos)
+  const [extras,   setExtras]   = useState<Extra[]>(extrasEstaticos)
+  const [contacto, setContacto] = useState<ContactoInfo>(contactoDefault)
 
   useEffect(() => {
     getPlanes().then(setPlanes)
     getExtras().then(setExtras)
+    getContactoInfo().then(setContacto)
   }, [])
 
   const [step,           setStep]           = useState(0)
@@ -51,7 +54,7 @@ export default function Calculadora() {
       '',
       '¿Podemos agendar una llamada para conversarlo?',
     ].filter(Boolean).join('\n')
-    return `https://wa.me/573188006436?text=${encodeURIComponent(lines)}`
+    return `https://wa.me/${contacto.whatsapp}?text=${encodeURIComponent(lines)}`
   }
 
   const canNext = [

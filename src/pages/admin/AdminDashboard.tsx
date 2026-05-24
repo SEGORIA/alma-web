@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
-import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
+import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, getPasos, getEquipo, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
 import { P, Y } from '../../tokens'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
@@ -12,6 +12,8 @@ export default function AdminDashboard() {
   const [nExtras,     setNExtras]     = useState<number | null>(null)
   const [nTestimonios,setNTestimonios]= useState<number | null>(null)
   const [nFaqs,       setNFaqs]       = useState<number | null>(null)
+  const [nPasos,      setNPasos]      = useState<number | null>(null)
+  const [nEquipo,     setNEquipo]     = useState<number | null>(null)
   const [seeding,     setSeeding]     = useState(false)
   const [seeded,      setSeeded]      = useState(false)
 
@@ -22,6 +24,8 @@ export default function AdminDashboard() {
     getExtras().then(e => setNExtras(e.length))
     getTestimonios().then(t => setNTestimonios(t.length))
     getFaqs().then(f => setNFaqs(f.length))
+    getPasos().then(p => setNPasos(p.length))
+    getEquipo().then(e => setNEquipo(e.length))
   }, [seeded])
 
   const handleSeed = async () => {
@@ -65,6 +69,14 @@ export default function AdminDashboard() {
       color:  '#059669',
       to:     '/admin/precios',
       action: 'Gestionar precios',
+    },
+    {
+      label:  `Proceso (${nPasos ?? '…'}) · Equipo (${nEquipo ?? '…'})`,
+      value:  nPasos !== null && nEquipo !== null ? nPasos + nEquipo : '…',
+      icon:   '📄',
+      color:  '#0891B2',
+      to:     '/admin/contenido',
+      action: 'Editar contenido',
     },
     {
       label:  `Testimonios (${nTestimonios ?? '…'}) · FAQ (${nFaqs ?? '…'})`,
