@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { P, Y, PHONE } from '../tokens'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 
 const recursos = [
   { icon: '📲', texto: '7 hacks de Instagram con IA' },
@@ -14,12 +16,17 @@ export default function LeadMagnet() {
   const [email, setEmail]     = useState('')
   const [focused, setFocused] = useState(false)
   const [sent, setSent]       = useState(false)
+  const [phone, setPhone]     = useState(contactoDefault.whatsapp)
+
+  useEffect(() => {
+    getContactoInfo().then(c => setPhone(c.whatsapp))
+  }, [])
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
     const texto = `Hola, quiero recibir el kit gratuito de Alma. Mi correo es: ${email.trim()}`
-    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(texto)}`, '_blank')
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
     setSent(true)
   }
 

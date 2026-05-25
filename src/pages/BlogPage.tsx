@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { articulos, catColor, categorias, type Articulo } from '../data/articulos'
-import { P, Y, WA_PROYECTO } from '../tokens'
+import { P, Y } from '../tokens'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
 
 /* ── Article Card ────────────────────────────────────────── */
@@ -148,10 +151,14 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
 
 /* ── BlogPage ────────────────────────────────────────────── */
 export default function BlogPage() {
-  const [filtro, setFiltro] = useState('Todos')
+  const [filtro,  setFiltro]  = useState('Todos')
+  const [waLink,  setWaLink]  = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
   }, [])
 
   const destacado   = articulos.find(a => a.destacado)!
@@ -161,6 +168,14 @@ export default function BlogPage() {
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh' }}>
+      <Helmet>
+        <title>Blog | Alma Agencia Creativa — Diseño web, branding y marketing digital</title>
+        <meta name="description" content="Artículos sobre diseño web, branding, marketing digital e inteligencia artificial para emprendedores y empresas en Colombia." />
+        <meta property="og:title" content="Blog de Alma Agencia Creativa" />
+        <meta property="og:description" content="Aprende sobre diseño web, branding y marketing digital con nuestra agencia creativa." />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://almaagenciacreativa.com/blog" />
+      </Helmet>
       <SiteNav activePath="/blog" />
 
       {/* Page hero */}
@@ -268,7 +283,7 @@ export default function BlogPage() {
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a
-              href={WA_PROYECTO}
+              href={waLink}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -328,7 +343,7 @@ export default function BlogPage() {
               >
                 Instagram
               </a>
-              <a href={WA_PROYECTO} target="_blank" rel="noopener noreferrer"
+              <a href={waLink} target="_blank" rel="noopener noreferrer"
                 style={{ color: '#6B7280', fontSize: '13px', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
                 onMouseLeave={e => (e.currentTarget.style.color = '#6B7280')}

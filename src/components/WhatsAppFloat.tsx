@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { WA_PROYECTO as WA } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 
 const WA_GREEN      = '#25D366'
 const WA_GREEN_DARK = '#1DAF59'
@@ -16,10 +17,17 @@ export default function WhatsAppFloat() {
   const isMobile              = useIsMobile()
   const [hovered, setHovered] = useState(false)
   const [visible, setVisible] = useState(false)
+  const [wa,      setWa]      = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 1800)
     return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    getContactoInfo().then(c =>
+      setWa(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
   }, [])
 
   if (!visible) return null
@@ -34,7 +42,7 @@ export default function WhatsAppFloat() {
         style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200 }}
       >
         <a
-          href={WA}
+          href={wa}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -99,7 +107,7 @@ export default function WhatsAppFloat() {
 
       {/* Botón */}
       <motion.a
-        href={WA}
+        href={wa}
         target="_blank"
         rel="noopener noreferrer"
         initial={{ scale: 0, opacity: 0 }}

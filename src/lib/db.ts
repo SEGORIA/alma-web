@@ -5,7 +5,7 @@ import {
 import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
 import { proyectosEstaticos } from '../data/portafolio'
-import { planesEstaticos, extrasEstaticos } from '../data/precios'
+import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/precios'
 import {
   seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
   contactoDefault, heroStatsDefault, heroSubtituloDefault,
@@ -13,7 +13,7 @@ import {
 import { pasosEstaticos, equipoEstatico } from '../data/contenido'
 import type { Articulo } from '../data/articulos'
 import type { Proyecto } from '../data/portafolio'
-import type { Plan, Extra } from '../data/precios'
+import type { Plan, Extra, ServicioCategoria } from '../data/precios'
 import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
 
@@ -25,6 +25,7 @@ function extrasCol()      { return collection(db!, 'precios_extras') }
 function configDoc()      { return doc(db!, 'config', 'site') }
 function testimoniosCol() { return collection(db!, 'testimonios') }
 function faqsCol()        { return collection(db!, 'faqs') }
+function categoriasCol()  { return collection(db!, 'categorias') }
 function pasosCol()       { return collection(db!, 'proceso') }
 function equipoCol()      { return collection(db!, 'equipo') }
 
@@ -156,7 +157,36 @@ export async function deleteExtra(id: string) {
   await deleteDoc(doc(db!, 'precios_extras', id))
 }
 
+/* ══ PRECIOS — CATEGORÍAS ═══════════════════════════════════ */
+
+export async function getCategorias(): Promise<ServicioCategoria[]> {
+  if (!firebaseReady || !db) return categoriasEstaticas
+  try {
+    const snap = await getDocs(query(categoriasCol(), orderBy('orden', 'asc')))
+    if (snap.empty) return categoriasEstaticas
+    return snap.docs.map(d => ({ ...(d.data() as ServicioCategoria), _id: d.id }))
+  } catch {
+    return categoriasEstaticas
+  }
+}
+
+export async function createCategoria(data: Omit<ServicioCategoria, '_id'>): Promise<string> {
+  const ref = await addDoc(categoriasCol(), { ...data, createdAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function updateCategoria(id: string, data: Partial<ServicioCategoria>) {
+  await updateDoc(doc(db!, 'categorias', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deleteCategoria(id: string) {
+  await deleteDoc(doc(db!, 'categorias', id))
+}
+
 export async function seedPrecios() {
+  for (let i = 0; i < categoriasEstaticas.length; i++) {
+    await addDoc(categoriasCol(), { ...categoriasEstaticas[i], orden: i, createdAt: serverTimestamp() })
+  }
   for (let i = 0; i < planesEstaticos.length; i++) {
     await addDoc(planesCol(), { ...planesEstaticos[i], orden: i, createdAt: serverTimestamp() })
   }

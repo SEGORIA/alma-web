@@ -1,10 +1,12 @@
 // ── Tipos ─────────────────────────────────────────────────────
 
 export type ServicioCategoria = {
+  _id?:  string
   id:    string
   label: string
   emoji: string
   desc:  string   // descripción corta para la calculadora
+  orden?: number
 }
 
 export type Plan = {
@@ -35,9 +37,9 @@ export function fmtPrecio(n: number): string {
 // ── Categorías (estáticas — cambian poco) ─────────────────────
 
 export const categoriasEstaticas: ServicioCategoria[] = [
-  { id: 'web',       label: 'Desarrollo Web',   emoji: '💻', desc: 'Landing page, sitio corporativo o tienda virtual' },
-  { id: 'branding',  label: 'Branding',          emoji: '🎨', desc: 'Logo, identidad visual y manual de marca' },
-  { id: 'marketing', label: 'Marketing Digital', emoji: '📱', desc: 'Gestión de redes sociales y pauta digital' },
+  { id: 'web',       label: 'Desarrollo Web',   emoji: '💻', desc: 'Landing page, sitio corporativo o tienda virtual', orden: 0 },
+  { id: 'branding',  label: 'Branding',          emoji: '🎨', desc: 'Logo, identidad visual y manual de marca',         orden: 1 },
+  { id: 'marketing', label: 'Marketing Digital', emoji: '📱', desc: 'Gestión de redes sociales y pauta digital',        orden: 2 },
 ]
 
 // ── Planes estáticos (fallback sin Firebase) ──────────────────

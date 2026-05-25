@@ -1,39 +1,42 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, Link as RouterLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import './index.css'
-import Hero        from './sections/Hero'
-import Clientes    from './sections/Clientes'
-import Manifiesto  from './sections/Manifiesto'
-import Proceso     from './sections/Proceso'
+import Hero          from './sections/Hero'
+import Clientes      from './sections/Clientes'
+import Manifiesto    from './sections/Manifiesto'
+import Proceso       from './sections/Proceso'
 import ServiciosTabs from './sections/ServiciosTabs'
-import Academia    from './sections/Academia'
-import LeadMagnet  from './sections/LeadMagnet'
-import Portafolio  from './sections/Portafolio'
-import Testimonios from './sections/Testimonios'
-import FAQ         from './sections/FAQ'
-import Contacto    from './sections/Contacto'
-import Nosotros    from './sections/Nosotros'
-import Blog        from './sections/Blog'
-import Calculadora from './sections/Calculadora'
+import Academia      from './sections/Academia'
+import LeadMagnet    from './sections/LeadMagnet'
+import Portafolio    from './sections/Portafolio'
+import Testimonios   from './sections/Testimonios'
+import FAQ           from './sections/FAQ'
+import Contacto      from './sections/Contacto'
+import Nosotros      from './sections/Nosotros'
+import Blog          from './sections/Blog'
+import Calculadora   from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
-import BlogPage        from './pages/BlogPage'
-import ArticuloPage    from './pages/ArticuloPage'
-import AdminLogin      from './pages/admin/AdminLogin'
-import AdminDashboard  from './pages/admin/AdminDashboard'
-import BlogAdmin       from './pages/admin/BlogAdmin'
-import BlogEditor      from './pages/admin/BlogEditor'
-import PortafolioAdmin from './pages/admin/PortafolioAdmin'
-import PortafolioEditor from './pages/admin/PortafolioEditor'
-import PreciosAdmin from './pages/admin/PreciosAdmin'
-import ConfigAdmin from './pages/admin/ConfigAdmin'
-import ContenidoAdmin from './pages/admin/ContenidoAdmin'
-import { getConfig } from './lib/db'
-import { seccionesDefault } from './data/config'
+import BlogPage      from './pages/BlogPage'
+import ArticuloPage  from './pages/ArticuloPage'
+import { getConfig, getContactoInfo } from './lib/db'
+import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
-import { useAuth }     from './hooks/useAuth'
-import { Navigate }    from 'react-router-dom'
-import { P, PD, Y, WA_PROYECTO } from './tokens'
+import { useAuth }  from './hooks/useAuth'
+import { Navigate } from 'react-router-dom'
+import { P, PD, Y } from './tokens'
+
+/* ── Admin pages — lazy loaded (no se cargan hasta /admin) ── */
+const AdminLogin      = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'))
+const BlogAdmin       = lazy(() => import('./pages/admin/BlogAdmin'))
+const BlogEditor      = lazy(() => import('./pages/admin/BlogEditor'))
+const PortafolioAdmin = lazy(() => import('./pages/admin/PortafolioAdmin'))
+const PortafolioEditor = lazy(() => import('./pages/admin/PortafolioEditor'))
+const PreciosAdmin    = lazy(() => import('./pages/admin/PreciosAdmin'))
+const ConfigAdmin     = lazy(() => import('./pages/admin/ConfigAdmin'))
+const ContenidoAdmin  = lazy(() => import('./pages/admin/ContenidoAdmin'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -144,9 +147,13 @@ function Landing() {
   const [menuOpen,       setMenuOpen]       = useState(false)
   const [activeSection,  setActiveSection]  = useState('inicio')
   const [sec,            setSec]            = useState<SeccionesConfig>(seccionesDefault)
+  const [waLink,         setWaLink]         = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
 
   useEffect(() => {
     getConfig().then(cfg => setSec(cfg.secciones))
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
   }, [])
 
   useEffect(() => {
@@ -192,6 +199,16 @@ function Landing() {
 
   return (
     <div style={{ background: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
+      <Helmet>
+        <title>Alma Agencia Creativa | Diseño web, branding y marketing digital en Manizales</title>
+        <meta name="description" content="Agencia creativa en Manizales, Colombia. Diseñamos sitios web, identidades de marca y estrategias de marketing digital que generan resultados reales." />
+        <meta property="og:title" content="Alma Agencia Creativa" />
+        <meta property="og:description" content="Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia." />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="es_CO" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://almaagenciacreativa.com" />
+      </Helmet>
 
       {/* Scroll progress bar */}
       <div style={{
@@ -254,7 +271,7 @@ function Landing() {
                 ))}
               </div>
               <a
-                href={WA_PROYECTO}
+                href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -335,7 +352,7 @@ function Landing() {
                   )
                 })}
                 <motion.a
-                  href={WA_PROYECTO}
+                  href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={closeMenu}
@@ -360,7 +377,7 @@ function Landing() {
       {/* ── Secciones ── */}
       <div id="inicio"><Hero /></div>
       {sec.clientes    && <Clientes />}
-      {sec.nosotros    && <Nosotros />}
+      {sec.nosotros    && <div id="nosotros"><Nosotros /></div>}
       {sec.manifiesto  && <div id="agencia"><Manifiesto /></div>}
       {sec.proceso     && <Proceso />}
       {sec.servicios   && <div id="servicios"><ServiciosTabs /></div>}
@@ -377,36 +394,43 @@ function Landing() {
   )
 }
 
-/* ── Protected route ─────────────────────────────────────── */
-function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  if (loading) return (
+/* ── Loading fallback ────────────────────────────────────── */
+function PageLoader() {
+  return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB' }}>
       <p style={{ color: '#6B7280', fontSize: '15px' }}>Cargando…</p>
     </div>
   )
+}
+
+/* ── Protected route ─────────────────────────────────────── */
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return <PageLoader />
   return user ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
 /* ── App Router ──────────────────────────────────────────── */
 export default function App() {
   return (
-    <Routes>
-      {/* Público */}
-      <Route path="/"           element={<Landing />} />
-      <Route path="/blog"       element={<BlogPage />} />
-      <Route path="/blog/:slug" element={<ArticuloPage />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Público */}
+        <Route path="/"           element={<Landing />} />
+        <Route path="/blog"       element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<ArticuloPage />} />
 
-      {/* Admin */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
-      <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />
-      <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
-      <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
-      <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
-      <Route path="/admin/precios"   element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
-      <Route path="/admin/contenido" element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
-      <Route path="/admin/config"    element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
-    </Routes>
+        {/* Admin — lazy */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+        <Route path="/admin/blog" element={<RequireAuth><BlogAdmin /></RequireAuth>} />
+        <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
+        <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
+        <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
+        <Route path="/admin/precios"   element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
+        <Route path="/admin/contenido" element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
+        <Route path="/admin/config"    element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
+      </Routes>
+    </Suspense>
   )
 }

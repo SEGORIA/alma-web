@@ -2,8 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { P, PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getPlanes, getExtras, getContactoInfo } from '../lib/db'
-import { categoriasEstaticas, planesEstaticos, extrasEstaticos, fmtPrecio, type Plan, type Extra } from '../data/precios'
+import { getPlanes, getExtras, getCategorias, getContactoInfo } from '../lib/db'
+import { categoriasEstaticas, planesEstaticos, extrasEstaticos, fmtPrecio, type Plan, type Extra, type ServicioCategoria } from '../data/precios'
 import { contactoDefault, type ContactoInfo } from '../data/config'
 
 const STEPS = ['Servicio', 'Plan', 'Extras', 'Resumen']
@@ -11,13 +11,15 @@ const STEPS = ['Servicio', 'Plan', 'Extras', 'Resumen']
 export default function Calculadora() {
   const isMobile = useIsMobile()
 
-  const [planes,   setPlanes]   = useState<Plan[]>(planesEstaticos)
-  const [extras,   setExtras]   = useState<Extra[]>(extrasEstaticos)
-  const [contacto, setContacto] = useState<ContactoInfo>(contactoDefault)
+  const [planes,     setPlanes]     = useState<Plan[]>(planesEstaticos)
+  const [extras,     setExtras]     = useState<Extra[]>(extrasEstaticos)
+  const [servicios,  setServicios]  = useState<ServicioCategoria[]>(categoriasEstaticas)
+  const [contacto,   setContacto]   = useState<ContactoInfo>(contactoDefault)
 
   useEffect(() => {
     getPlanes().then(setPlanes)
     getExtras().then(setExtras)
+    getCategorias().then(setServicios)
     getContactoInfo().then(setContacto)
   }, [])
 
@@ -26,7 +28,7 @@ export default function Calculadora() {
   const [planId,         setPlanId]         = useState<string | null>(null)
   const [extrasSelected, setExtrasSelected] = useState<string[]>([])
 
-  const servicios = categoriasEstaticas
+  // servicios ya viene del estado dinámico
 
   const servicio  = servicios.find(s => s.id === servicioId)
   const planLista = servicioId ? planes.filter(p => p.tabId === servicioId) : []

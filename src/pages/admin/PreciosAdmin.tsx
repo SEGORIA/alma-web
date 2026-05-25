@@ -3,10 +3,11 @@ import AdminLayout from './AdminLayout'
 import {
   getPlanes, createPlan, updatePlan, deletePlan,
   getExtras, createExtra, updateExtra, deleteExtra,
+  getCategorias, createCategoria, updateCategoria, deleteCategoria,
   seedPrecios,
 } from '../../lib/db'
 import { categoriasEstaticas, fmtPrecio } from '../../data/precios'
-import type { Plan, Extra } from '../../data/precios'
+import type { Plan, Extra, ServicioCategoria } from '../../data/precios'
 import { P, Y } from '../../tokens'
 
 /* ── helpers ────────────────────────────────────────────────── */
@@ -234,14 +235,19 @@ function ExtraForm({
 }
 
 /* ── Main page ──────────────────────────────────────────────── */
+const emptyCategoria = (): Omit<ServicioCategoria, '_id'> => ({
+  id: '', label: '', emoji: '⭐', desc: '', orden: 0,
+})
+
 export default function PreciosAdmin() {
   const [planes,        setPlanes]        = useState<Plan[]>([])
   const [extras,        setExtras]        = useState<Extra[]>([])
+  const [categorias,    setCategorias]    = useState<ServicioCategoria[]>([])
   const [loading,       setLoading]       = useState(true)
 
   // plan editing state
-  const [editingPlanId, setEditingPlanId] = useState<string | null>(null)  // existing plan _id or null
-  const [addingInTab,   setAddingInTab]   = useState<string | null>(null)  // tab id for new plan
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
+  const [addingInTab,   setAddingInTab]   = useState<string | null>(null)
   const [savingPlan,    setSavingPlan]    = useState(false)
 
   // extra editing state
@@ -249,13 +255,19 @@ export default function PreciosAdmin() {
   const [addingExtra,    setAddingExtra]    = useState(false)
   const [savingExtra,    setSavingExtra]    = useState(false)
 
+  // categoria editing state
+  const [editingCatId,  setEditingCatId]  = useState<string | null>(null)
+  const [addingCat,     setAddingCat]     = useState(false)
+  const [savingCat,     setSavingCat]     = useState(false)
+  const [catForm,       setCatForm]       = useState<Omit<ServicioCategoria, '_id'>>(emptyCategoria())
+
   // seeding
   const [seeding, setSeeding] = useState(false)
 
   async function reload() {
     setLoading(true)
-    const [p, e] = await Promise.all([getPlanes(), getExtras()])
-    setPlanes(p); setExtras(e)
+    const [p, e, c] = await Promise.all([getPlanes(), getExtras(), getCategorias()])
+    setPlanes(p); setExtras(e); setCategorias(c)
     setLoading(false)
   }
 
@@ -309,6 +321,30 @@ export default function PreciosAdmin() {
     } catch (err) { alert('Error al eliminar: ' + err) }
   }
 
+  /* ── Categoria handlers ── */
+  async function handleSaveCat(data: Omit<ServicioCategoria, '_id'>) {
+    setSavingCat(true)
+    try {
+      if (editingCatId) {
+        await updateCategoria(editingCatId, data)
+      } else {
+        await createCategoria({ ...data, orden: categorias.length })
+      }
+      setEditingCatId(null); setAddingCat(false)
+      await reload()
+    } catch (err) { alert('Error al guardar: ' + err) }
+    setSavingCat(false)
+  }
+
+  async function handleDeleteCat(cat: ServicioCategoria) {
+    if (!cat._id) return
+    if (!confirm(`¿Eliminar la categoría "${cat.label}"? Los planes con tabId="${cat.id}" quedarán huérfanos.`)) return
+    try {
+      await deleteCategoria(cat._id)
+      await reload()
+    } catch (err) { alert('Error al eliminar: ' + err) }
+  }
+
   /* ── Seed ── */
   async function handleSeed() {
     if (!confirm('¿Migrar los precios estáticos a Firestore? Esto creará los registros iniciales.')) return
@@ -323,6 +359,8 @@ export default function PreciosAdmin() {
 
   /* ── Detección de datos migrados ── */
   const isMigrated = planes.some(p => !!p._id) && extras.some(e => !!e._id)
+  const catsMigrated = categorias.some(c => !!c._id)
+  const catsList = catsMigrated ? categorias : categoriasEstaticas
 
   /* ── Render helpers ── */
   const cardStyle: React.CSSProperties = {
@@ -404,7 +442,7 @@ export default function PreciosAdmin() {
         {!loading && (
           <>
             {/* ── Planes por categoría ── */}
-            {categoriasEstaticas.map(cat => {
+            {catsList.map(cat => {
               const catPlanes = planes.filter(p => p.tabId === cat.id)
               return (
                 <section key={cat.id} style={{ marginBottom: '40px' }}>
@@ -548,6 +586,107 @@ export default function PreciosAdmin() {
                   <p style={{ fontSize: '13px', color: '#9CA3AF', textAlign: 'center', padding: '24px', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB' }}>
                     Sin extras todavía. Haz clic en "+ Nuevo extra" o migra los datos a Firestore.
                   </p>
+                )}
+              </div>
+            </section>
+
+            {/* ── Categorías de servicios ── */}
+            <section style={{ marginTop: '48px', borderTop: '2px solid #F3F4F6', paddingTop: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginBottom: '2px' }}>
+                    🗂 Categorías de Servicios
+                  </h2>
+                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
+                    Los tabs de ServiciosTabs y la Calculadora. El <code>id</code> debe coincidir con el <code>tabId</code> de cada plan.
+                  </p>
+                </div>
+                {catsMigrated && !addingCat && (
+                  <button
+                    onClick={() => { setAddingCat(true); setEditingCatId(null); setCatForm(emptyCategoria()) }}
+                    style={{ background: P, color: '#fff', padding: '8px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer' }}
+                  >
+                    + Nueva categoría
+                  </button>
+                )}
+              </div>
+
+              {!catsMigrated && (
+                <p style={{ fontSize: '13px', color: '#B45309', background: '#FEF9C3', border: '1px solid #FCD34D', borderRadius: '10px', padding: '12px 16px', marginBottom: '14px' }}>
+                  ⚠️ Migra los datos a Firestore para editar las categorías.
+                </p>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {catsList.map(cat => (
+                  <div key={cat._id ?? cat.id}>
+                    {cat._id && editingCatId === cat._id ? (
+                      <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                          {([['emoji','Emoji', 'Ej: 💻'], ['id','ID (interno)', 'ej: web'], ['label','Nombre visible', 'ej: Desarrollo Web'], ['desc','Descripción corta', 'ej: Landing, corporativo...']] as [keyof Omit<ServicioCategoria,'_id'>, string, string][]).map(([k, lbl, ph]) => (
+                            <div key={k}>
+                              <label style={{ fontSize: '12px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
+                              <input
+                                value={String(catForm[k] ?? '')}
+                                onChange={e => setCatForm(f => ({ ...f, [k]: e.target.value }))}
+                                placeholder={ph}
+                                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => handleSaveCat(catForm)} disabled={savingCat} style={{ background: P, color: '#fff', padding: '9px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                            {savingCat ? 'Guardando…' : '💾 Guardar'}
+                          </button>
+                          <button onClick={() => setEditingCatId(null)} style={{ background: '#F3F4F6', color: '#6B7280', padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ ...cardStyle, opacity: cat._id ? 1 : 0.65 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                          <span style={{ fontSize: '24px' }}>{cat.emoji}</span>
+                          <div>
+                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{cat.label}</span>
+                            <span style={{ marginLeft: '10px', fontSize: '11px', color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: '6px' }}>id: {cat.id}</span>
+                            <p style={{ fontSize: '12px', color: '#6B7280', margin: '2px 0 0' }}>{cat.desc}</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                          {actionBtn('✏️ Editar', () => { setEditingCatId(cat._id!); setCatForm({ id: cat.id, label: cat.label, emoji: cat.emoji, desc: cat.desc, orden: cat.orden ?? 0 }) }, false, !cat._id)}
+                          {actionBtn('🗑 Eliminar', () => handleDeleteCat(cat), true, !cat._id)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {addingCat && (
+                  <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                      {([['emoji','Emoji', 'Ej: 💻'], ['id','ID (interno)', 'ej: web'], ['label','Nombre visible', 'ej: Desarrollo Web'], ['desc','Descripción corta', 'ej: Landing, corporativo...']] as [keyof Omit<ServicioCategoria,'_id'>, string, string][]).map(([k, lbl, ph]) => (
+                        <div key={k}>
+                          <label style={{ fontSize: '12px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
+                          <input
+                            value={String(catForm[k] ?? '')}
+                            onChange={e => setCatForm(f => ({ ...f, [k]: e.target.value }))}
+                            placeholder={ph}
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleSaveCat(catForm)} disabled={savingCat} style={{ background: P, color: '#fff', padding: '9px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                        {savingCat ? 'Guardando…' : '💾 Guardar categoría'}
+                      </button>
+                      <button onClick={() => setAddingCat(false)} style={{ background: '#F3F4F6', color: '#6B7280', padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </section>

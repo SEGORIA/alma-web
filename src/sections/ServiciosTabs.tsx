@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { P, Y, WA_COTIZAR as WA } from '../tokens'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getPlanes } from '../lib/db'
-import { categoriasEstaticas, planesEstaticos, fmtPrecio, type Plan } from '../data/precios'
+import { getPlanes, getCategorias, getContactoInfo } from '../lib/db'
+import { categoriasEstaticas, planesEstaticos, fmtPrecio, type Plan, type ServicioCategoria } from '../data/precios'
+import { contactoDefault } from '../data/config'
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, wa }: { plan: Plan; wa: string }) {
   const [hover, setHover] = useState(false)
   return (
     <div
@@ -35,7 +36,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         ))}
       </ul>
       <a
-        href={WA} target="_blank" rel="noopener noreferrer"
+        href={wa} target="_blank" rel="noopener noreferrer"
         style={{
           display: 'block', textAlign: 'center',
           background: plan.destacado ? Y : '#F3F4F6',
@@ -53,14 +54,22 @@ function PlanCard({ plan }: { plan: Plan }) {
 
 export default function ServiciosTabs() {
   const isMobile = useIsMobile()
-  const [active, setActive] = useState('web')
-  const [planes, setPlanes] = useState<Plan[]>(planesEstaticos)
+  const [planes,     setPlanes]     = useState<Plan[]>(planesEstaticos)
+  const [categorias, setCategorias] = useState<ServicioCategoria[]>(categoriasEstaticas)
+  const [wa,         setWa]         = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma`)
+  const [active,     setActive]     = useState('web')
 
   useEffect(() => {
     getPlanes().then(setPlanes)
+    getCategorias().then(cats => {
+      setCategorias(cats)
+      if (cats.length > 0) setActive(cats[0].id)
+    })
+    getContactoInfo().then(c =>
+      setWa(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma`)
+    )
   }, [])
 
-  const tabs  = categoriasEstaticas
   const planesActivos = planes.filter(p => p.tabId === active)
 
   return (
@@ -79,7 +88,7 @@ export default function ServiciosTabs() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: isMobile ? '24px' : '48px', flexWrap: 'wrap' }}>
-          {tabs.map(t => (
+          {categorias.map(t => (
             <button
               key={t.id} onClick={() => setActive(t.id)}
               style={{
@@ -91,7 +100,7 @@ export default function ServiciosTabs() {
                 cursor: 'pointer', transition: 'all 0.2s ease',
               }}
             >
-              {t.label}
+              {t.emoji} {t.label}
             </button>
           ))}
         </div>
@@ -108,7 +117,7 @@ export default function ServiciosTabs() {
               gap: isMobile ? '16px' : '24px',
             }}
           >
-            {planesActivos.map(plan => <PlanCard key={plan._id ?? plan.nombre} plan={plan} />)}
+            {planesActivos.map(plan => <PlanCard key={plan._id ?? plan.nombre} plan={plan} wa={wa} />)}
           </motion.div>
         </AnimatePresence>
       </div>

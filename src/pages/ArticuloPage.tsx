@@ -1,8 +1,11 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { articulos, catColor, type Bloque } from '../data/articulos'
-import { P, Y, WA_PROYECTO } from '../tokens'
+import { Helmet } from 'react-helmet-async'
+import { articulos, catColor, type Bloque, type Articulo } from '../data/articulos'
+import { P, Y } from '../tokens'
+import { getArticulo, getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
 
 /* ── Bloque renderer ─────────────────────────────────────── */
@@ -152,10 +155,15 @@ function RenderBloque({ b }: { b: Bloque }) {
 export default function ArticuloPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
-  const articulo = articulos.find(a => a.slug === slug)
+  const [articulo, setArticulo] = useState<Articulo | null>(
+    articulos.find(a => a.slug === slug) ?? null
+  )
+  const [waPhone, setWaPhone] = useState(contactoDefault.whatsapp)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    if (slug) getArticulo(slug).then(a => setArticulo(a))
+    getContactoInfo().then(c => setWaPhone(c.whatsapp))
   }, [slug])
 
   if (!articulo) {
@@ -183,11 +191,23 @@ export default function ArticuloPage() {
 
   const color         = catColor[articulo.cat] ?? P
   const waText        = encodeURIComponent(`Hola, leí "${articulo.titulo}" en el blog de Alma y me gustaría saber más sobre sus servicios`)
-  const waLink        = `https://wa.me/573188006436?text=${waText}`
+  const waLink        = `https://wa.me/${waPhone}?text=${waText}`
   const relacionados  = articulos.filter(a => a.slug !== slug).slice(0, 3)
 
   return (
     <div style={{ background: '#fff', minHeight: '100vh' }}>
+      <Helmet>
+        <title>{articulo.titulo} | Blog Alma Agencia Creativa</title>
+        <meta name="description" content={articulo.excerpt} />
+        <meta property="og:title" content={articulo.titulo} />
+        <meta property="og:description" content={articulo.excerpt} />
+        <meta property="og:type" content="article" />
+        <meta property="og:locale" content="es_CO" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={articulo.titulo} />
+        <meta name="twitter:description" content={articulo.excerpt} />
+        <link rel="canonical" href={`https://almaagenciacreativa.com/blog/${articulo.slug}`} />
+      </Helmet>
       <SiteNav />
 
       {/* Hero */}
@@ -334,7 +354,7 @@ export default function ArticuloPage() {
               💬 Hablar por WhatsApp
             </a>
             <a
-              href={WA_PROYECTO}
+              href={waLink}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -473,7 +493,7 @@ export default function ArticuloPage() {
           >
             Blog
           </Link>
-          <a href={WA_PROYECTO} target="_blank" rel="noopener noreferrer"
+          <a href={waLink} target="_blank" rel="noopener noreferrer"
             style={{ color: '#6B7280', fontSize: '13px', textDecoration: 'none' }}
             onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
             onMouseLeave={e => (e.currentTarget.style.color = '#6B7280')}
