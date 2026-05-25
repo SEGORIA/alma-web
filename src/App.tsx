@@ -18,8 +18,10 @@ import Nosotros      from './sections/Nosotros'
 import Blog          from './sections/Blog'
 import Calculadora   from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
-import BlogPage      from './pages/BlogPage'
-import ArticuloPage  from './pages/ArticuloPage'
+import BlogPage        from './pages/BlogPage'
+import ArticuloPage    from './pages/ArticuloPage'
+import PortafolioPage  from './pages/PortafolioPage'
+import NotFoundPage    from './pages/NotFoundPage'
 import { getConfig, getContactoInfo } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
@@ -43,7 +45,7 @@ const NAV_LINKS = [
   { label: 'Nosotros',   href: '#nosotros',  id: 'nosotros'  },
   { label: 'Servicios',  href: '#servicios', id: 'servicios' },
   { label: 'Academia',   href: '#academia',  id: 'academia'  },
-  { label: 'Portafolio', href: '#portafolio',id: 'portafolio'},
+  { label: 'Portafolio', href: '/portafolio', id: 'portafolio'},
   { label: 'Blog',       href: '/blog',      id: 'blog'      },
 ]
 
@@ -416,9 +418,11 @@ export default function App() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Público */}
-        <Route path="/"           element={<Landing />} />
-        <Route path="/blog"       element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<ArticuloPage />} />
+        <Route path="/"              element={<Landing />} />
+        <Route path="/blog"          element={<BlogPage />} />
+        <Route path="/blog/:slug"    element={<ArticuloPage />} />
+        <Route path="/portafolio"    element={<PortafolioPage />} />
+        <Route path="*"              element={<NotFoundPage />} />
 
         {/* Admin — lazy */}
         <Route path="/admin/login" element={<AdminLogin />} />

@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { P, PD, Y, WA_PROYECTO } from '../tokens'
+import { P, PD, Y } from '../tokens'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 
 // Links que apuntan a secciones de la landing desde páginas internas
 const LINKS = [
-  { label: 'Inicio',     href: '/#inicio'     },
-  { label: 'Nosotros',   href: '/#nosotros'   },
-  { label: 'Servicios',  href: '/#servicios'  },
-  { label: 'Academia',   href: '/#academia'   },
-  { label: 'Portafolio', href: '/#portafolio' },
-  { label: 'Blog',       to:   '/blog'        },   // ruta interna
+  { label: 'Inicio',      href: '/#inicio'     },
+  { label: 'Nosotros',    href: '/#nosotros'   },
+  { label: 'Servicios',   href: '/#servicios'  },
+  { label: 'Academia',    href: '/#academia'   },
+  { label: 'Portafolio',  to:   '/portafolio'  },  // página dedicada
+  { label: 'Blog',        to:   '/blog'        },
 ]
 
 export default function SiteNav({ activePath }: { activePath?: string }) {
   const [scrolled,   setScrolled]   = useState(false)
   const [isMobile,   setIsMobile]   = useState(window.innerWidth < 768)
   const [menuOpen,   setMenuOpen]   = useState(false)
+  const [waLink,     setWaLink]     = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
+  )
+
+  useEffect(() => {
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -103,7 +114,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
               })}
             </div>
             <a
-              href={WA_PROYECTO} target="_blank" rel="noopener noreferrer"
+              href={waLink} target="_blank" rel="noopener noreferrer"
               style={{
                 background: P, color: '#fff',
                 padding: '10px 22px', borderRadius: '10px',
@@ -169,7 +180,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
             )
           })}
           <a
-            href={WA_PROYECTO} target="_blank" rel="noopener noreferrer"
+            href={waLink} target="_blank" rel="noopener noreferrer"
             onClick={() => setMenuOpen(false)}
             style={{
               marginTop: '12px', display: 'block', textAlign: 'center',

@@ -87,7 +87,7 @@ export default function PortafolioAdmin() {
               >
                 {/* Visual preview */}
                 <div style={{
-                  height: '100px', background: p.g, overflow: 'hidden',
+                  height: '110px', background: p.g, overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   position: 'relative',
                 }}>
@@ -109,6 +109,15 @@ export default function PortafolioAdmin() {
                       ★ Destacado
                     </span>
                   )}
+                  {/* Badge imagen vs gradiente */}
+                  <span style={{
+                    position: 'absolute', bottom: '8px', right: '8px', zIndex: 1,
+                    background: p.imagen ? 'rgba(5,150,105,0.9)' : 'rgba(0,0,0,0.4)',
+                    color: '#fff', fontSize: '10px', fontWeight: 700,
+                    padding: '3px 8px', borderRadius: '20px', backdropFilter: 'blur(4px)',
+                  }}>
+                    {p.imagen ? '📷 Imagen' : '🎨 Gradiente'}
+                  </span>
                   <span style={{
                     position: 'relative', zIndex: 1,
                     background: 'rgba(255,255,255,0.9)', color: P,

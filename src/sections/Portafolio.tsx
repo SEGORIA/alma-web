@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { P, Y, WA_CONTACTO } from '../tokens'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getProyectos } from '../lib/db'
+import { getProyectos, getContactoInfo } from '../lib/db'
 import { proyectosEstaticos, filtrosPortafolio, type Proyecto } from '../data/portafolio'
+import { contactoDefault } from '../data/config'
 
 const filtros = filtrosPortafolio
 
@@ -13,7 +14,7 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function ProyectoCard({ p, index }: { p: Proyecto; index: number }) {
+function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase: string }) {
   const [hovered, setHovered] = useState(false)
   const waText = encodeURIComponent(`Hola, me interesa conocer más sobre el proyecto ${p.titulo} que vi en el portafolio de Alma`)
 
@@ -66,7 +67,7 @@ function ProyectoCard({ p, index }: { p: Proyecto; index: number }) {
           {p.tags.map(t => <Tag key={t} label={t} />)}
         </div>
         <a
-          href={`https://wa.me/573188006436?text=${waText}`}
+          href={`${waBase}?text=${waText}`}
           target="_blank" rel="noopener noreferrer"
           style={{
             marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -86,9 +87,17 @@ export default function Portafolio() {
   const isMobile                  = useIsMobile()
   const [filtro,    setFiltro]    = useState('Todos')
   const [proyectos, setProyectos] = useState<Proyecto[]>(proyectosEstaticos)
+  const [waBase,    setWaBase]    = useState(`https://wa.me/${contactoDefault.whatsapp}`)
+  const [waLink,    setWaLink]    = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`
+  )
 
   useEffect(() => {
     getProyectos().then(setProyectos)
+    getContactoInfo().then(c => {
+      setWaBase(`https://wa.me/${c.whatsapp}`)
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`)
+    })
   }, [])
 
   const filtered = filtro === 'Todos' ? proyectos : proyectos.filter(p => p.cat === filtro)
@@ -145,7 +154,7 @@ export default function Portafolio() {
               gap: isMobile ? '16px' : '24px',
             }}
           >
-            {filtered.map((p, i) => <ProyectoCard key={p.titulo} p={p} index={i} />)}
+            {filtered.map((p, i) => <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} />)}
           </motion.div>
         </AnimatePresence>
 
@@ -164,7 +173,7 @@ export default function Portafolio() {
           <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '12px' }}>¿Tu proyecto podría estar aquí?</p>
           <h3 style={{ color: '#fff', fontSize: 'clamp(18px,3vw,28px)', fontWeight: 900, marginBottom: '24px', lineHeight: 1.2 }}>Cuéntanos tu idea y la hacemos realidad</h3>
           <a
-            href={WA_CONTACTO} target="_blank" rel="noopener noreferrer"
+            href={waLink} target="_blank" rel="noopener noreferrer"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
               background: Y, color: '#111', padding: '14px 32px', borderRadius: '12px',
