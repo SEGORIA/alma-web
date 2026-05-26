@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import { articulos, catColor, categorias, type Articulo } from '../data/articulos'
+import { articulos as articulosEstaticos, catColor, categorias, type Articulo } from '../data/articulos'
 import { P, Y } from '../tokens'
-import { getContactoInfo } from '../lib/db'
+import { getArticulos, getContactoInfo } from '../lib/db'
 import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
+import { SkeletonArticuloCard, SkeletonArticuloDestacado } from '../components/Skeleton'
 
 /* ── Article Card ────────────────────────────────────────── */
 function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande?: boolean }) {
@@ -151,20 +152,28 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
 
 /* ── BlogPage ────────────────────────────────────────────── */
 export default function BlogPage() {
-  const [filtro,  setFiltro]  = useState('Todos')
-  const [waLink,  setWaLink]  = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+  const [filtro,    setFiltro]    = useState('Todos')
+  const [todos,     setTodos]     = useState<Articulo[]>(articulosEstaticos)
+  const [loading,   setLoading]   = useState(true)
+  const [waLink,    setWaLink]    = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
+  )
 
   useEffect(() => {
     window.scrollTo(0, 0)
     getContactoInfo().then(c =>
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
     )
+    getArticulos().then(data => {
+      setTodos(data)
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [])
 
-  const destacado   = articulos.find(a => a.destacado)!
-  const sinDestacado = articulos.filter(a => !a.destacado)
-  const visibles    = filtro === 'Todos' ? sinDestacado : articulos.filter(a => a.cat === filtro)
-  const isMobile    = typeof window !== 'undefined' && window.innerWidth < 768
+  const destacado    = todos.find(a => a.destacado) ?? todos[0]
+  const sinDestacado = todos.filter(a => a !== destacado)
+  const visibles     = filtro === 'Todos' ? sinDestacado : todos.filter(a => a.cat === filtro)
+  const isMobile     = typeof window !== 'undefined' && window.innerWidth < 768
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh' }}>
@@ -246,27 +255,43 @@ export default function BlogPage() {
       {/* Content */}
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px 80px' }}>
 
-        {/* Destacado — only on "Todos" */}
-        {filtro === 'Todos' && (
-          <ArticuloCard a={destacado} index={0} grande />
-        )}
+        {loading ? (
+          /* Skeletons mientras carga Firestore */
+          <>
+            {filtro === 'Todos' && <SkeletonArticuloDestacado />}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '20px',
+            }}>
+              {[0, 1, 2].map(i => <SkeletonArticuloCard key={i} />)}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Destacado — only on "Todos" */}
+            {filtro === 'Todos' && destacado && (
+              <ArticuloCard a={destacado} index={0} grande />
+            )}
 
-        {/* Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: '20px',
-        }}>
-          {visibles.map((a, i) => (
-            <ArticuloCard key={a.slug} a={a} index={i} />
-          ))}
-        </div>
+            {/* Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: '20px',
+            }}>
+              {visibles.map((a, i) => (
+                <ArticuloCard key={a.slug} a={a} index={i} />
+              ))}
+            </div>
 
-        {visibles.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
-            <p style={{ fontSize: '16px', fontWeight: 600 }}>No hay artículos en esta categoría todavía.</p>
-          </div>
+            {visibles.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
+                <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
+                <p style={{ fontSize: '16px', fontWeight: 600 }}>No hay artículos en esta categoría todavía.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

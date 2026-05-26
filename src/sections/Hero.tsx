@@ -1,9 +1,9 @@
 import { motion, useInView } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
-import { P, Y, YD, WA_PROYECTO as WA_URL } from '../tokens'
+import { P, Y, YD } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getHeroContent } from '../lib/db'
-import { heroStatsDefault, heroSubtituloDefault } from '../data/config'
+import { getHeroContent, getContactoInfo } from '../lib/db'
+import { heroStatsDefault, heroSubtituloDefault, contactoDefault } from '../data/config'
 import type { HeroStat } from '../data/config'
 
 const headline = [
@@ -50,6 +50,9 @@ export default function Hero() {
   const [scrollY,  setScrollY]  = useState(0)
   const [stats,    setStats]    = useState<HeroStat[]>(heroStatsDefault)
   const [subtitulo,setSubtitulo]= useState(heroSubtituloDefault)
+  const [waLink,   setWaLink]   = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
+  )
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY)
@@ -61,6 +64,9 @@ export default function Hero() {
     getHeroContent().then(({ stats: s, subtitulo: sub }) => {
       setStats(s); setSubtitulo(sub)
     })
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
   }, [])
 
   return (
@@ -157,7 +163,7 @@ export default function Hero() {
             }}
           >
             <a
-              href={WA_URL} target="_blank" rel="noopener noreferrer"
+              href={waLink} target="_blank" rel="noopener noreferrer"
               onMouseEnter={() => setBtnHover(true)}
               onMouseLeave={() => setBtnHover(false)}
               style={{

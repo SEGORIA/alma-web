@@ -5,8 +5,5 @@ export const PD = '#581C87'
 export const Y  = '#FACC15'
 export const YD = '#EAB308'
 
-// WhatsApp links
-export const PHONE = '573188006436'
-export const WA_PROYECTO = `https://wa.me/${PHONE}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
-export const WA_COTIZAR  = `https://wa.me/${PHONE}?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma`
-export const WA_CONTACTO = `https://wa.me/${PHONE}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`
+// WA links are ahora dinámicos vía getContactoInfo() en cada componente.
+// El número de referencia (fallback) está en src/data/config.ts → contactoDefault.whatsapp

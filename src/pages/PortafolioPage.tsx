@@ -8,6 +8,7 @@ import { getContactoInfo } from '../lib/db'
 import { proyectosEstaticos, filtrosPortafolio, type Proyecto } from '../data/portafolio'
 import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
+import { SkeletonProyectoCard } from '../components/Skeleton'
 
 /* ── Tag ──────────────────────────────────────────────────── */
 function Tag({ label }: { label: string }) {
@@ -139,6 +140,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
 export default function PortafolioPage() {
   const [filtro,    setFiltro]    = useState('Todos')
   const [proyectos, setProyectos] = useState<Proyecto[]>(proyectosEstaticos)
+  const [loading,   setLoading]   = useState(true)
   const [waBase,    setWaBase]    = useState(`https://wa.me/${contactoDefault.whatsapp}`)
   const [waLink,    setWaLink]    = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
@@ -146,7 +148,8 @@ export default function PortafolioPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    getProyectos().then(setProyectos)
+    getProyectos().then(data => { setProyectos(data); setLoading(false) })
+      .catch(() => setLoading(false))
     getContactoInfo().then(c => {
       setWaBase(`https://wa.me/${c.whatsapp}`)
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
@@ -236,32 +239,44 @@ export default function PortafolioPage() {
 
       {/* Grid de proyectos */}
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px 80px' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={filtro}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.25 }}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            {filtered.map((p, i) => (
-              <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} />
-            ))}
-          </motion.div>
-        </AnimatePresence>
-
-        {filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
-            <p style={{ fontSize: '16px', fontWeight: 600 }}>
-              No hay proyectos en esta categoría todavía.
-            </p>
+        {loading ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gap: '24px',
+          }}>
+            {[0, 1, 2, 3, 4, 5].map(i => <SkeletonProyectoCard key={i} />)}
           </div>
+        ) : (
+          <>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={filtro}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '24px',
+                }}
+              >
+                {filtered.map((p, i) => (
+                  <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+            {filtered.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
+                <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
+                <p style={{ fontSize: '16px', fontWeight: 600 }}>
+                  No hay proyectos en esta categoría todavía.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { P, WA_PROYECTO } from '../tokens'
+import { P } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getEquipo } from '../lib/db'
+import { getEquipo, getContactoInfo } from '../lib/db'
 import { equipoEstatico } from '../data/contenido'
+import { contactoDefault } from '../data/config'
 import type { EquipoMember } from '../data/contenido'
 
 const valores = [
@@ -71,10 +72,16 @@ function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
 
 export default function Nosotros() {
   const isMobile = useIsMobile()
-  const [equipo, setEquipo] = useState<EquipoMember[]>(equipoEstatico)
+  const [equipo,  setEquipo]  = useState<EquipoMember[]>(equipoEstatico)
+  const [waLink,  setWaLink]  = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20Alma`
+  )
 
   useEffect(() => {
     getEquipo().then(setEquipo)
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20Alma`)
+    )
   }, [])
 
   return (
@@ -110,7 +117,7 @@ export default function Nosotros() {
               No somos intermediarios ni plantillas. Cada proyecto tiene un equipo dedicado, un proceso claro y una obsesión por los detalles que marcan la diferencia.
             </p>
             <a
-              href={WA_PROYECTO}
+              href={waLink}
               target="_blank" rel="noopener noreferrer"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',

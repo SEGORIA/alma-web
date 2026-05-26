@@ -1,16 +1,26 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { P, Y, WA_PROYECTO } from '../tokens'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { articulos, catColor } from '../data/articulos'
+import { getContactoInfo } from '../lib/db'
+import { contactoDefault } from '../data/config'
 
 export default function Blog() {
   const isMobile = useIsMobile()
-  // Siempre el más reciente (primero del array)
   const ultimo   = articulos[0]
   const color    = catColor[ultimo.cat] ?? P
-  const [hovered, setHovered] = useState(false)
+  const [hovered,  setHovered]  = useState(false)
+  const [waLink,   setWaLink]   = useState(
+    `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
+  )
+
+  useEffect(() => {
+    getContactoInfo().then(c =>
+      setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
+    )
+  }, [])
 
   return (
     <section id="blog" style={{ background: '#F9FAFB', padding: isMobile ? '60px 20px' : '100px 24px' }}>
@@ -202,7 +212,7 @@ export default function Blog() {
               📸 Seguir en Instagram
             </a>
             <a
-              href={WA_PROYECTO}
+              href={waLink}
               target="_blank"
               rel="noopener noreferrer"
               style={{

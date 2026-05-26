@@ -1,11 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import emailjs from '@emailjs/browser'
 import { PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getContactoInfo } from '../lib/db'
 import { contactoDefault } from '../data/config'
 import type { ContactoInfo } from '../data/config'
+
+/* EmailJS env vars — configura en .env.local y en Vercel */
+const EJ_SERVICE  = import.meta.env.VITE_EMAILJS_SERVICE_ID  as string | undefined
+const EJ_TEMPLATE = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined
+const EJ_KEY      = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefined
+const EMAILJS_OK  = !!(EJ_SERVICE && EJ_TEMPLATE && EJ_KEY)
 
 function Field({ label, type = 'text', name, placeholder, multiline = false }: {
   label: string; type?: string; name: string; placeholder: string; multiline?: boolean
@@ -30,9 +37,12 @@ function Field({ label, type = 'text', name, placeholder, multiline = false }: {
 }
 
 export default function Contacto() {
-  const isMobile        = useIsMobile()
-  const [sent, setSent] = useState(false)
+  const isMobile          = useIsMobile()
+  const [sent,     setSent]     = useState(false)
+  const [sending,  setSending]  = useState(false)
+  const [error,    setError]    = useState('')
   const [contacto, setContacto] = useState<ContactoInfo>(contactoDefault)
+  const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
     getContactoInfo().then(setContacto)
@@ -41,14 +51,39 @@ export default function Contacto() {
   const WA    = `https://wa.me/${contacto.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`
   const PHONE = contacto.whatsapp
 
-  const handle = (e: React.FormEvent) => {
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault()
-    const form    = e.currentTarget as HTMLFormElement
+    setError('')
+    const form     = e.currentTarget as HTMLFormElement
     const nombre   = (form.elements.namedItem('nombre')   as HTMLInputElement).value.trim()
     const servicio = (form.elements.namedItem('servicio') as HTMLInputElement).value.trim()
     const mensaje  = (form.elements.namedItem('mensaje')  as HTMLTextAreaElement).value.trim()
-    window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(`Hola, soy ${nombre}. Me interesa: ${servicio}. ${mensaje}`)}`, '_blank')
-    setSent(true)
+
+    if (EMAILJS_OK && formRef.current) {
+      /* ── Envío por email (EmailJS) ── */
+      setSending(true)
+      try {
+        await emailjs.sendForm(EJ_SERVICE!, EJ_TEMPLATE!, formRef.current, { publicKey: EJ_KEY! })
+        setSent(true)
+      } catch (err) {
+        console.error('EmailJS error:', err)
+        setError('No pudimos enviar el correo. Por favor escríbenos directo por WhatsApp.')
+        /* Fallback a WhatsApp automáticamente */
+        window.open(
+          `https://wa.me/${PHONE}?text=${encodeURIComponent(`Hola, soy ${nombre}. Me interesa: ${servicio}. ${mensaje}`)}`,
+          '_blank'
+        )
+      } finally {
+        setSending(false)
+      }
+    } else {
+      /* ── Sin EmailJS: fallback a WhatsApp ── */
+      window.open(
+        `https://wa.me/${PHONE}?text=${encodeURIComponent(`Hola, soy ${nombre}. Me interesa: ${servicio}. ${mensaje}`)}`,
+        '_blank'
+      )
+      setSent(true)
+    }
   }
 
   const info = [
@@ -136,7 +171,7 @@ export default function Contacto() {
                 </a>
               </div>
             ) : (
-              <form onSubmit={handle} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <form ref={formRef} onSubmit={handle} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 {/* Name/Company — stack on mobile */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                   <Field label="Nombre" name="nombre" placeholder="Tu nombre" />
@@ -145,14 +180,30 @@ export default function Contacto() {
                 <Field label="Email" type="email" name="email" placeholder="tu@correo.com" />
                 <Field label="Servicio de interés" name="servicio" placeholder="Ej: Página web, Branding..." />
                 <Field label="Cuéntanos tu proyecto" name="mensaje" placeholder="¿En qué podemos ayudarte?" multiline />
+                {error && (
+                  <p style={{ fontSize: '13px', color: '#FCA5A5', background: 'rgba(239,68,68,0.1)', padding: '10px 14px', borderRadius: '8px', margin: 0 }}>
+                    {error}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  style={{ background: Y, color: '#111', padding: '15px', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '15px', transition: 'background 0.2s ease' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#EAB308')}
-                  onMouseLeave={e => (e.currentTarget.style.background = Y)}
+                  disabled={sending}
+                  style={{
+                    background: sending ? 'rgba(250,204,21,0.6)' : Y,
+                    color: '#111', padding: '15px', borderRadius: '12px', border: 'none',
+                    cursor: sending ? 'not-allowed' : 'pointer',
+                    fontWeight: 700, fontSize: '15px', transition: 'background 0.2s ease',
+                  }}
+                  onMouseEnter={e => { if (!sending) e.currentTarget.style.background = '#EAB308' }}
+                  onMouseLeave={e => { if (!sending) e.currentTarget.style.background = Y }}
                 >
-                  Enviar y empezar a crear →
+                  {sending ? 'Enviando…' : EMAILJS_OK ? 'Enviar mensaje →' : 'Enviar por WhatsApp →'}
                 </button>
+                {!EMAILJS_OK && (
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', margin: 0 }}>
+                    📧 Para envío por email configura las variables de EmailJS en Vercel.
+                  </p>
+                )}
               </form>
             )}
           </motion.div>
