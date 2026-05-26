@@ -59,6 +59,11 @@ export default function Contacto() {
     const servicio = (form.elements.namedItem('servicio') as HTMLInputElement).value.trim()
     const mensaje  = (form.elements.namedItem('mensaje')  as HTMLTextAreaElement).value.trim()
 
+    if (!nombre || !servicio || !mensaje) {
+      setError('Por favor completa tu nombre, el servicio de interés y el mensaje.')
+      return
+    }
+
     if (EMAILJS_OK && formRef.current) {
       /* ── Envío por email (EmailJS) ── */
       setSending(true)
