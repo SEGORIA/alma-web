@@ -1,11 +1,9 @@
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { P, Y, YD } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getHeroContent, getContactoInfo } from '../lib/db'
-import { heroStatsDefault, heroSubtituloDefault, contactoDefault } from '../data/config'
-import type { HeroStat } from '../data/config'
-
+import { heroSubtituloDefault, contactoDefault } from '../data/config'
 const headline = [
   { word: 'Convertimos', colored: false },
   { word: 'tu',          colored: false },
@@ -15,39 +13,9 @@ const headline = [
   { word: 'digital',     colored: false },
 ]
 
-function Counter({ target, suffix = '', label }: { target: number; suffix?: string; label: string }) {
-  const [count, setCount] = useState(0)
-  const ref    = useRef(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
-
-  useEffect(() => {
-    if (!inView) return
-    let frame: number
-    const start    = performance.now()
-    const duration = 1600
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1)
-      const eased    = 1 - (1 - progress) * (1 - progress)
-      setCount(Math.floor(eased * target))
-      if (progress < 1) frame = requestAnimationFrame(tick)
-      else setCount(target)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [inView, target])
-
-  return (
-    <div ref={ref}>
-      <p style={{ fontSize: '28px', fontWeight: 900, color: P, lineHeight: 1 }}>{count}{suffix}</p>
-      <p style={{ fontSize: '11px', color: '#6B7280', marginTop: '4px', fontWeight: 500 }}>{label}</p>
-    </div>
-  )
-}
-
 export default function Hero() {
   const isMobile               = useIsMobile()
   const [btnHover, setBtnHover] = useState(false)
-  const [stats,    setStats]    = useState<HeroStat[]>(heroStatsDefault)
   const [subtitulo,setSubtitulo]= useState(heroSubtituloDefault)
   const [waLink,   setWaLink]   = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
@@ -67,8 +35,8 @@ export default function Hero() {
   }, [onScroll])
 
   useEffect(() => {
-    getHeroContent().then(({ stats: s, subtitulo: sub }) => {
-      setStats(s); setSubtitulo(sub)
+    getHeroContent().then(({ subtitulo: sub }) => {
+      setSubtitulo(sub)
     })
     getContactoInfo().then(c =>
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)

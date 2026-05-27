@@ -10,14 +10,15 @@ export default defineConfig({
     // Split vendor chunks para mejor cache del browser
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react':   ['react', 'react-dom', 'react-router-dom'],
-          'vendor-motion':  ['framer-motion'],
-          'vendor-firebase': [
-            'firebase/app', 'firebase/firestore',
-            'firebase/auth', 'firebase/storage',
-          ],
-          'vendor-misc':    ['react-helmet-async', 'emailjs-com'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router'))
+            return 'vendor-react'
+          if (id.includes('framer-motion'))
+            return 'vendor-motion'
+          if (id.includes('firebase'))
+            return 'vendor-firebase'
+          return 'vendor-misc'
         },
       },
     },
