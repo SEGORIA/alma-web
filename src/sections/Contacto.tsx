@@ -14,10 +14,11 @@ const EJ_TEMPLATE = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefin
 const EJ_KEY      = import.meta.env.VITE_EMAILJS_PUBLIC_KEY  as string | undefined
 const EMAILJS_OK  = !!(EJ_SERVICE && EJ_TEMPLATE && EJ_KEY)
 
-function Field({ label, type = 'text', name, placeholder, multiline = false }: {
-  label: string; type?: string; name: string; placeholder: string; multiline?: boolean
+function Field({ label, type = 'text', name, placeholder, multiline = false, required = false }: {
+  label: string; type?: string; name: string; placeholder: string; multiline?: boolean; required?: boolean
 }) {
   const [focused, setFocused] = useState(false)
+  const fieldId = `contact-${name}`
   const base: React.CSSProperties = {
     width: '100%', padding: '13px 15px',
     background: 'rgba(255,255,255,0.08)',
@@ -27,10 +28,12 @@ function Field({ label, type = 'text', name, placeholder, multiline = false }: {
   }
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.65)', marginBottom: '7px' }}>{label}</label>
+      <label htmlFor={fieldId} style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.65)', marginBottom: '7px' }}>
+        {label}{required && <span aria-hidden="true" style={{ color: Y, marginLeft: '3px' }}>*</span>}
+      </label>
       {multiline
-        ? <textarea name={name} placeholder={placeholder} rows={4} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, resize: 'vertical' }} />
-        : <input type={type} name={name} placeholder={placeholder} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={base} />
+        ? <textarea id={fieldId} name={name} placeholder={placeholder} rows={4} required={required} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={{ ...base, resize: 'vertical' }} />
+        : <input id={fieldId} type={type} name={name} placeholder={placeholder} required={required} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={base} />
       }
     </div>
   )
@@ -56,11 +59,17 @@ export default function Contacto() {
     setError('')
     const form     = e.currentTarget as HTMLFormElement
     const nombre   = (form.elements.namedItem('nombre')   as HTMLInputElement).value.trim()
+    const email    = (form.elements.namedItem('email')    as HTMLInputElement).value.trim()
     const servicio = (form.elements.namedItem('servicio') as HTMLInputElement).value.trim()
     const mensaje  = (form.elements.namedItem('mensaje')  as HTMLTextAreaElement).value.trim()
 
-    if (!nombre || !servicio || !mensaje) {
-      setError('Por favor completa tu nombre, el servicio de interés y el mensaje.')
+    if (!nombre || !email || !servicio || !mensaje) {
+      setError('Por favor completa todos los campos obligatorios (*).')
+      return
+    }
+    /* Validación básica de formato email */
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Por favor ingresa un correo electrónico válido.')
       return
     }
 
@@ -176,15 +185,16 @@ export default function Contacto() {
                 </a>
               </div>
             ) : (
-              <form ref={formRef} onSubmit={handle} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <form ref={formRef} onSubmit={handle} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Los campos marcados con <span style={{ color: Y }}>*</span> son obligatorios.</p>
                 {/* Name/Company — stack on mobile */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-                  <Field label="Nombre" name="nombre" placeholder="Tu nombre" />
+                  <Field label="Nombre" name="nombre" placeholder="Tu nombre" required />
                   <Field label="Empresa" name="empresa" placeholder="Tu empresa" />
                 </div>
-                <Field label="Email" type="email" name="email" placeholder="tu@correo.com" />
-                <Field label="Servicio de interés" name="servicio" placeholder="Ej: Página web, Branding..." />
-                <Field label="Cuéntanos tu proyecto" name="mensaje" placeholder="¿En qué podemos ayudarte?" multiline />
+                <Field label="Email" type="email" name="email" placeholder="tu@correo.com" required />
+                <Field label="Servicio de interés" name="servicio" placeholder="Ej: Página web, Branding..." required />
+                <Field label="Cuéntanos tu proyecto" name="mensaje" placeholder="¿En qué podemos ayudarte?" multiline required />
                 {error && (
                   <p style={{ fontSize: '13px', color: '#FCA5A5', background: 'rgba(239,68,68,0.1)', padding: '10px 14px', borderRadius: '8px', margin: 0 }}>
                     {error}

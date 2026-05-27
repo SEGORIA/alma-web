@@ -8,6 +8,8 @@ import type { FaqItem } from '../data/config'
 
 function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
   const [open, setOpen] = useState(false)
+  const btnId   = `faq-btn-${idx}`
+  const panelId = `faq-panel-${idx}`
 
   return (
     <motion.div
@@ -15,7 +17,10 @@ function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
       viewport={{ once: true, margin: '-30px' }} transition={{ duration: 0.4, delay: idx * 0.05 }}
     >
       <button
+        id={btnId}
         onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        aria-controls={panelId}
         style={{
           width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '18px 20px',
@@ -26,18 +31,23 @@ function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
         }}
       >
         <span style={{ fontWeight: 700, fontSize: '14px', color: '#111827', paddingRight: '16px', lineHeight: 1.4 }}>{faq.q}</span>
-        <span style={{
-          width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: open ? Y : '#F3F4F6', color: open ? '#111' : P,
-          fontWeight: 900, fontSize: '18px', lineHeight: 1, transition: 'all 0.2s ease',
-        }}>
+        <span
+          aria-hidden="true"
+          style={{
+            width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: open ? Y : '#F3F4F6', color: open ? '#111' : P,
+            fontWeight: 900, fontSize: '18px', lineHeight: 1, transition: 'all 0.2s ease',
+          }}>
           {open ? '−' : '+'}
         </span>
       </button>
       <AnimatePresence>
         {open && (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={btnId}
             initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}

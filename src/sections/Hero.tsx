@@ -1,5 +1,5 @@
 import { motion, useInView } from 'framer-motion'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { P, Y, YD } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getHeroContent, getContactoInfo } from '../lib/db'
@@ -47,18 +47,24 @@ function Counter({ target, suffix = '', label }: { target: number; suffix?: stri
 export default function Hero() {
   const isMobile               = useIsMobile()
   const [btnHover, setBtnHover] = useState(false)
-  const [scrollY,  setScrollY]  = useState(0)
   const [stats,    setStats]    = useState<HeroStat[]>(heroStatsDefault)
   const [subtitulo,setSubtitulo]= useState(heroSubtituloDefault)
   const [waLink,   setWaLink]   = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
   )
 
+  // Parallax sin re-renders: manipulamos el DOM directamente en rAF
+  const blob1Ref = useRef<HTMLDivElement>(null)
+  const blob2Ref = useRef<HTMLDivElement>(null)
+  const onScroll = useCallback(() => {
+    const y = window.scrollY
+    if (blob1Ref.current) blob1Ref.current.style.transform = `translateY(${y * 0.18}px)`
+    if (blob2Ref.current) blob2Ref.current.style.transform = `translateY(${y * -0.1}px)`
+  }, [])
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [onScroll])
 
   useEffect(() => {
     getHeroContent().then(({ stats: s, subtitulo: sub }) => {
@@ -77,22 +83,18 @@ export default function Hero() {
       background: 'linear-gradient(135deg,#ffffff 55%,rgba(147,51,234,0.06) 100%)',
       position: 'relative', overflow: 'hidden',
     }}>
-      {/* Glow blobs */}
-      <div style={{
+      {/* Glow blobs — parallax via DOM ref (sin re-renders) */}
+      <div ref={blob1Ref} style={{
         position: 'absolute', top: '-200px', right: '-200px',
         width: '700px', height: '700px',
         background: 'radial-gradient(ellipse,rgba(147,51,234,0.1) 0%,transparent 65%)',
-        pointerEvents: 'none',
-        transform: `translateY(${scrollY * 0.18}px)`,
-        transition: 'transform 0.1s linear',
+        pointerEvents: 'none', willChange: 'transform',
       }} />
-      <div style={{
+      <div ref={blob2Ref} style={{
         position: 'absolute', bottom: '-100px', left: '-100px',
         width: '400px', height: '400px',
         background: 'radial-gradient(ellipse,rgba(250,204,21,0.07) 0%,transparent 65%)',
-        pointerEvents: 'none',
-        transform: `translateY(${scrollY * -0.1}px)`,
-        transition: 'transform 0.1s linear',
+        pointerEvents: 'none', willChange: 'transform',
       }} />
 
       <div style={{
@@ -189,28 +191,57 @@ export default function Hero() {
             </a>
           </motion.div>
 
-          {/* Contadores */}
+          {/* ── Mini testimonios ── */}
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.85 }}
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.88 }}
             style={{
-              marginTop: isMobile ? '32px' : '56px',
-              paddingTop: isMobile ? '20px' : '32px',
+              marginTop: isMobile ? '28px' : '36px',
+              paddingTop: isMobile ? '20px' : '28px',
               borderTop: '1px solid #E5E7EB',
-              display: 'flex', gap: '0', flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center',
+              gap: isMobile ? '12px' : '16px',
+              flexWrap: 'wrap',
             }}
           >
-            {stats.map((s, i) => (
-              <div key={s.label} style={{
-                flex: '1 1 70px',
-                paddingRight: i < 2 ? (isMobile ? '16px' : '32px') : 0,
-                borderRight:  i < 2 ? '1px solid #E5E7EB' : 'none',
-                marginRight:  i < 2 ? (isMobile ? '16px' : '32px') : 0,
-              }}>
-                <Counter target={s.target} suffix={s.suffix} label={s.label} />
+            {/* Avatares apilados */}
+            <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              {[
+                { iniciales: 'VT', bg: 'linear-gradient(135deg,#FECDD3,#E11D48)' },
+                { iniciales: 'CR', bg: 'linear-gradient(135deg,#DDD6FE,#7C3AED)' },
+                { iniciales: 'ML', bg: 'linear-gradient(135deg,#F5D0FE,#A855F7)' },
+              ].map((a, i) => (
+                <div key={a.iniciales} style={{
+                  width: '34px', height: '34px', borderRadius: '50%',
+                  background: a.bg,
+                  border: '2.5px solid #fff',
+                  marginLeft: i > 0 ? '-10px' : '0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '10px', fontWeight: 800, color: '#fff',
+                  position: 'relative', zIndex: 3 - i,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                }}>
+                  {a.iniciales}
+                </div>
+              ))}
+            </div>
+
+            {/* Stars + frase */}
+            <div>
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '5px' }}>
+                {[0,1,2,3,4].map(i => (
+                  <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={Y} aria-hidden="true">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ))}
               </div>
-            ))}
+              <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#374151', margin: 0, lineHeight: 1.4 }}>
+                <span style={{ fontWeight: 700 }}>"Superó todas nuestras expectativas."</span>
+                <span style={{ color: '#9CA3AF', marginLeft: '6px', fontSize: '11px' }}>— Valentina T., CEO · Prr Love</span>
+              </p>
+            </div>
           </motion.div>
+
         </div>
 
         {/* ── Right: floating cards (desktop only) ── */}
@@ -224,7 +255,7 @@ export default function Hero() {
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              style={{
+              style={{ willChange: 'transform',
                 position: 'absolute', top: '-8px', right: '-8px', zIndex: 3,
                 background: '#fff', boxShadow: '0 12px 36px rgba(107,33,168,0.18)',
                 borderRadius: '16px', padding: '12px 16px',
@@ -309,7 +340,7 @@ export default function Hero() {
             <motion.div
               animate={{ y: [0, 7, 0] }}
               transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
-              style={{
+              style={{ willChange: 'transform',
                 position: 'absolute', bottom: '0px', left: '-8px', zIndex: 3,
                 background: '#fff', boxShadow: '0 12px 36px rgba(107,33,168,0.15)',
                 borderRadius: '16px', padding: '12px 16px',

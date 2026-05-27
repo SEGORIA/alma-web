@@ -10,7 +10,8 @@ const LINKS = [
   { label: 'Nosotros',    href: '/#nosotros'   },
   { label: 'Servicios',   href: '/#servicios'  },
   { label: 'Academia',    href: '/#academia'   },
-  { label: 'Portafolio',  to:   '/portafolio'  },  // página dedicada
+  { label: 'Portafolio',  to:   '/portafolio'  },
+  { label: 'Equipo',      to:   '/equipo'      },
   { label: 'Blog',        to:   '/blog'        },
 ]
 

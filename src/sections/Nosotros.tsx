@@ -1,19 +1,13 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { P } from '../tokens'
+import { Link } from 'react-router-dom'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getEquipo, getContactoInfo } from '../lib/db'
 import { equipoEstatico } from '../data/contenido'
 import { contactoDefault } from '../data/config'
 import type { EquipoMember } from '../data/contenido'
 
-const valores = [
-  { icon: '🎯', label: 'Orientados a resultados' },
-  { icon: '💬', label: 'Comunicación directa' },
-  { icon: '🔍', label: 'Atención al detalle' },
-  { icon: '🚀', label: 'Entrega a tiempo' },
-  { icon: '❤️', label: 'Trabajo con propósito' },
-]
 
 function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
   const [hovered, setHovered] = useState(false)
@@ -195,46 +189,88 @@ export default function Nosotros() {
           gap: isMobile ? '14px' : '20px',
           marginBottom: isMobile ? '40px' : '64px',
         }}>
-          {equipo.map((m, i) => <TeamCard key={m._id ?? m.nombre} m={m} index={i} />)}
+          {/* Solo los 2 fundadores */}
+          {equipo.slice(0, 2).map((m, i) => <TeamCard key={m._id ?? m.nombre} m={m} index={i} />)}
+
+          {/* Tarjeta-enlace al equipo completo */}
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Link
+              to="/equipo"
+              style={{ textDecoration: 'none', display: 'block', height: '100%' }}
+            >
+              <div style={{
+                background: `linear-gradient(135deg, ${P}, #9333EA)`,
+                border: '1.5px solid transparent',
+                borderRadius: '20px',
+                padding: '28px 24px',
+                display: 'flex', flexDirection: 'column',
+                alignItems: 'center', textAlign: 'center',
+                height: '100%', minHeight: '240px',
+                justifyContent: 'center', gap: '16px',
+                boxShadow: '0 8px 32px rgba(107,33,168,0.2)',
+                cursor: 'pointer',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 52px rgba(107,33,168,0.3)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
+                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(107,33,168,0.2)'
+                }}
+              >
+                {/* Avatares mini apilados */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
+                  {[
+                    { iniciales: 'AN', bg: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
+                    { iniciales: 'AM', bg: 'linear-gradient(135deg,#D97706,#FBBF24)' },
+                    { iniciales: 'MA', bg: 'linear-gradient(135deg,#0891B2,#67E8F9)' },
+                    { iniciales: 'DR', bg: 'linear-gradient(135deg,#7C3AED,#A78BFA)' },
+                    { iniciales: 'RF', bg: 'linear-gradient(135deg,#059669,#34D399)'  },
+                  ].map((a, i) => (
+                    <div key={a.iniciales} style={{
+                      width: '32px', height: '32px', borderRadius: '50%',
+                      background: a.bg,
+                      border: '2px solid rgba(255,255,255,0.4)',
+                      marginLeft: i > 0 ? '-8px' : '0',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '9px', fontWeight: 800, color: '#fff',
+                      position: 'relative', zIndex: 5 - i,
+                    }}>
+                      {a.iniciales}
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
+                    +5 personas más
+                  </p>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                    Diseñadores, estrategas, creadores y programadores listos para tu proyecto.
+                  </p>
+                </div>
+
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  background: Y, color: '#111',
+                  padding: '9px 20px', borderRadius: '10px',
+                  fontWeight: 700, fontSize: '13px',
+                  marginTop: '4px',
+                }}>
+                  Ver equipo completo →
+                </div>
+              </div>
+            </Link>
+          </motion.div>
         </div>
 
-        {/* ── Valores / Pills ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          style={{
-            background: '#F9FAFB', borderRadius: '20px',
-            padding: isMobile ? '24px 20px' : '28px 40px',
-            display: 'flex', alignItems: 'center',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '16px' : '0',
-          }}
-        >
-          <p style={{
-            fontSize: '13px', fontWeight: 700, color: '#9CA3AF',
-            letterSpacing: '1px', textTransform: 'uppercase',
-            marginRight: isMobile ? 0 : '32px',
-            flexShrink: 0,
-            textAlign: isMobile ? 'center' : 'left',
-          }}>
-            Nos mueve
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-            {valores.map(v => (
-              <div key={v.label} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: '#fff', border: '1px solid #E5E7EB',
-                borderRadius: '20px', padding: '8px 16px',
-                fontSize: '13px', fontWeight: 600, color: '#374151',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-              }}>
-                <span>{v.icon}</span> {v.label}
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   )

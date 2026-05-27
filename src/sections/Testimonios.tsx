@@ -47,7 +47,7 @@ function MarqueeRow({ items, direction }: { items: Testimonio[]; direction: 'lef
       <motion.div
         animate={{ x: [animFrom, animTo] }}
         transition={{ duration: direction === 'left' ? 32 : 38, ease: 'linear', repeat: Infinity }}
-        style={{ display: 'flex', gap: '16px', width: 'max-content', cursor: 'default' }}
+        style={{ display: 'flex', gap: '16px', width: 'max-content', cursor: 'default', willChange: 'transform' }}
       >
         {doubled.map((t, i) => <TestimonioCard key={`${t._id ?? t.nombre}-${i}`} t={t} />)}
       </motion.div>

@@ -41,12 +41,37 @@ export const equipoEstatico: EquipoMember[] = [
   {
     nombre: 'Sebastián González', rol: 'Gerente Operativo & Co-founder',
     desc: 'Garantiza que cada proyecto fluya con precisión, desde la estrategia hasta la entrega. Más de 6 años convirtiendo ideas en experiencias digitales.',
-    iniciales: 'SG', emoji: '🎨', color: 'linear-gradient(135deg,#6B21A8,#9333EA)', orden: 1,
+    iniciales: 'SG', emoji: '💻', color: 'linear-gradient(135deg,#6B21A8,#9333EA)', orden: 1,
   },
   {
     nombre: 'Lina Márquez', rol: 'Coordinadora de Clientes',
     desc: 'El puente entre el equipo y cada cliente. Asegura que cada experiencia sea clara, cercana y que los proyectos avancen con total tranquilidad.',
     iniciales: 'LM', emoji: '🤝', color: 'linear-gradient(135deg,#0284C7,#38BDF8)', orden: 2,
+  },
+  {
+    nombre: 'Anny', rol: 'Creadora Audiovisual',
+    desc: 'Transforma ideas en contenido visual que impacta. Especialista en producción de video, reels y piezas audiovisuales que conectan con la audiencia.',
+    iniciales: 'AN', emoji: '🎬', color: 'linear-gradient(135deg,#EC4899,#F43F5E)', orden: 3,
+  },
+  {
+    nombre: 'Ana Milena', rol: 'Estrategia Publicitaria & Retail',
+    desc: 'Diseña estrategias que venden. Combina el análisis del comportamiento del consumidor con creatividad para maximizar resultados en retail y publicidad.',
+    iniciales: 'AM', emoji: '📊', color: 'linear-gradient(135deg,#D97706,#FBBF24)', orden: 4,
+  },
+  {
+    nombre: 'Mariana Alvarán', rol: 'Diseñadora Gráfica & Publicista',
+    desc: 'Crea piezas que enamoran. Fusiona diseño gráfico y comunicación publicitaria para dar vida a identidades visuales memorables y coherentes.',
+    iniciales: 'MA', emoji: '🎨', color: 'linear-gradient(135deg,#0891B2,#67E8F9)', orden: 5,
+  },
+  {
+    nombre: 'Daniela Ruiz', rol: 'Estratega Holística',
+    desc: 'Ve el todo para optimizar las partes. Integra marca, comunicación y propósito en una estrategia coherente que alinea cada acción con los objetivos del negocio.',
+    iniciales: 'DR', emoji: '🌟', color: 'linear-gradient(135deg,#7C3AED,#A78BFA)', orden: 6,
+  },
+  {
+    nombre: 'Roger Flores', rol: 'Programador',
+    desc: 'Convierte diseños en experiencias digitales que funcionan. Construye webs y aplicaciones rápidas, accesibles y optimizadas para convertir visitantes en clientes.',
+    iniciales: 'RF', emoji: '⚙️', color: 'linear-gradient(135deg,#059669,#34D399)', orden: 7,
   },
 ]
 

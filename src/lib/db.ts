@@ -111,8 +111,12 @@ export async function getPlanes(): Promise<Plan[]> {
   if (!firebaseReady || !db) return planesEstaticos
   try {
     const snap = await getDocs(query(planesCol(), orderBy('orden', 'asc')))
-    if (snap.empty) return planesEstaticos
-    return snap.docs.map(d => ({ ...(d.data() as Plan), _id: d.id }))
+    const fromDB = snap.docs.map(d => ({ ...(d.data() as Plan), _id: d.id }))
+    // Merge: DB overrides static, but static adds plans for categories not yet in DB
+    const dbTabIds = new Set(fromDB.map(p => p.tabId))
+    const missingStatic = planesEstaticos.filter(p => !dbTabIds.has(p.tabId))
+    const merged = [...fromDB, ...missingStatic].sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
+    return merged.length > 0 ? merged : planesEstaticos
   } catch {
     return planesEstaticos
   }
@@ -163,8 +167,12 @@ export async function getCategorias(): Promise<ServicioCategoria[]> {
   if (!firebaseReady || !db) return categoriasEstaticas
   try {
     const snap = await getDocs(query(categoriasCol(), orderBy('orden', 'asc')))
-    if (snap.empty) return categoriasEstaticas
-    return snap.docs.map(d => ({ ...(d.data() as ServicioCategoria), _id: d.id }))
+    const fromDB = snap.docs.map(d => ({ ...(d.data() as ServicioCategoria), _id: d.id }))
+    // Merge: DB overrides static, but static adds any missing categories
+    const dbIds = new Set(fromDB.map(c => c.id))
+    const missingStatic = categoriasEstaticas.filter(c => !dbIds.has(c.id))
+    const merged = [...fromDB, ...missingStatic].sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
+    return merged.length > 0 ? merged : categoriasEstaticas
   } catch {
     return categoriasEstaticas
   }
@@ -197,6 +205,12 @@ export async function seedPrecios() {
 
 /* ══ CONFIGURACIÓN DEL SITIO ════════════════════════════════ */
 
+// Cache de módulo: la primera llamada hace el fetch; todas las demás
+// esperan la misma promesa → 1 solo roundtrip Firestore por sesión.
+let _configPromise: Promise<SiteConfig> | null = null
+
+export function invalidateConfigCache() { _configPromise = null }
+
 export async function getConfig(): Promise<SiteConfig> {
   const fallback: SiteConfig = {
     secciones:      seccionesDefault,
@@ -206,20 +220,22 @@ export async function getConfig(): Promise<SiteConfig> {
     heroSubtitulo:  heroSubtituloDefault,
   }
   if (!firebaseReady || !db) return fallback
-  try {
-    const snap = await getDoc(configDoc())
-    if (!snap.exists()) return fallback
-    const data = snap.data() as Partial<SiteConfig>
-    return {
-      secciones:      { ...seccionesDefault, ...(data.secciones ?? {}) } as SeccionesConfig,
-      clientes:       data.clientes      ?? clientesEstaticos,
-      contactoInfo:   data.contactoInfo  ?? contactoDefault,
-      heroStats:      data.heroStats     ?? heroStatsDefault,
-      heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
-    }
-  } catch {
-    return fallback
+  if (!_configPromise) {
+    _configPromise = getDoc(configDoc())
+      .then(snap => {
+        if (!snap.exists()) return fallback
+        const data = snap.data() as Partial<SiteConfig>
+        return {
+          secciones:      { ...seccionesDefault, ...(data.secciones ?? {}) } as SeccionesConfig,
+          clientes:       data.clientes      ?? clientesEstaticos,
+          contactoInfo:   data.contactoInfo  ?? contactoDefault,
+          heroStats:      data.heroStats     ?? heroStatsDefault,
+          heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
+        }
+      })
+      .catch(() => fallback)
   }
+  return _configPromise
 }
 
 export async function getContactoInfo(): Promise<ContactoInfo> {

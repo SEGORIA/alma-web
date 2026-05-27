@@ -54,10 +54,11 @@ function PlanCard({ plan, wa }: { plan: Plan; wa: string }) {
 
 export default function ServiciosTabs() {
   const isMobile = useIsMobile()
-  const [planes,     setPlanes]     = useState<Plan[]>(planesEstaticos)
-  const [categorias, setCategorias] = useState<ServicioCategoria[]>(categoriasEstaticas)
-  const [wa,         setWa]         = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma`)
-  const [active,     setActive]     = useState('web')
+  const [planes,        setPlanes]        = useState<Plan[]>(planesEstaticos)
+  const [categorias,    setCategorias]    = useState<ServicioCategoria[]>(categoriasEstaticas)
+  const [wa,            setWa]            = useState(`https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20cotizar%20un%20proyecto%20con%20Alma`)
+  const [active,        setActive]        = useState('web')
+  const [mostrarPrecios, setMostrarPrecios] = useState(false)
 
   useEffect(() => {
     getPlanes().then(setPlanes)
@@ -87,10 +88,11 @@ export default function ServiciosTabs() {
         </motion.div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: isMobile ? '24px' : '48px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: isMobile ? '20px' : '32px', flexWrap: 'wrap' }}>
           {categorias.map(t => (
             <button
-              key={t.id} onClick={() => setActive(t.id)}
+              key={t.id}
+              onClick={() => { setActive(t.id); setMostrarPrecios(false) }}
               style={{
                 padding: isMobile ? '9px 18px' : '10px 24px', borderRadius: '10px',
                 fontWeight: 600, fontSize: isMobile ? '13px' : '14px',
@@ -105,20 +107,65 @@ export default function ServiciosTabs() {
           ))}
         </div>
 
-        {/* Plans */}
+        {/* CTA o planes */}
         <AnimatePresence mode="wait">
-          <motion.div
-            key={active}
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.3 }}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: isMobile ? '16px' : '24px',
-            }}
-          >
-            {planesActivos.map(plan => <PlanCard key={plan._id ?? plan.nombre} plan={plan} wa={wa} />)}
-          </motion.div>
+          {!mostrarPrecios ? (
+            <motion.div
+              key="cta"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}
+              style={{ textAlign: 'center', padding: isMobile ? '28px 0' : '40px 0' }}
+            >
+              {/* Descripción de la categoría activa */}
+              <p style={{ fontSize: '15px', color: '#6B7280', marginBottom: '24px', lineHeight: 1.6 }}>
+                {categorias.find(c => c.id === active)?.desc ?? ''}
+              </p>
+              <button
+                onClick={() => setMostrarPrecios(true)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: P, color: '#fff',
+                  padding: '14px 32px', borderRadius: '12px',
+                  fontWeight: 700, fontSize: '15px', border: 'none',
+                  cursor: 'pointer', transition: 'all 0.2s ease',
+                  boxShadow: '0 6px 24px rgba(107,33,168,0.28)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+              >
+                Ver planes y precios →
+              </button>
+              <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '12px' }}>
+                Sin compromiso · Cotización personalizada por WhatsApp
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`plans-${active}`}
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.35 }}
+            >
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: isMobile ? '16px' : '24px',
+              }}>
+                {planesActivos.map(plan => <PlanCard key={plan._id ?? plan.nombre} plan={plan} wa={wa} />)}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                <button
+                  onClick={() => setMostrarPrecios(false)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: '13px', color: '#9CA3AF', fontWeight: 500,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Ocultar precios ↑
+                </button>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </section>

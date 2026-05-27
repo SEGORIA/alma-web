@@ -49,7 +49,14 @@
     <!-- ── Fonts ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Preload del subset más usado (400 + 700) para evitar FOIT -->
+    <link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    </noscript>
 
     <!-- ── Structured Data: LocalBusiness ── -->
     <script type="application/ld+json">
@@ -89,9 +96,11 @@
         "@type": "OfferCatalog",
         "name": "Servicios de Alma Agencia Creativa",
         "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Diseño Web" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Diseño y Desarrollo Web" } },
           { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Branding e Identidad Visual" } },
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Marketing Digital" } }
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Marketing Digital y Redes Sociales" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Fotografía y Video Corporativo" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Estrategia Digital y de Marca" } }
         ]
       },
       "aggregateRating": {

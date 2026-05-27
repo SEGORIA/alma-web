@@ -3,24 +3,29 @@ import { Routes, Route, Link as RouterLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import './index.css'
+
+/* ── Above-the-fold: carga inmediata ── */
 import Hero          from './sections/Hero'
 import Clientes      from './sections/Clientes'
-import Manifiesto    from './sections/Manifiesto'
-import Proceso       from './sections/Proceso'
-import ServiciosTabs from './sections/ServiciosTabs'
-import Academia      from './sections/Academia'
-import LeadMagnet    from './sections/LeadMagnet'
-import Portafolio    from './sections/Portafolio'
-import Testimonios   from './sections/Testimonios'
-import FAQ           from './sections/FAQ'
-import Contacto      from './sections/Contacto'
 import Nosotros      from './sections/Nosotros'
-import Blog          from './sections/Blog'
-import Calculadora   from './sections/Calculadora'
 import WhatsAppFloat from './components/WhatsAppFloat'
+
+/* ── Below-the-fold: lazy para reducir TTI ── */
+const Manifiesto    = lazy(() => import('./sections/Manifiesto'))
+const Proceso       = lazy(() => import('./sections/Proceso'))
+const ServiciosTabs = lazy(() => import('./sections/ServiciosTabs'))
+const Academia      = lazy(() => import('./sections/Academia'))
+const LeadMagnet    = lazy(() => import('./sections/LeadMagnet'))
+const Portafolio    = lazy(() => import('./sections/Portafolio'))
+const Testimonios   = lazy(() => import('./sections/Testimonios'))
+const FAQ           = lazy(() => import('./sections/FAQ'))
+const Contacto      = lazy(() => import('./sections/Contacto'))
+const Blog          = lazy(() => import('./sections/Blog'))
+const Calculadora   = lazy(() => import('./sections/Calculadora'))
 import BlogPage        from './pages/BlogPage'
 import ArticuloPage    from './pages/ArticuloPage'
 import PortafolioPage  from './pages/PortafolioPage'
+import EquipoPage      from './pages/EquipoPage'
 import NotFoundPage    from './pages/NotFoundPage'
 import { getConfig, getContactoInfo } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
@@ -46,6 +51,7 @@ const NAV_LINKS = [
   { label: 'Servicios',  href: '#servicios', id: 'servicios' },
   { label: 'Academia',   href: '#academia',  id: 'academia'  },
   { label: 'Portafolio', href: '/portafolio', id: 'portafolio'},
+  { label: 'Equipo',     href: '/equipo',    id: 'equipo'    },
   { label: 'Blog',       href: '/blog',      id: 'blog'      },
 ]
 
@@ -109,6 +115,8 @@ function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
     <button
       onClick={onClick}
       aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+      aria-expanded={open}
+      aria-controls="mobile-menu"
       style={{
         background: 'none', border: 'none', cursor: 'pointer',
         padding: '8px', borderRadius: '8px',
@@ -204,10 +212,11 @@ function Landing() {
       <Helmet>
         <title>Alma Agencia Creativa | Diseño web, branding y marketing digital en Manizales</title>
         <meta name="description" content="Agencia creativa en Manizales, Colombia. Diseñamos sitios web, identidades de marca y estrategias de marketing digital que generan resultados reales." />
-        <meta property="og:title" content="Alma Agencia Creativa" />
-        <meta property="og:description" content="Diseñamos marcas, sitios web y estrategias digitales que conectan con tu audiencia." />
+        <meta property="og:title" content="Alma Agencia Creativa | Diseño Web, Branding & Marketing Digital" />
+        <meta property="og:description" content="Convertimos tu visión en realidad digital. Diseñamos marcas, sitios web y estrategias en Manizales, Colombia. +150 proyectos · 98% satisfacción." />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="es_CO" />
+        <meta property="og:url" content="https://almaagenciacreativa.com" />
         <meta name="twitter:card" content="summary_large_image" />
         <link rel="canonical" href="https://almaagenciacreativa.com" />
       </Helmet>
@@ -290,8 +299,30 @@ function Landing() {
             </>
           )}
 
-          {/* Mobile hamburger */}
-          {isMobile && <Hamburger open={menuOpen} onClick={() => setMenuOpen(o => !o)} />}
+          {/* Mobile: WhatsApp icon + hamburger */}
+          {isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <a
+                href={waLink} target="_blank" rel="noopener noreferrer"
+                aria-label="Contactar por WhatsApp"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '40px', height: '40px', borderRadius: '10px',
+                  background: '#25D366', color: '#fff', textDecoration: 'none',
+                  fontSize: '20px', flexShrink: 0,
+                  boxShadow: '0 2px 10px rgba(37,211,102,0.35)',
+                  transition: 'transform 0.2s ease',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.08)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </a>
+              <Hamburger open={menuOpen} onClick={() => setMenuOpen(o => !o)} />
+            </div>
+          )}
         </div>
 
         {/* Mobile menu */}
@@ -299,6 +330,9 @@ function Landing() {
           {isMobile && menuOpen && (
             <motion.div
               key="mobile-menu"
+              id="mobile-menu"
+              role="dialog"
+              aria-label="Menú de navegación"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -380,17 +414,21 @@ function Landing() {
       <div id="inicio"><Hero /></div>
       {sec.clientes    && <Clientes />}
       {sec.nosotros    && <div id="nosotros"><Nosotros /></div>}
-      {sec.manifiesto  && <div id="agencia"><Manifiesto /></div>}
-      {sec.proceso     && <Proceso />}
-      {sec.servicios   && <div id="servicios"><ServiciosTabs /></div>}
-      {sec.academia    && <div id="academia"><Academia /></div>}
-      {sec.leadMagnet  && <LeadMagnet />}
-      {sec.portafolio  && <div id="portafolio"><Portafolio /></div>}
-      {sec.calculadora && <Calculadora />}
-      {sec.testimonios && <Testimonios />}
-      {sec.blog        && <Blog />}
-      {sec.faq         && <FAQ />}
-      <div id="contacto"><Contacto /></div>
+
+      {/* Secciones below-the-fold en Suspense (lazy loaded) */}
+      <Suspense fallback={null}>
+        {sec.manifiesto  && <div id="agencia"><Manifiesto /></div>}
+        {sec.proceso     && <Proceso />}
+        {sec.servicios   && <div id="servicios"><ServiciosTabs /></div>}
+        {sec.academia    && <div id="academia"><Academia /></div>}
+        {sec.leadMagnet  && <LeadMagnet />}
+        {sec.portafolio  && <div id="portafolio"><Portafolio /></div>}
+        {sec.calculadora && <div id="calculadora"><Calculadora /></div>}
+        {sec.testimonios && <Testimonios />}
+        {sec.blog        && <Blog />}
+        {sec.faq         && <FAQ />}
+        <div id="contacto"><Contacto /></div>
+      </Suspense>
       <WhatsAppFloat />
     </div>
   )
@@ -422,6 +460,7 @@ export default function App() {
         <Route path="/blog"          element={<BlogPage />} />
         <Route path="/blog/:slug"    element={<ArticuloPage />} />
         <Route path="/portafolio"    element={<PortafolioPage />} />
+        <Route path="/equipo"        element={<EquipoPage />} />
         <Route path="*"              element={<NotFoundPage />} />
 
         {/* Admin — lazy */}

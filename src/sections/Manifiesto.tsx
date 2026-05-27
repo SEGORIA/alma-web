@@ -1,105 +1,161 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-const recursos = [
-  { n: '01', titulo: 'Humanización', desc: 'Mensajes con alma que generan conexiones reales y duraderas con cada persona. Porque detrás de cada marca hay personas que merecen ser escuchadas.', featured: true },
-  { n: '02', titulo: 'Estrategia',    desc: 'Cada acción tiene un propósito medible y un resultado esperado desde el inicio.' },
-  { n: '03', titulo: 'Creatividad',   desc: 'Diseño visual y narrativo que inspira, diferencia e impacta en cada punto de contacto.' },
-  { n: '04', titulo: 'Resultados',    desc: 'Decisiones basadas en datos reales para escalar tu marca de forma sostenible.' },
-  { n: '05', titulo: 'Autenticidad',  desc: 'Comunicación coherente, cercana y alineada con la esencia real de tu marca.' },
-  { n: '06', titulo: 'Impacto',       desc: 'Transformamos la atención de tu audiencia en conversiones y relaciones de valor.' },
+const principios = [
+  { n: '01', titulo: 'Humanización',  desc: 'Mensajes con alma que generan conexiones reales y duraderas.' },
+  { n: '02', titulo: 'Estrategia',    desc: 'Cada acción tiene un propósito medible desde el inicio.'       },
+  { n: '03', titulo: 'Creatividad',   desc: 'Diseño que inspira, diferencia e impacta en cada contacto.'    },
+  { n: '04', titulo: 'Resultados',    desc: 'Decisiones basadas en datos para escalar de forma sostenible.' },
+  { n: '05', titulo: 'Autenticidad',  desc: 'Comunicación coherente y alineada con la esencia de tu marca.' },
+  { n: '06', titulo: 'Impacto',       desc: 'Convertimos atención en conversiones y relaciones de valor.'   },
 ]
-
-function RecursoCard({ r, i, isMobile }: { r: typeof recursos[0]; i: number; isMobile: boolean }) {
-  const [hovered, setHovered] = useState(false)
-
-  if (r.featured) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6, delay: 0 }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          gridColumn: isMobile ? '1 / -1' : 'span 2',
-          background: hovered ? P : `linear-gradient(135deg, ${P} 0%, #9333EA 100%)`,
-          borderRadius: '20px',
-          padding: isMobile ? '28px 24px' : '40px 36px',
-          cursor: 'default', position: 'relative', overflow: 'hidden',
-          boxShadow: hovered ? '0 28px 80px rgba(107,33,168,0.35)' : '0 8px 32px rgba(107,33,168,0.2)',
-          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-          transition: 'all 0.3s ease',
-        }}
-      >
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-60px', right: '80px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(250,204,21,0.08)', pointerEvents: 'none' }} />
-
-        <p style={{ fontSize: isMobile ? '40px' : '52px', fontWeight: 900, lineHeight: 1, color: Y, marginBottom: '16px' }}>{r.n}</p>
-        <h3 style={{ fontSize: isMobile ? '22px' : '26px', fontWeight: 900, color: '#fff', marginBottom: '10px' }}>{r.titulo}</h3>
-        <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', maxWidth: '480px' }}>{r.desc}</p>
-        <div style={{ marginTop: '20px', display: 'inline-flex', alignItems: 'center', gap: '8px', background: Y, color: '#111', padding: '8px 18px', borderRadius: '20px', fontSize: '12px', fontWeight: 700 }}>
-          ✦ Nuestra esencia
-        </div>
-      </motion.div>
-    )
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, delay: i * 0.07 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: hovered ? P : '#fff',
-        border: `1px solid ${hovered ? P : '#E5E7EB'}`,
-        borderRadius: '18px',
-        padding: isMobile ? '24px 20px' : '32px 28px',
-        cursor: 'default',
-        transform: hovered ? 'translateY(-5px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 20px 60px rgba(107,33,168,0.25)' : '0 2px 8px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      <p style={{ fontSize: '42px', fontWeight: 900, lineHeight: 1, color: hovered ? Y : '#E5E7EB', marginBottom: '14px', transition: 'color 0.3s ease' }}>{r.n}</p>
-      <h3 style={{ fontSize: '18px', fontWeight: 800, color: hovered ? '#fff' : '#111827', marginBottom: '10px', transition: 'color 0.3s ease' }}>{r.titulo}</h3>
-      <p style={{ fontSize: '14px', lineHeight: 1.65, color: hovered ? 'rgba(255,255,255,0.8)' : '#6B7280', transition: 'color 0.3s ease' }}>{r.desc}</p>
-    </motion.div>
-  )
-}
 
 export default function Manifiesto() {
   const isMobile = useIsMobile()
 
   return (
-    <section style={{ background: '#F3F4F6', padding: isMobile ? '60px 20px' : '100px 24px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <section style={{
+      background: '#0F0A1A',
+      padding: isMobile ? '56px 20px' : '80px 24px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {/* Glow decorativo */}
+      <div style={{
+        position: 'absolute', top: '-120px', left: '-120px',
+        width: '500px', height: '500px', borderRadius: '50%',
+        background: `radial-gradient(ellipse, ${P}22 0%, transparent 65%)`,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-80px', right: '-80px',
+        width: '320px', height: '320px', borderRadius: '50%',
+        background: `radial-gradient(ellipse, ${Y}11 0%, transparent 65%)`,
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{
+        maxWidth: '1100px', margin: '0 auto', position: 'relative',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? '40px' : '80px',
+        alignItems: isMobile ? 'flex-start' : 'center',
+      }}>
+
+        {/* ── Columna izquierda: declaración ── */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.6 }}
-          style={{ textAlign: 'center', marginBottom: isMobile ? '40px' : '64px' }}
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6 }}
+          style={{ flex: '0 0 auto', width: isMobile ? '100%' : '300px' }}
         >
-          <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>
-            El Manifiesto Alma
-          </p>
-          <h2 style={{ fontSize: 'clamp(26px,4vw,46px)', fontWeight: 900, color: '#111827', letterSpacing: '-1px', lineHeight: 1.1 }}>
-            Los 6 recursos que definen{' '}
-            <span style={{ color: P }}>nuestra agencia</span>
+          {/* Eyebrow */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            marginBottom: '20px',
+          }}>
+            <div style={{ width: '24px', height: '2px', background: Y }} />
+            <span style={{
+              fontSize: '11px', fontWeight: 700, letterSpacing: '2.5px',
+              textTransform: 'uppercase', color: Y,
+            }}>
+              El Manifiesto
+            </span>
+          </div>
+
+          <h2 style={{
+            fontSize: isMobile ? '28px' : 'clamp(28px, 3vw, 38px)',
+            fontWeight: 900, lineHeight: 1.1, letterSpacing: '-1px',
+            color: '#fff', marginBottom: '16px',
+          }}>
+            Lo que nos<br />
+            <span style={{ color: Y }}>mueve</span> cada día
           </h2>
+
+          <p style={{
+            fontSize: '14px', lineHeight: 1.7,
+            color: 'rgba(255,255,255,0.45)',
+            maxWidth: '260px',
+          }}>
+            Seis principios que guían cada decisión, cada diseño y cada conversación con nuestros clientes.
+          </p>
+
+          {/* Badge */}
+          <div style={{
+            marginTop: '28px',
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            border: `1px solid ${Y}44`,
+            borderRadius: '20px', padding: '7px 16px',
+          }}>
+            <span style={{ fontSize: '14px' }}>✦</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: Y }}>Alma Agencia Creativa</span>
+          </div>
         </motion.div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: isMobile ? '14px' : '20px',
-        }}>
-          {recursos.map((r, i) => <RecursoCard key={r.n} r={r} i={i} isMobile={isMobile} />)}
+        {/* ── Columna derecha: lista de principios ── */}
+        <div style={{ flex: 1, width: '100%' }}>
+          {principios.map((p, i) => (
+            <motion.div
+              key={p.n}
+              initial={{ opacity: 0, x: 16 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.4, delay: i * 0.06 }}
+              style={{
+                display: 'flex',
+                alignItems: isMobile ? 'flex-start' : 'center',
+                gap: isMobile ? '16px' : '24px',
+                padding: isMobile ? '16px 0' : '18px 0',
+                borderBottom: i < principios.length - 1
+                  ? '1px solid rgba(255,255,255,0.07)'
+                  : 'none',
+              }}
+            >
+              {/* Número */}
+              <span style={{
+                fontSize: '11px', fontWeight: 700,
+                color: `${Y}88`,
+                letterSpacing: '1px',
+                flexShrink: 0,
+                width: '24px',
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {p.n}
+              </span>
+
+              {/* Título */}
+              <span style={{
+                fontSize: isMobile ? '15px' : '16px',
+                fontWeight: 800,
+                color: '#fff',
+                flexShrink: 0,
+                width: isMobile ? '110px' : '140px',
+                letterSpacing: '-0.3px',
+              }}>
+                {p.titulo}
+              </span>
+
+              {/* Separador */}
+              {!isMobile && (
+                <div style={{
+                  width: '1px', height: '16px',
+                  background: 'rgba(255,255,255,0.15)',
+                  flexShrink: 0,
+                }} />
+              )}
+
+              {/* Descripción */}
+              <span style={{
+                fontSize: '13px',
+                lineHeight: 1.6,
+                color: 'rgba(255,255,255,0.45)',
+                flex: 1,
+              }}>
+                {p.desc}
+              </span>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

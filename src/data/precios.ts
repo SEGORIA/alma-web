@@ -37,9 +37,11 @@ export function fmtPrecio(n: number): string {
 // ── Categorías (estáticas — cambian poco) ─────────────────────
 
 export const categoriasEstaticas: ServicioCategoria[] = [
-  { id: 'web',       label: 'Desarrollo Web',   emoji: '💻', desc: 'Landing page, sitio corporativo o tienda virtual', orden: 0 },
-  { id: 'branding',  label: 'Branding',          emoji: '🎨', desc: 'Logo, identidad visual y manual de marca',         orden: 1 },
-  { id: 'marketing', label: 'Marketing Digital', emoji: '📱', desc: 'Gestión de redes sociales y pauta digital',        orden: 2 },
+  { id: 'web',        label: 'Desarrollo Web',    emoji: '💻', desc: 'Landing page, sitio corporativo o tienda virtual',      orden: 0 },
+  { id: 'branding',   label: 'Branding',           emoji: '🎨', desc: 'Logo, identidad visual y manual de marca',              orden: 1 },
+  { id: 'marketing',  label: 'Marketing Digital',  emoji: '📱', desc: 'Gestión de redes sociales y pauta digital',             orden: 2 },
+  { id: 'fotovideo',  label: 'Foto & Video',        emoji: '📷', desc: 'Fotografía de producto, reels y video corporativo',    orden: 3 },
+  { id: 'estrategia', label: 'Estrategia Digital',  emoji: '🎯', desc: 'Diagnóstico, plan de marca y acompañamiento integral', orden: 4 },
 ]
 
 // ── Planes estáticos (fallback sin Firebase) ──────────────────
@@ -83,6 +85,32 @@ export const planesEstaticos: Plan[] = [
   {
     tabId: 'marketing', nombre: 'Full Service', precioNum: 2800000, periodo: '/mes', orden: 2,
     items: ['Canales ilimitados', 'Contenido ilimitado', 'Pauta avanzada', 'Mentoría mensual', 'Estrategia integral', 'Prioridad absoluta'],
+  },
+  // ── Foto & Video ──
+  {
+    tabId: 'fotovideo', nombre: 'Fotografía', precioNum: 450000, orden: 0,
+    items: ['Sesión de producto o marca', '20 fotos editadas', 'Retoque profesional', 'Entrega en alta resolución', 'Licencia comercial', 'Entrega en 3 días hábiles'],
+  },
+  {
+    tabId: 'fotovideo', nombre: 'Foto + Reels', precioNum: 850000, destacado: true, orden: 1,
+    items: ['Sesión fotográfica completa', '30 fotos editadas', '4 reels para redes sociales', 'Música licenciada', 'Guión y dirección incluidos', 'Entrega en 7 días hábiles'],
+  },
+  {
+    tabId: 'fotovideo', nombre: 'Video Corporativo', precioNum: 1800000, orden: 2,
+    items: ['Video institucional 1–2 min', 'Guión y storyboard', 'Grabación profesional', 'Edición + motion graphics', 'Versión corta para redes', 'Entrega en 10 días hábiles'],
+  },
+  // ── Estrategia Digital ──
+  {
+    tabId: 'estrategia', nombre: 'Diagnóstico', precioNum: 380000, orden: 0,
+    items: ['Auditoría de marca y redes', 'Análisis de competencia', 'Mapa de oportunidades', 'Informe ejecutivo PDF', 'Sesión de resultados 1h', 'Entrega en 5 días hábiles'],
+  },
+  {
+    tabId: 'estrategia', nombre: 'Plan Estratégico', precioNum: 950000, periodo: '/mes', destacado: true, orden: 1,
+    items: ['Diagnóstico inicial incluido', 'Plan mensual de acción', 'KPIs y métricas de éxito', 'Acompañamiento quincenal', 'Ajustes y optimización', 'Reporte de resultados'],
+  },
+  {
+    tabId: 'estrategia', nombre: 'Estrategia Integral', precioNum: 2500000, orden: 2,
+    items: ['Plan completo 3 meses', 'Estrategia de marca + digital', 'Contenido + pauta + SEO', 'Reuniones semanales', 'Dashboard de métricas', 'Garantía de continuidad'],
   },
 ]
 

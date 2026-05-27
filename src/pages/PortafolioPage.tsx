@@ -208,10 +208,9 @@ export default function PortafolioPage() {
         </motion.div>
       </div>
 
-      {/* Filtros sticky */}
+      {/* Filtros */}
       <div style={{
         background: '#fff', borderBottom: '1px solid #E5E7EB',
-        position: 'sticky', top: '68px', zIndex: 50,
       }}>
         <div style={{
           maxWidth: '1100px', margin: '0 auto', padding: '16px 24px',

@@ -11,15 +11,17 @@ export default function Blog() {
   const isMobile = useIsMobile()
   const ultimo   = articulos[0]
   const color    = catColor[ultimo.cat] ?? P
-  const [hovered,  setHovered]  = useState(false)
-  const [waLink,   setWaLink]   = useState(
+  const [hovered,    setHovered]    = useState(false)
+  const [waLink,     setWaLink]     = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
   )
+  const [instagram,  setInstagram]  = useState(contactoDefault.instagram)
 
   useEffect(() => {
-    getContactoInfo().then(c =>
+    getContactoInfo().then(c => {
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
-    )
+      setInstagram(c.instagram)
+    })
   }, [])
 
   return (
@@ -196,7 +198,7 @@ export default function Blog() {
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', flexShrink: 0 }}>
             <a
-              href="https://instagram.com/alma.agenciacreativa"
+              href={instagram}
               target="_blank"
               rel="noopener noreferrer"
               style={{

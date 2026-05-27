@@ -39,18 +39,20 @@ export default function WhatsAppFloat() {
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200 }}
+        style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200, willChange: 'transform' }}
       >
         <a
           href={wa}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Contactar por WhatsApp"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
             background: WA_GREEN, color: '#fff',
-            padding: '16px 24px',
+            padding: '14px 24px',
             fontWeight: 700, fontSize: '15px', textDecoration: 'none',
             boxShadow: '0 -6px 24px rgba(37,211,102,0.25)',
+            paddingBottom: 'calc(14px + env(safe-area-inset-bottom))',
           }}
         >
           <WaIcon size={22} />

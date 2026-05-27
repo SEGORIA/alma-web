@@ -8,6 +8,7 @@ import { getArticulos, getContactoInfo } from '../lib/db'
 import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
 import { SkeletonArticuloCard, SkeletonArticuloDestacado } from '../components/Skeleton'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 /* ── Article Card ────────────────────────────────────────── */
 function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande?: boolean }) {
@@ -152,18 +153,21 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
 
 /* ── BlogPage ────────────────────────────────────────────── */
 export default function BlogPage() {
+  const isMobile                  = useIsMobile()
   const [filtro,    setFiltro]    = useState('Todos')
   const [todos,     setTodos]     = useState<Articulo[]>(articulosEstaticos)
   const [loading,   setLoading]   = useState(true)
   const [waLink,    setWaLink]    = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
   )
+  const [instagram, setInstagram] = useState(contactoDefault.instagram)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    getContactoInfo().then(c =>
+    getContactoInfo().then(c => {
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`)
-    )
+      setInstagram(c.instagram)
+    })
     getArticulos().then(data => {
       setTodos(data)
       setLoading(false)
@@ -173,7 +177,6 @@ export default function BlogPage() {
   const destacado    = todos.find(a => a.destacado) ?? todos[0]
   const sinDestacado = todos.filter(a => a !== destacado)
   const visibles     = filtro === 'Todos' ? sinDestacado : todos.filter(a => a.cat === filtro)
-  const isMobile     = typeof window !== 'undefined' && window.innerWidth < 768
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh' }}>
@@ -225,7 +228,7 @@ export default function BlogPage() {
       </div>
 
       {/* Filtros */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', position: 'sticky', top: '68px', zIndex: 50 }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB' }}>
         <div style={{
           maxWidth: '1100px', margin: '0 auto',
           padding: '16px 24px',
@@ -360,7 +363,7 @@ export default function BlogPage() {
                 Inicio
               </Link>
               <a
-                href="https://instagram.com/alma.agenciacreativa"
+                href={instagram}
                 target="_blank" rel="noopener noreferrer"
                 style={{ color: '#6B7280', fontSize: '13px', textDecoration: 'none' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
