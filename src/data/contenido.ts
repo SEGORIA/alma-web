@@ -73,6 +73,11 @@ export const equipoEstatico: EquipoMember[] = [
     desc: 'Convierte diseños en experiencias digitales que funcionan. Construye webs y aplicaciones rápidas, accesibles y optimizadas para convertir visitantes en clientes.',
     iniciales: 'RF', emoji: '⚙️', color: 'linear-gradient(135deg,#059669,#34D399)', orden: 7,
   },
+  {
+    nombre: 'Natalia Sánchez', rol: 'Abogada',
+    desc: 'Protege cada proyecto desde su base legal. Asesora en contratos, propiedad intelectual y cumplimiento normativo para que la marca opere con total respaldo jurídico.',
+    iniciales: 'NS', emoji: '⚖️', color: 'linear-gradient(135deg,#1D4ED8,#60A5FA)', orden: 8,
+  },
 ]
 
 // gradientes disponibles para avatar del equipo
