@@ -18,6 +18,7 @@ export type EquipoMember = {
   iniciales: string
   emoji:     string
   color:     string   // CSS gradient
+  foto?:     string   // URL de foto (opcional, reemplaza emoji+gradiente)
   orden?:    number
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from './AdminLayout'
+import ImageUploader from '../../components/ImageUploader'
 import {
   getConfig, updateConfig,
   getPasos, createPaso, updatePaso, deletePaso,
@@ -314,19 +315,55 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
 
   return (
     <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+
+      {/* Foto */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={lbl}>Foto del miembro</label>
+        <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px', marginTop: '2px' }}>
+          Si subes una foto se mostrará en lugar del emoji. Ideal cuadrada o de perfil.
+        </p>
+
+        {/* Preview del avatar actual */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+          <div style={{
+            width: '72px', height: '72px', borderRadius: '50%', flexShrink: 0,
+            background: form.foto ? 'transparent' : form.color,
+            overflow: 'hidden', border: '3px solid #E5E7EB',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {form.foto
+              ? <img src={form.foto} alt={form.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: '26px' }}>{form.emoji || form.iniciales}</span>
+            }
+          </div>
+          <div>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{form.nombre || 'Nombre'}</p>
+            <p style={{ fontSize: '12px', color: P, margin: 0 }}>{form.rol || 'Rol'}</p>
+          </div>
+        </div>
+
+        <ImageUploader
+          currentUrl={form.foto}
+          onUploaded={url => set('foto', url)}
+          height={160}
+        />
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
         <div><label style={lbl}>Nombre completo</label><input value={form.nombre} onChange={e => set('nombre', e.target.value)} style={inp} /></div>
         <div><label style={lbl}>Rol / Cargo</label><input value={form.rol} onChange={e => set('rol', e.target.value)} style={inp} /></div>
-        <div><label style={lbl}>Iniciales (2)</label><input value={form.iniciales} onChange={e => set('iniciales', e.target.value.toUpperCase())} style={inp} maxLength={2} /></div>
-        <div><label style={lbl}>Emoji</label><input value={form.emoji} onChange={e => set('emoji', e.target.value)} style={{ ...inp, fontSize: '18px' }} maxLength={4} /></div>
+        <div><label style={lbl}>Iniciales (2) — se usan si no hay foto</label><input value={form.iniciales} onChange={e => set('iniciales', e.target.value.toUpperCase())} style={inp} maxLength={2} /></div>
+        <div><label style={lbl}>Emoji — se usa si no hay foto</label><input value={form.emoji} onChange={e => set('emoji', e.target.value)} style={{ ...inp, fontSize: '18px' }} maxLength={4} /></div>
       </div>
+
       <div style={{ marginBottom: '12px' }}>
         <label style={lbl}>Descripción</label>
         <textarea value={form.desc} onChange={e => set('desc', e.target.value)} rows={2}
           style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }} />
       </div>
+
       <div style={{ marginBottom: '16px' }}>
-        <label style={lbl}>Color de avatar</label>
+        <label style={lbl}>Color de avatar (si no hay foto)</label>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
           {EQUIPO_GRADIENTES.map(g => (
             <div key={g} onClick={() => set('color', g)}
@@ -334,6 +371,7 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
           ))}
         </div>
       </div>
+
       <div style={{ display: 'flex', gap: '10px' }}>
         {saveBtn('💾 Guardar', onSave.bind(null, form), saving, !form.nombre)}
         <button onClick={onCancel} style={{ background: '#F3F4F6', color: '#374151', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>

@@ -36,25 +36,32 @@ function MemberCard({ m, index }: { m: EquipoMember; index: number }) {
       {/* Avatar */}
       <div style={{
         width: '88px', height: '88px', borderRadius: '50%',
-        background: m.color, flexShrink: 0,
+        background: m.foto ? 'transparent' : m.color,
+        flexShrink: 0, overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         marginBottom: '20px',
         boxShadow: hovered ? '0 12px 32px rgba(107,33,168,0.25)' : '0 4px 16px rgba(0,0,0,0.12)',
         transition: 'box-shadow 0.3s ease',
         position: 'relative',
+        border: m.foto ? `3px solid ${hovered ? P : '#E5E7EB'}` : 'none',
       }}>
-        <span style={{ fontSize: '30px' }}>{m.emoji}</span>
-        {/* Iniciales badge */}
-        <div style={{
-          position: 'absolute', bottom: '-2px', right: '-2px',
-          width: '28px', height: '28px', borderRadius: '50%',
-          background: '#fff', border: `2px solid ${hovered ? P : '#E5E7EB'}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '10px', fontWeight: 900, color: P,
-          transition: 'border-color 0.3s ease',
-        }}>
-          {m.iniciales}
-        </div>
+        {m.foto
+          ? <img src={m.foto} alt={m.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <>
+              <span style={{ fontSize: '30px' }}>{m.emoji}</span>
+              {/* Iniciales badge */}
+              <div style={{
+                position: 'absolute', bottom: '-2px', right: '-2px',
+                width: '28px', height: '28px', borderRadius: '50%',
+                background: '#fff', border: `2px solid ${hovered ? P : '#E5E7EB'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '10px', fontWeight: 900, color: P,
+                transition: 'border-color 0.3s ease',
+              }}>
+                {m.iniciales}
+              </div>
+            </>
+        }
       </div>
 
       <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#111827', marginBottom: '4px', lineHeight: 1.3 }}>
