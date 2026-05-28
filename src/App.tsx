@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, Link as RouterLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
@@ -149,8 +149,89 @@ function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
   )
 }
 
+/* ── SplashScreen ────────────────────────────────────────── */
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    timerRef.current = setTimeout(onDone, 4500)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [onDone])
+
+  const handleEnd = () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setTimeout(onDone, 300)
+  }
+
+  return (
+    <motion.div
+      key="splash"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.04 }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: '#080818',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        gap: '24px',
+      }}
+    >
+      {/* Radial glow */}
+      <div style={{
+        position: 'absolute', width: '600px', height: '500px',
+        background: `radial-gradient(ellipse, ${P}40 0%, transparent 70%)`,
+        pointerEvents: 'none',
+      }} />
+
+      {/* Logo video */}
+      <motion.video
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        autoPlay
+        muted
+        playsInline
+        onEnded={handleEnd}
+        style={{
+          width: 'min(340px, 70vw)',
+          height: 'auto',
+          position: 'relative', zIndex: 1,
+          mixBlendMode: 'screen',
+        }}
+      >
+        <source src="/alma-logo.webm" type="video/webm" />
+        <source src="/alma-logo.mp4"  type="video/mp4" />
+        <img src="/alma-logo.png" alt="Alma" style={{ width: '100%' }} />
+      </motion.video>
+
+      {/* Barra de progreso */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 3.8, ease: 'linear' }}
+        style={{
+          position: 'relative', zIndex: 1,
+          width: '120px', height: '2px',
+          background: `linear-gradient(90deg, ${P}, #9333EA, ${Y})`,
+          borderRadius: '2px',
+          transformOrigin: 'left',
+        }}
+      />
+    </motion.div>
+  )
+}
+
 /* ── Landing Page ────────────────────────────────────────── */
 function Landing() {
+  const [splashDone, setSplashDone] = useState(
+    () => sessionStorage.getItem('alma_splash') === '1'
+  )
+  const handleSplashDone = () => {
+    sessionStorage.setItem('alma_splash', '1')
+    setSplashDone(true)
+  }
+
   const [scrolled,       setScrolled]       = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
@@ -208,6 +289,11 @@ function Landing() {
   const closeMenu = () => setMenuOpen(false)
 
   return (
+    <>
+      <AnimatePresence>
+        {!splashDone && <SplashScreen onDone={handleSplashDone} />}
+      </AnimatePresence>
+
     <div style={{ background: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
       <Helmet>
         <title>Alma Agencia Creativa | Diseño web, branding y marketing digital en Manizales</title>
@@ -431,6 +517,7 @@ function Landing() {
       </Suspense>
       <WhatsAppFloat />
     </div>
+    </>
   )
 }
 
