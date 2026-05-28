@@ -153,9 +153,14 @@ function Hamburger({ open, onClick }: { open: boolean; onClick: () => void }) {
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Bloquear scroll del body mientras el splash está activo
   useEffect(() => {
+    document.body.style.overflow = 'hidden'
     timerRef.current = setTimeout(onDone, 4500)
-    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+    return () => {
+      document.body.style.overflow = ''
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
   }, [onDone])
 
   const handleEnd = () => {
@@ -167,20 +172,27 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
     <motion.div
       key="splash"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.04 }}
-      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        width: '100vw', height: '100vh',
+        zIndex: 9999,
         background: '#080818',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         gap: '24px',
+        overflow: 'hidden',
       }}
     >
       {/* Radial glow */}
       <div style={{
-        position: 'absolute', width: '600px', height: '500px',
-        background: `radial-gradient(ellipse, ${P}40 0%, transparent 70%)`,
+        position: 'absolute',
+        top: '50%', left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '600px', height: '500px',
+        background: `radial-gradient(ellipse, ${P}44 0%, transparent 70%)`,
         pointerEvents: 'none',
       }} />
 
