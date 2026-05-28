@@ -44,7 +44,12 @@ export function uploadImage(
         const data = JSON.parse(xhr.responseText) as { secure_url: string }
         resolve(data.secure_url)
       } else {
-        reject(new Error(`Error ${xhr.status} al subir la imagen`))
+        try {
+          const err = JSON.parse(xhr.responseText) as { error?: { message?: string } }
+          reject(new Error(err?.error?.message ?? `Error ${xhr.status} al subir la imagen`))
+        } catch {
+          reject(new Error(`Error ${xhr.status} al subir la imagen`))
+        }
       }
     }
 
