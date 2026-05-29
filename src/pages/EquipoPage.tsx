@@ -172,16 +172,15 @@ export default function EquipoPage() {
           </h2>
         </motion.div>
 
-        {/* wrapper flex para centrar el grid de 2 fundadores */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: isMobile ? '52px' : '80px' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-            gap: isMobile ? '16px' : '24px',
-            width: isMobile ? '100%' : '784px',
-          }}>
-            {fundadores.map((m, i) => <MemberCard key={m._id ?? m.nombre} m={m} index={i} />)}
-          </div>
+        {/* grid con justify-content:center para centrar las 2 tarjetas */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 380px)',
+          justifyContent: 'center',
+          gap: isMobile ? '16px' : '24px',
+          marginBottom: isMobile ? '52px' : '80px',
+        }}>
+          {fundadores.map((m, i) => <MemberCard key={m._id ?? m.nombre} m={m} index={i} />)}
         </div>
 
         {/* Colaboradores */}
