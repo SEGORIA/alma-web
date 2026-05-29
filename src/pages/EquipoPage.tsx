@@ -174,10 +174,9 @@ export default function EquipoPage() {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 380px))',
-          justifyContent: 'center',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
           gap: isMobile ? '16px' : '24px',
-          maxWidth: '960px',
+          maxWidth: isMobile ? '100%' : '784px',
           margin: '0 auto',
           marginBottom: isMobile ? '52px' : '80px',
         }}>
