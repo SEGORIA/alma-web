@@ -102,7 +102,6 @@ export default function EquipoPage() {
   const fundadores   = sorted.filter(m => (m.orden ?? 99) < 2)
   const colaboradores = sorted.filter(m => (m.orden ?? 99) >= 2)
 
-  const cols = isMobile ? '1fr' : 'repeat(3, 1fr)'
   const colsColab = isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))'
 
   return (
