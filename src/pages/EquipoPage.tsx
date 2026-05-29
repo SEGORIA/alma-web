@@ -172,7 +172,15 @@ export default function EquipoPage() {
           </h2>
         </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: cols, gap: isMobile ? '16px' : '24px', maxWidth: '960px', margin: '0 auto', marginBottom: isMobile ? '52px' : '80px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, minmax(0, 380px))',
+          justifyContent: 'center',
+          gap: isMobile ? '16px' : '24px',
+          maxWidth: '960px',
+          margin: '0 auto',
+          marginBottom: isMobile ? '52px' : '80px',
+        }}>
           {fundadores.map((m, i) => <MemberCard key={m._id ?? m.nombre} m={m} index={i} />)}
         </div>
 
