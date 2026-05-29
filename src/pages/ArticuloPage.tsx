@@ -256,7 +256,7 @@ export default function ArticuloPage() {
             display: 'inline-block',
             background: 'rgba(255,255,255,0.2)',
             border: '1px solid rgba(255,255,255,0.4)',
-            color: '#fff', fontSize: '11px', fontWeight: 700,
+            color: '#fff', fontSize: '12px', fontWeight: 700,
             padding: '4px 14px', borderRadius: '20px',
             letterSpacing: '1px', textTransform: 'uppercase',
             marginBottom: '16px',
@@ -427,7 +427,7 @@ export default function ArticuloPage() {
                   </div>
                   <div style={{ padding: '16px' }}>
                     <span style={{
-                      fontSize: '10px', fontWeight: 700,
+                      fontSize: '12px', fontWeight: 700,
                       color: catColor[rel.cat] ?? P,
                       textTransform: 'uppercase', letterSpacing: '0.5px',
                       display: 'block', marginBottom: '6px',
@@ -440,7 +440,7 @@ export default function ArticuloPage() {
                     }}>
                       {rel.titulo}
                     </p>
-                    <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '8px', fontWeight: 500 }}>
+                    <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '8px', fontWeight: 500 }}>
                       🕐 {rel.minutos} min
                     </p>
                   </div>

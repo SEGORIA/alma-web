@@ -112,7 +112,7 @@ function PostCard({ post, index }: { post: typeof posts[0]; index: number }) {
             {post.emoji}
           </span>
           <span style={{
-            fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.85)',
+            fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.85)',
             letterSpacing: '1px', textTransform: 'uppercase',
           }}>
             {post.tag}

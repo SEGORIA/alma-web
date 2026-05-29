@@ -108,15 +108,15 @@ function TabHero() {
         {stats.map((s, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '90px 70px 1fr', gap: '10px', alignItems: 'end' }}>
             <div>
-              <label style={{ ...lbl, fontSize: '11px' }}>Número</label>
+              <label style={{ ...lbl, fontSize: '12px' }}>Número</label>
               <input type="number" value={s.target} onChange={e => setStat(i, 'target', Number(e.target.value))} style={inp} />
             </div>
             <div>
-              <label style={{ ...lbl, fontSize: '11px' }}>Sufijo</label>
+              <label style={{ ...lbl, fontSize: '12px' }}>Sufijo</label>
               <input value={s.suffix} onChange={e => setStat(i, 'suffix', e.target.value)} style={inp} maxLength={3} placeholder="+ %" />
             </div>
             <div>
-              <label style={{ ...lbl, fontSize: '11px' }}>Etiqueta</label>
+              <label style={{ ...lbl, fontSize: '12px' }}>Etiqueta</label>
               <input value={s.label} onChange={e => setStat(i, 'label', e.target.value)} style={inp} placeholder="Proyectos entregados" />
             </div>
           </div>

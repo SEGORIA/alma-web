@@ -142,14 +142,14 @@ export default function Calculadora() {
                       <button key={key} onClick={() => setPlanId(key)}
                         style={{ padding: '20px 18px', borderRadius: '16px', textAlign: 'left', cursor: 'pointer', border: `2px solid ${planId === key ? P : p.destacado ? `${P}44` : '#E5E7EB'}`, background: planId === key ? `rgba(107,33,168,0.06)` : '#fff', transition: 'all 0.2s ease', position: 'relative', boxShadow: planId === key ? `0 4px 20px rgba(107,33,168,0.14)` : 'none' }}
                       >
-                        {p.destacado && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: Y, color: '#111', fontSize: '9px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px', whiteSpace: 'nowrap' }}>MÁS SOLICITADO</div>}
+                        {p.destacado && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: Y, color: '#111', fontSize: '12px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px', whiteSpace: 'nowrap' }}>MÁS SOLICITADO</div>}
                         <p style={{ fontSize: '13px', fontWeight: 700, color: planId === key ? P : '#111827', marginBottom: '6px' }}>{p.nombre}</p>
                         <p style={{ fontSize: '20px', fontWeight: 900, color: P, lineHeight: 1, marginBottom: '10px' }}>
-                          {fmtPrecio(p.precioNum)}<span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 500 }}>{p.periodo ?? ''}</span>
+                          {fmtPrecio(p.precioNum)}<span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 500 }}>{p.periodo ?? ''}</span>
                         </p>
                         <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                           {p.items.map((it, i) => (
-                            <li key={i} style={{ fontSize: '11px', color: '#6B7280', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                            <li key={i} style={{ fontSize: '12px', color: '#6B7280', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                               <span style={{ color: P, flexShrink: 0, fontWeight: 700 }}>✓</span>{it}
                             </li>
                           ))}
@@ -201,7 +201,7 @@ export default function Calculadora() {
                       <p style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 500, marginBottom: '2px' }}>{servicio?.emoji} {servicio?.label}</p>
                       <p style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>{plan?.nombre}</p>
                     </div>
-                    <p style={{ fontSize: '17px', fontWeight: 800, color: P }}>{fmtPrecio(precioBase)}<span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 400 }}>{plan?.periodo ?? ''}</span></p>
+                    <p style={{ fontSize: '17px', fontWeight: 800, color: P }}>{fmtPrecio(precioBase)}<span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 400 }}>{plan?.periodo ?? ''}</span></p>
                   </div>
                   {extrasObjs.map(e => (
                     <div key={e._id ?? e.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -251,7 +251,7 @@ export default function Calculadora() {
                   <span style={{ fontSize: '12px', color: '#9CA3AF' }}>Estimado actual:</span>
                   <motion.span key={precioTotal} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.25 }}
                     style={{ fontSize: '20px', fontWeight: 900, color: P }}>{fmtPrecio(precioTotal)}</motion.span>
-                  <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{plan.periodo ?? ''}</span>
+                  <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{plan.periodo ?? ''}</span>
                 </>
               )}
             </div>

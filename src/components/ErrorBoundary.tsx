@@ -58,7 +58,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <pre style={{
             marginTop: '24px', padding: '12px 16px', borderRadius: '8px',
             background: '#FEF2F2', color: '#EF4444',
-            fontSize: '11px', maxWidth: '600px', textAlign: 'left',
+            fontSize: '12px', maxWidth: '600px', textAlign: 'left',
             overflow: 'auto', border: '1px solid #FCA5A5',
           }}>
             {this.state.message}

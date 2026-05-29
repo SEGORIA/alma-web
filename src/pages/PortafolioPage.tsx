@@ -14,7 +14,7 @@ import { SkeletonProyectoCard } from '../components/Skeleton'
 function Tag({ label }: { label: string }) {
   return (
     <span style={{
-      fontSize: '11px', fontWeight: 600, padding: '3px 10px',
+      fontSize: '12px', fontWeight: 600, padding: '3px 10px',
       borderRadius: '20px', background: 'rgba(107,33,168,0.08)',
       color: P, whiteSpace: 'nowrap',
     }}>
@@ -83,7 +83,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
           position: 'absolute', top: '14px', left: '14px',
           background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
           padding: '5px 12px', borderRadius: '20px',
-          fontSize: '11px', fontWeight: 700, color: P,
+          fontSize: '12px', fontWeight: 700, color: P,
         }}>
           {p.cat}
         </div>
@@ -91,7 +91,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
           position: 'absolute', top: '14px', right: '14px',
           background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)',
           padding: '5px 10px', borderRadius: '20px',
-          fontSize: '11px', fontWeight: 600, color: '#fff',
+          fontSize: '12px', fontWeight: 600, color: '#fff',
         }}>
           {p.año}
         </div>
@@ -99,7 +99,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
           <div style={{
             position: 'absolute', bottom: '14px', left: '14px',
             background: Y, color: '#111',
-            fontSize: '11px', fontWeight: 800, padding: '4px 12px', borderRadius: '20px',
+            fontSize: '12px', fontWeight: 800, padding: '4px 12px', borderRadius: '20px',
           }}>
             ★ Destacado
           </div>

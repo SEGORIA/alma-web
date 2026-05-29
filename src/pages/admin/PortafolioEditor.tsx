@@ -152,7 +152,7 @@ export default function PortafolioEditor() {
                   Tags (separados por coma)
                 </label>
                 <input type="text" value={tagsStr} onChange={e => setTagsStr(e.target.value)} style={inputStyle} placeholder="Logo, Branding, Redes sociales" />
-                <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px' }}>
+                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
                   Ej: Logo, Manual de marca, Redes sociales
                 </p>
               </div>
@@ -213,7 +213,7 @@ export default function PortafolioEditor() {
               }}>
                 <span style={{
                   background: 'rgba(255,255,255,0.9)', color: '#374151',
-                  fontSize: '11px', fontWeight: 700,
+                  fontSize: '12px', fontWeight: 700,
                   padding: '4px 12px', borderRadius: '20px',
                 }}>
                   {titulo || 'Proyecto'}

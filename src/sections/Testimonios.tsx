@@ -29,7 +29,7 @@ function TestimonioCard({ t }: { t: Testimonio }) {
         </div>
         <div>
           <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>{t.nombre}</p>
-          <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '1px' }}>{t.rol} · {t.empresa}</p>
+          <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '1px' }}>{t.rol} · {t.empresa}</p>
         </div>
       </div>
     </div>

@@ -53,7 +53,7 @@ function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: '#fff', border: `2px solid ${hovered ? P : '#E5E7EB'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '11px', fontWeight: 900, color: P,
+                fontSize: '12px', fontWeight: 900, color: P,
                 transition: 'border-color 0.3s ease',
               }}>
                 {m.iniciales[0]}
@@ -166,7 +166,7 @@ export default function Nosotros() {
                 }}
               >
                 <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.n}</p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', marginTop: '6px', fontWeight: 600, lineHeight: 1.3 }}>{s.label}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '6px', fontWeight: 600, lineHeight: 1.3 }}>{s.label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -245,7 +245,7 @@ export default function Nosotros() {
                       border: '2px solid rgba(255,255,255,0.4)',
                       marginLeft: i > 0 ? '-8px' : '0',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '9px', fontWeight: 800, color: '#fff',
+                      fontSize: '12px', fontWeight: 800, color: '#fff',
                       position: 'relative', zIndex: 5 - i,
                     }}>
                       {a.iniciales}

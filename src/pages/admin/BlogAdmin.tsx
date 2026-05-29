@@ -105,7 +105,7 @@ export default function BlogAdmin() {
                     </h3>
                     {a.destacado && (
                       <span style={{
-                        fontSize: '10px', fontWeight: 700, color: '#92400E',
+                        fontSize: '12px', fontWeight: 700, color: '#92400E',
                         background: '#FEF3C7', padding: '2px 8px', borderRadius: '20px',
                         flexShrink: 0,
                       }}>

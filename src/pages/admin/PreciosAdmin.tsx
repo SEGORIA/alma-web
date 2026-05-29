@@ -482,7 +482,7 @@ export default function PreciosAdmin() {
                                 <span style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{plan.nombre}</span>
                                 <span style={{ fontSize: '16px', fontWeight: 900, color: P }}>{fmtPrecio(plan.precioNum)}{plan.periodo}</span>
                                 {plan.destacado && (
-                                  <span style={{ background: Y, color: '#111', fontSize: '10px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px' }}>
+                                  <span style={{ background: Y, color: '#111', fontSize: '12px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px' }}>
                                     MÁS SOLICITADO
                                   </span>
                                 )}
@@ -650,7 +650,7 @@ export default function PreciosAdmin() {
                           <span style={{ fontSize: '24px' }}>{cat.emoji}</span>
                           <div>
                             <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{cat.label}</span>
-                            <span style={{ marginLeft: '10px', fontSize: '11px', color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: '6px' }}>id: {cat.id}</span>
+                            <span style={{ marginLeft: '10px', fontSize: '12px', color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: '6px' }}>id: {cat.id}</span>
                             <p style={{ fontSize: '12px', color: '#6B7280', margin: '2px 0 0' }}>{cat.desc}</p>
                           </div>
                         </div>

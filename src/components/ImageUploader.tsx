@@ -270,7 +270,7 @@ function CropModal({
                 }}
               />
             </div>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.4 }}>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, lineHeight: 1.4 }}>
               Vista previa<br />circular
             </p>
           </div>
@@ -279,8 +279,8 @@ function CropModal({
         {/* Zoom slider */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '0 2px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>ZOOM</span>
-            <span style={{ fontSize: '11px', color: '#A855F7', fontWeight: 700 }}>{zoomPct}%</span>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>ZOOM</span>
+            <span style={{ fontSize: '12px', color: '#A855F7', fontWeight: 700 }}>{zoomPct}%</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
@@ -579,10 +579,10 @@ export default function ImageUploader({
                   <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 4px' }}>
                     Haz clic o arrastra una imagen aquí
                   </p>
-                  <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 6px' }}>
+                  <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 6px' }}>
                     PNG, JPG, WebP · Máx. 8 MB
                   </p>
-                  <p style={{ fontSize: '11px', color: '#6B21A8', fontWeight: 600, margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: '#6B21A8', fontWeight: 600, margin: 0 }}>
                     ✂️ Podrás recortar la foto antes de subirla
                   </p>
                 </>
@@ -601,8 +601,8 @@ export default function ImageUploader({
                 <li>En el dashboard copia tu <strong>Cloud name</strong></li>
                 <li>Settings → Upload → Add upload preset → Unsigned → guarda el nombre</li>
                 <li>En Vercel agrega las variables:<br />
-                  <code style={{ background: '#E0F2FE', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>VITE_CLOUDINARY_CLOUD_NAME</code><br />
-                  <code style={{ background: '#E0F2FE', padding: '2px 6px', borderRadius: '4px', fontSize: '11px' }}>VITE_CLOUDINARY_UPLOAD_PRESET</code>
+                  <code style={{ background: '#E0F2FE', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>VITE_CLOUDINARY_CLOUD_NAME</code><br />
+                  <code style={{ background: '#E0F2FE', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>VITE_CLOUDINARY_UPLOAD_PRESET</code>
                 </li>
               </ol>
               <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>

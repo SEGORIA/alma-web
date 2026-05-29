@@ -113,7 +113,7 @@ function TabSecciones() {
                 }} />
               </button>
               <span style={{
-                fontSize: '11px', fontWeight: 700, minWidth: '60px', textAlign: 'center',
+                fontSize: '12px', fontWeight: 700, minWidth: '60px', textAlign: 'center',
                 color: activa ? P : '#9CA3AF',
                 background: activa ? `${P}15` : '#F3F4F6',
                 padding: '3px 10px', borderRadius: '20px',

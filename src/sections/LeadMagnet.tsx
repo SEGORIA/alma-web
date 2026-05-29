@@ -62,7 +62,7 @@ export default function LeadMagnet() {
                 <div style={{ background: `linear-gradient(135deg, ${P}, #9333EA)`, borderRadius: '12px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>🎁</div>
                   <div>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 600, marginBottom: '3px' }}>KIT GRATUITO</p>
+                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontWeight: 600, marginBottom: '3px' }}>KIT GRATUITO</p>
                     <p style={{ color: '#fff', fontSize: '14px', fontWeight: 800, lineHeight: 1.2 }}>Crece tu marca digital</p>
                   </div>
                 </div>
@@ -114,7 +114,7 @@ export default function LeadMagnet() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg,${P},#9333EA)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🎁</div>
                 <div>
-                  <p style={{ fontSize: '11px', color: P, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Kit gratuito incluye</p>
+                  <p style={{ fontSize: '12px', color: P, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Kit gratuito incluye</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

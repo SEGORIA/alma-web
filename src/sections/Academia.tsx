@@ -80,7 +80,7 @@ export default function Academia() {
               >
                 <div style={{ width: '100%', height: m.h, background: m.g, borderRadius: '10px', marginBottom: '12px' }} />
                 <p style={{ fontWeight: 700, color: '#fff', fontSize: '13px', marginBottom: '4px' }}>{m.titulo}</p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{m.sub}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>{m.sub}</p>
                 {m.cta && (
                   <div style={{ marginTop: '10px', background: Y, borderRadius: '6px', padding: '6px 10px', textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#111' }}>
                     Descargar →

@@ -185,7 +185,7 @@ export default function Hero() {
                   border: '2.5px solid #fff',
                   marginLeft: i > 0 ? '-10px' : '0',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '10px', fontWeight: 800, color: '#fff',
+                  fontSize: '12px', fontWeight: 800, color: '#fff',
                   position: 'relative', zIndex: 3 - i,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                 }}>
@@ -205,7 +205,7 @@ export default function Hero() {
               </div>
               <p style={{ fontSize: isMobile ? '12px' : '13px', color: '#374151', margin: 0, lineHeight: 1.4 }}>
                 <span style={{ fontWeight: 700 }}>"Superó todas nuestras expectativas."</span>
-                <span style={{ color: '#9CA3AF', marginLeft: '6px', fontSize: '11px' }}>— Valentina T., CEO · Prr Love</span>
+                <span style={{ color: '#9CA3AF', marginLeft: '6px', fontSize: '12px' }}>— Valentina T., CEO · Prr Love</span>
               </p>
             </div>
           </motion.div>
@@ -239,7 +239,7 @@ export default function Hero() {
               }}>↑</div>
               <div>
                 <p style={{ fontSize: '13px', fontWeight: 800, color: '#059669', lineHeight: 1.2 }}>+127% Engagement</p>
-                <p style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '2px', fontWeight: 500 }}>vs. mes anterior</p>
+                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px', fontWeight: 500 }}>vs. mes anterior</p>
               </div>
             </motion.div>
 
@@ -253,10 +253,10 @@ export default function Hero() {
               <div style={{ background: `linear-gradient(135deg, ${P}, #9333EA)`, padding: '22px 24px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
                   <div>
-                    <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Brand Identity</p>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>Brand Identity</p>
                     <p style={{ fontSize: '17px', fontWeight: 800, color: '#fff', marginTop: '3px' }}>Prr Love Studio</p>
                   </div>
-                  <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '8px', padding: '4px 10px', fontSize: '11px', fontWeight: 700, color: '#fff' }}>2024</div>
+                  <div style={{ background: 'rgba(255,255,255,0.18)', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, color: '#fff' }}>2024</div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {['#fff', '#FECDD3', '#FCA5A5', '#F87171', '#EF4444'].map((c, i) => (
@@ -276,7 +276,7 @@ export default function Hero() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>Tipografía Principal</p>
-                    <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '2px' }}>Playfair Display · Bold</p>
+                    <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Playfair Display · Bold</p>
                   </div>
                   <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#ECFDF5', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#059669' }}>✓</div>
                 </div>
@@ -289,7 +289,7 @@ export default function Hero() {
                   ].map(el => (
                     <div key={el.label} style={{ borderRadius: '12px', background: el.g, height: '62px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                       <span style={{ fontSize: '18px', color: '#fff' }}>{el.icon}</span>
-                      <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{el.label}</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{el.label}</span>
                     </div>
                   ))}
                 </div>
@@ -316,10 +316,10 @@ export default function Hero() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg,${P},#9333EA)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#fff' }}>A</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg,${P},#9333EA)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#fff' }}>A</div>
                 <div>
-                  <p style={{ fontSize: '11px', fontWeight: 700, color: '#111827' }}>@almaagencia</p>
-                  <p style={{ fontSize: '10px', color: '#9CA3AF' }}>Instagram · Hoy</p>
+                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#111827' }}>@almaagencia</p>
+                  <p style={{ fontSize: '12px', color: '#9CA3AF' }}>Instagram · Hoy</p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
@@ -329,7 +329,7 @@ export default function Hero() {
               </div>
               <div style={{ display: 'flex', gap: '14px' }}>
                 {[['❤️', '2.4k'], ['💬', '184'], ['↗️', '891']].map(([icon, val]) => (
-                  <span key={icon} style={{ fontSize: '11px', color: '#6B7280', fontWeight: 600 }}>{icon} {val}</span>
+                  <span key={icon} style={{ fontSize: '12px', color: '#6B7280', fontWeight: 600 }}>{icon} {val}</span>
                 ))}
               </div>
             </motion.div>

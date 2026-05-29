@@ -94,7 +94,7 @@ export default function Blog() {
                   display: 'flex', gap: '8px',
                 }}>
                   <span style={{
-                    background: Y, color: '#111', fontSize: '11px', fontWeight: 800,
+                    background: Y, color: '#111', fontSize: '12px', fontWeight: 800,
                     padding: '4px 12px', borderRadius: '20px', letterSpacing: '0.5px',
                   }}>
                     ★ Último artículo
@@ -108,7 +108,7 @@ export default function Blog() {
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
               }}>
                 <span style={{
-                  fontSize: '11px', fontWeight: 700, color, letterSpacing: '1px',
+                  fontSize: '12px', fontWeight: 700, color, letterSpacing: '1px',
                   textTransform: 'uppercase', marginBottom: '12px', display: 'block',
                 }}>
                   {ultimo.cat}

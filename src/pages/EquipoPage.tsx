@@ -55,7 +55,7 @@ function MemberCard({ m, index }: { m: EquipoMember; index: number }) {
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: '#fff', border: `2px solid ${hovered ? P : '#E5E7EB'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '10px', fontWeight: 900, color: P,
+                fontSize: '12px', fontWeight: 900, color: P,
                 transition: 'border-color 0.3s ease',
               }}>
                 {m.iniciales}
@@ -68,7 +68,7 @@ function MemberCard({ m, index }: { m: EquipoMember; index: number }) {
         {m.nombre}
       </h3>
       <p style={{
-        fontSize: '11px', fontWeight: 700, color: P,
+        fontSize: '12px', fontWeight: 700, color: P,
         marginBottom: '14px', letterSpacing: '0.5px',
         textTransform: 'uppercase',
       }}>
@@ -163,7 +163,7 @@ export default function EquipoPage() {
           transition={{ duration: 0.5 }}
           style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}
         >
-          <p style={{ color: P, fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
             Fundadores & Líderes
           </p>
           <h2 style={{ fontSize: 'clamp(22px,3vw,32px)', fontWeight: 900, color: '#111827', letterSpacing: '-1px' }}>
@@ -198,7 +198,7 @@ export default function EquipoPage() {
               transition={{ duration: 0.5 }}
               style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}
             >
-              <p style={{ color: P, fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+              <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
                 Talento del equipo
               </p>
               <h2 style={{ fontSize: 'clamp(22px,3vw,32px)', fontWeight: 900, color: '#111827', letterSpacing: '-1px' }}>
@@ -232,7 +232,7 @@ export default function EquipoPage() {
         >
           {/* Texto */}
           <div style={{ flex: 1, textAlign: isMobile ? 'center' : 'left' }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: P, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: P, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
               Lo que nos mueve
             </p>
             <h3 style={{ fontSize: isMobile ? '22px' : 'clamp(20px,2.5vw,26px)', fontWeight: 900, color: '#111827', marginBottom: '10px', lineHeight: 1.2 }}>

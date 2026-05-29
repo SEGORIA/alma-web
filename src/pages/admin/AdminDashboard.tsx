@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                 <span style={{ fontSize: isMobile ? '20px' : '28px' }}>{c.icon}</span>
                 <span style={{
                   background: `${c.color}15`, color: c.color,
-                  fontSize: '10px', fontWeight: 700, padding: '3px 8px',
+                  fontSize: '12px', fontWeight: 700, padding: '3px 8px',
                   borderRadius: '20px', letterSpacing: '0.5px',
                 }}>
                   ACTIVO

@@ -84,12 +84,12 @@ export default function Clientes() {
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {/* Etiqueta fija */}
         <div style={{ flexShrink: 0, padding: '0 28px', borderRight: '1px solid rgba(255,255,255,0.15)', marginRight: '28px' }}>
-          <p style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
             Alma
           </p>
         </div>
         {/* Banda animada */}
-        <div style={{ overflow: 'hidden', flex: 1 }}>
+        <div style={{ overflow: 'hidden', flex: 1, minWidth: 0 }}>
           <motion.div
             animate={{ x: ['0%', '-50%'] }}
             transition={{ duration: 40, ease: 'linear', repeat: Infinity }}

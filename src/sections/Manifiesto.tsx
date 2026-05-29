@@ -57,7 +57,7 @@ export default function Manifiesto() {
           }}>
             <div style={{ width: '24px', height: '2px', background: Y }} />
             <span style={{
-              fontSize: '11px', fontWeight: 700, letterSpacing: '2.5px',
+              fontSize: '12px', fontWeight: 700, letterSpacing: '2.5px',
               textTransform: 'uppercase', color: Y,
             }}>
               El Manifiesto
@@ -114,7 +114,7 @@ export default function Manifiesto() {
             >
               {/* Número */}
               <span style={{
-                fontSize: '11px', fontWeight: 700,
+                fontSize: '12px', fontWeight: 700,
                 color: `${Y}88`,
                 letterSpacing: '1px',
                 flexShrink: 0,

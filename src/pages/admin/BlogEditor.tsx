@@ -345,7 +345,7 @@ export default function BlogEditor() {
                   Slug (URL) *
                 </label>
                 <input type="text" value={slug} onChange={e => setSlug(e.target.value)} style={{ ...inputStyle, fontFamily: 'monospace', background: '#F9FAFB' }} placeholder="url-del-articulo" />
-                <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px' }}>
+                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
                   Se accederá en: /blog/{slug || 'url-del-articulo'}
                 </p>
               </div>

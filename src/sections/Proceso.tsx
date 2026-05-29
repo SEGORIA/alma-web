@@ -55,7 +55,7 @@ function PasoCard({ paso, index, isMobile }: { paso: PasoItem; index: number; is
         borderRadius: '20px', padding: '2px 10px', marginBottom: '8px',
         transition: 'all 0.3s ease',
       }}>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: hovered ? P : '#9CA3AF', letterSpacing: '1px', textTransform: 'uppercase', transition: 'color 0.3s ease' }}>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: hovered ? P : '#9CA3AF', letterSpacing: '1px', textTransform: 'uppercase', transition: 'color 0.3s ease' }}>
           Paso {paso.n}
         </span>
       </div>
@@ -129,7 +129,7 @@ export default function Proceso() {
                 </div>
                 <div>
                   <p style={{ fontSize: '15px', fontWeight: 800, color: P }}>{stat.value}</p>
-                  <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '1px', fontWeight: 500 }}>{stat.label}</p>
+                  <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '1px', fontWeight: 500 }}>{stat.label}</p>
                 </div>
               </div>
             ))}

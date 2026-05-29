@@ -42,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }}>
           <img src="/alma-logo.png" alt="Alma" style={{ height: '36px', width: 'auto' }} />
         </div>
-        <p style={{ fontSize: '11px', color: '#6B7280', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', margin: 0 }}>
+        <p style={{ fontSize: '12px', color: '#6B7280', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', margin: 0 }}>
           Panel Admin
         </p>
       </div>
@@ -129,7 +129,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <img src="/alma-logo.png" alt="Alma" style={{ height: '28px', width: 'auto' }} />
             </div>
           </div>
-          <a href="/" target="_blank" style={{ fontSize: '11px', color: '#6B7280', textDecoration: 'none' }}>Ver sitio →</a>
+          <a href="/" target="_blank" style={{ fontSize: '12px', color: '#6B7280', textDecoration: 'none' }}>Ver sitio →</a>
         </div>
 
         {/* Overlay */}

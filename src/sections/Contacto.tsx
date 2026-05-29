@@ -186,7 +186,7 @@ export default function Contacto() {
               </div>
             ) : (
               <form ref={formRef} onSubmit={handle} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Los campos marcados con <span style={{ color: Y }}>*</span> son obligatorios.</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Los campos marcados con <span style={{ color: Y }}>*</span> son obligatorios.</p>
                 {/* Name/Company — stack on mobile */}
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
                   <Field label="Nombre" name="nombre" placeholder="Tu nombre" required />
@@ -215,7 +215,7 @@ export default function Contacto() {
                   {sending ? 'Enviando…' : EMAILJS_OK ? 'Enviar mensaje →' : 'Enviar por WhatsApp →'}
                 </button>
                 {!EMAILJS_OK && (
-                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', textAlign: 'center', margin: 0 }}>
                     📧 Para envío por email configura las variables de EmailJS en Vercel.
                   </p>
                 )}
@@ -237,7 +237,7 @@ export default function Contacto() {
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <a href={contacto.academia} style={{ color: 'rgba(250,204,21,0.65)', textDecoration: 'none' }}>Academia →</a>
             <a href={`mailto:${contacto.email}`} style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>{contacto.email}</a>
-            <Link to="/admin/login" style={{ color: 'rgba(255,255,255,0.18)', textDecoration: 'none', fontSize: '11px' }}
+            <Link to="/admin/login" style={{ color: 'rgba(255,255,255,0.18)', textDecoration: 'none', fontSize: '12px' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.18)')}
             >

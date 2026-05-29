@@ -19,7 +19,7 @@ function PlanCard({ plan, wa }: { plan: Plan; wa: string }) {
       }}
     >
       {plan.destacado && (
-        <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: Y, color: '#111', fontSize: '11px', fontWeight: 800, padding: '4px 16px', borderRadius: '20px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+        <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: Y, color: '#111', fontSize: '12px', fontWeight: 800, padding: '4px 16px', borderRadius: '20px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
           MÁS SOLICITADO
         </div>
       )}

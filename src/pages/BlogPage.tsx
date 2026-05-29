@@ -48,7 +48,7 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
             </span>
             <div style={{
               position: 'absolute', top: '16px', left: '16px',
-              background: Y, color: '#111', fontSize: '11px', fontWeight: 800,
+              background: Y, color: '#111', fontSize: '12px', fontWeight: 800,
               padding: '5px 14px', borderRadius: '20px', letterSpacing: '0.5px',
             }}>
               ★ Destacado
@@ -56,7 +56,7 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
           </div>
           <div style={{ padding: '44px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <span style={{
-              fontSize: '11px', fontWeight: 700, color, letterSpacing: '1px',
+              fontSize: '12px', fontWeight: 700, color, letterSpacing: '1px',
               textTransform: 'uppercase', marginBottom: '14px', display: 'block',
             }}>
               {a.cat}
@@ -119,7 +119,7 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
         </div>
         <div style={{ padding: '24px 22px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <span style={{
-            fontSize: '10px', fontWeight: 700, color, letterSpacing: '1px',
+            fontSize: '12px', fontWeight: 700, color, letterSpacing: '1px',
             textTransform: 'uppercase', marginBottom: '10px', display: 'block',
           }}>
             {a.cat}
