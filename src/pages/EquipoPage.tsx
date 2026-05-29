@@ -97,10 +97,10 @@ export default function EquipoPage() {
     )
   }, [])
 
-  /* ── divide en fundadores (primeros 3) y colaboradores ── */
+  /* ── divide en fundadores (primeros 2) y colaboradores ── */
   const sorted       = [...equipo].sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
-  const fundadores   = sorted.filter(m => (m.orden ?? 99) < 3)
-  const colaboradores = sorted.filter(m => (m.orden ?? 99) >= 3)
+  const fundadores   = sorted.filter(m => (m.orden ?? 99) < 2)
+  const colaboradores = sorted.filter(m => (m.orden ?? 99) >= 2)
 
   const cols = isMobile ? '1fr' : 'repeat(3, 1fr)'
   const colsColab = isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))'
