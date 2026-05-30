@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -14,9 +15,8 @@ function Tag({ label }: { label: string }) {
   )
 }
 
-function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase: string }) {
+function ProyectoCard({ p, index }: { p: Proyecto; index: number }) {
   const [hovered, setHovered] = useState(false)
-  const waText = encodeURIComponent(`Hola, me interesa conocer más sobre el proyecto ${p.titulo} que vi en el portafolio de Alma`)
 
   return (
     <motion.div
@@ -67,9 +67,8 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {p.tags.map(t => <Tag key={t} label={t} />)}
         </div>
-        <a
-          href={`${waBase}?text=${waText}`}
-          target="_blank" rel="noopener noreferrer"
+        <Link
+          to="/portafolio"
           style={{
             marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 14px', borderRadius: '10px',
@@ -78,7 +77,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
           }}
         >
           Ver caso de estudio <span style={{ fontSize: '16px' }}>→</span>
-        </a>
+        </Link>
       </div>
     </motion.div>
   )
@@ -88,7 +87,6 @@ export default function Portafolio() {
   const isMobile                  = useIsMobile()
   const [filtro,    setFiltro]    = useState('Todos')
   const [proyectos, setProyectos] = useState<Proyecto[]>(proyectosEstaticos)
-  const [waBase,    setWaBase]    = useState(`https://wa.me/${contactoDefault.whatsapp}`)
   const [waLink,    setWaLink]    = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`
   )
@@ -96,7 +94,6 @@ export default function Portafolio() {
   useEffect(() => {
     getProyectos().then(setProyectos)
     getContactoInfo().then(c => {
-      setWaBase(`https://wa.me/${c.whatsapp}`)
       setWaLink(`https://wa.me/${c.whatsapp}?text=Hola%2C%20quiero%20iniciar%20un%20proyecto%20con%20Alma`)
     })
   }, [])
@@ -155,7 +152,7 @@ export default function Portafolio() {
               gap: isMobile ? '16px' : '24px',
             }}
           >
-            {filtered.map((p, i) => <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} />)}
+            {filtered.map((p, i) => <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} />)}
           </motion.div>
         </AnimatePresence>
 
