@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { articulos, catColor, type Bloque, type Articulo } from '../data/articulos'
@@ -159,12 +159,25 @@ export default function ArticuloPage() {
     articulos.find(a => a.slug === slug) ?? null
   )
   const [waPhone, setWaPhone] = useState(contactoDefault.whatsapp)
+  const progressRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
     if (slug) getArticulo(slug).then(a => setArticulo(a))
     getContactoInfo().then(c => setWaPhone(c.whatsapp))
   }, [slug])
+
+  // Barra de progreso de lectura — DOM directo para no re-renderizar
+  useEffect(() => {
+    const onScroll = () => {
+      if (!progressRef.current) return
+      const total = document.documentElement.scrollHeight - window.innerHeight
+      const pct = total > 0 ? Math.min(100, (window.scrollY / total) * 100) : 0
+      progressRef.current.style.width = `${pct}%`
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   if (!articulo) {
     return (
@@ -196,6 +209,10 @@ export default function ArticuloPage() {
 
   return (
     <div style={{ background: '#fff', minHeight: '100vh' }}>
+      {/* ── Barra progreso de lectura ── */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300, height: '3px', background: '#E5E7EB', pointerEvents: 'none' }}>
+        <div ref={progressRef} style={{ height: '100%', width: '0%', background: `linear-gradient(90deg, ${color}, #9333EA)`, borderRadius: '0 3px 3px 0', transition: 'width 0.08s linear' }} />
+      </div>
       <Helmet>
         <title>{articulo.titulo} | Blog Alma Agencia Creativa</title>
         <meta name="description" content={articulo.excerpt} />
@@ -319,10 +336,60 @@ export default function ArticuloPage() {
         ))}
       </motion.article>
 
+      {/* Share strip */}
+      <div style={{ borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', marginBottom: '0' }}>
+        <div style={{
+          maxWidth: '800px', margin: '0 auto', padding: '20px 24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px',
+        }}>
+          <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: 600 }}>
+            ¿Te resultó útil? Compártelo 👇
+          </span>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`${articulo.titulo} — ${window.location.href}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: '#ECFDF5', color: '#065F46',
+                padding: '8px 16px', borderRadius: '20px',
+                fontSize: '13px', fontWeight: 600, textDecoration: 'none',
+                border: '1px solid #A7F3D0',
+                transition: 'background 0.2s ease',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#D1FAE5')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#ECFDF5')}
+            >
+              💬 WhatsApp
+            </a>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                const el = document.getElementById('copy-btn')
+                if (el) { el.textContent = '✓ Copiado'; setTimeout(() => { if (el) el.textContent = '🔗 Copiar enlace' }, 2000) }
+              }}
+              id="copy-btn"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: '#F5F3FF', color: P,
+                padding: '8px 16px', borderRadius: '20px',
+                fontSize: '13px', fontWeight: 600, border: `1px solid ${P}30`,
+                cursor: 'pointer',
+                transition: 'background 0.2s ease',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#EDE9FE')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#F5F3FF')}
+            >
+              🔗 Copiar enlace
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* CTA */}
       <div style={{
         maxWidth: '800px', margin: '0 auto',
-        padding: '0 24px 64px',
+        padding: '40px 24px 64px',
       }}>
         <div style={{
           background: `linear-gradient(135deg, ${P} 0%, #9333EA 100%)`,

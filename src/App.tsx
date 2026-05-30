@@ -9,6 +9,7 @@ import Hero          from './sections/Hero'
 import Clientes      from './sections/Clientes'
 import Nosotros      from './sections/Nosotros'
 import WhatsAppFloat from './components/WhatsAppFloat'
+import BackToTop      from './components/BackToTop'
 
 /* ── Below-the-fold: lazy para reducir TTI ── */
 const Manifiesto    = lazy(() => import('./sections/Manifiesto'))
@@ -553,6 +554,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
+      <BackToTop />
       <Routes>
         {/* Público */}
         <Route path="/"              element={<Landing />} />

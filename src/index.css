@@ -81,6 +81,10 @@
   body { padding-bottom: 58px; }
 }
 
+/* ── Buscador del Blog (placeholder translúcido sobre fondo morado) ── */
+.blog-search::placeholder { color: rgba(255,255,255,0.55); }
+.blog-search:focus { outline: none; border-color: rgba(255,255,255,0.7) !important; background: rgba(255,255,255,0.22) !important; }
+
 /* ── Respeta la preferencia de movimiento reducido ── */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

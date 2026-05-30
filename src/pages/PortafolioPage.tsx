@@ -221,8 +221,9 @@ export default function PortafolioPage() {
               key={f}
               onClick={() => setFiltro(f)}
               style={{
-                padding: '8px 20px', borderRadius: '20px', cursor: 'pointer',
+                padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+                minHeight: '44px',
                 background: filtro === f ? P : 'transparent',
                 color: filtro === f ? '#fff' : '#6B7280',
                 boxShadow: filtro === f ? '0 4px 14px rgba(107,33,168,0.25)' : 'none',

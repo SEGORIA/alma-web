@@ -155,6 +155,7 @@ function ArticuloCard({ a, index, grande }: { a: Articulo; index: number; grande
 export default function BlogPage() {
   const isMobile                  = useIsMobile()
   const [filtro,    setFiltro]    = useState('Todos')
+  const [busqueda,  setBusqueda]  = useState('')
   const [todos,     setTodos]     = useState<Articulo[]>(articulosEstaticos)
   const [loading,   setLoading]   = useState(true)
   const [waLink,    setWaLink]    = useState(
@@ -174,9 +175,21 @@ export default function BlogPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  const destacado    = todos.find(a => a.destacado) ?? todos[0]
-  const sinDestacado = todos.filter(a => a !== destacado)
-  const visibles     = filtro === 'Todos' ? sinDestacado : todos.filter(a => a.cat === filtro)
+  const q = busqueda.trim().toLowerCase()
+
+  // Filter by search query first
+  const porBusqueda = q
+    ? todos.filter(a =>
+        a.titulo.toLowerCase().includes(q) ||
+        a.excerpt.toLowerCase().includes(q) ||
+        a.cat.toLowerCase().includes(q)
+      )
+    : todos
+
+  // Destacado only shown when not searching
+  const destacado    = !q ? (porBusqueda.find(a => a.destacado) ?? porBusqueda[0]) : undefined
+  const sinDestacado = !q ? porBusqueda.filter(a => a !== destacado) : porBusqueda
+  const visibles     = filtro === 'Todos' ? sinDestacado : porBusqueda.filter(a => a.cat === filtro)
 
   return (
     <div style={{ background: '#F9FAFB', minHeight: '100vh' }}>
@@ -220,10 +233,55 @@ export default function BlogPage() {
           </h1>
           <p style={{
             fontSize: '17px', color: 'rgba(255,255,255,0.8)',
-            lineHeight: 1.7, maxWidth: '520px', margin: '0 auto',
+            lineHeight: 1.7, maxWidth: '520px', margin: '0 auto 28px',
           }}>
             Consejos prácticos de branding, diseño web y marketing digital para negocios en Colombia.
           </p>
+
+          {/* ── Buscador ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            style={{ position: 'relative', maxWidth: '460px', margin: '0 auto' }}
+          >
+            <span style={{
+              position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
+              fontSize: '17px', pointerEvents: 'none', lineHeight: 1,
+            }}>🔍</span>
+            <input
+              className="blog-search"
+              type="search"
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar artículos…"
+              style={{
+                width: '100%',
+                padding: '14px 48px 14px 50px',
+                borderRadius: '14px',
+                border: '2px solid rgba(255,255,255,0.25)',
+                background: 'rgba(255,255,255,0.14)',
+                color: '#fff',
+                fontSize: '15px',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+              }}
+            />
+            {busqueda && (
+              <button
+                onClick={() => setBusqueda('')}
+                aria-label="Limpiar búsqueda"
+                style={{
+                  position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.22)', border: 'none',
+                  borderRadius: '50%', width: '28px', height: '28px',
+                  cursor: 'pointer', color: '#fff', fontSize: '16px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  lineHeight: 1, flexShrink: 0,
+                }}
+              >×</button>
+            )}
+          </motion.div>
         </motion.div>
       </div>
 
@@ -238,10 +296,11 @@ export default function BlogPage() {
           {categorias.map(cat => (
             <button
               key={cat}
-              onClick={() => setFiltro(cat)}
+              onClick={() => { setFiltro(cat); setBusqueda('') }}
               style={{
-                padding: '8px 20px', borderRadius: '20px', cursor: 'pointer',
+                padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
                 fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+                minHeight: '44px',
                 background: filtro === cat ? P : 'transparent',
                 color:      filtro === cat ? '#fff' : '#6B7280',
                 boxShadow:  filtro === cat ? `0 4px 14px rgba(107,33,168,0.25)` : 'none',
@@ -288,10 +347,33 @@ export default function BlogPage() {
               ))}
             </div>
 
+            {/* Result count when searching */}
+            {q && visibles.length > 0 && (
+              <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '24px', fontWeight: 500 }}>
+                {visibles.length} {visibles.length === 1 ? 'resultado' : 'resultados'} para <strong style={{ color: P }}>"{busqueda}"</strong>
+              </p>
+            )}
+
             {visibles.length === 0 && (
               <div style={{ textAlign: 'center', padding: '64px 0', color: '#9CA3AF' }}>
                 <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
-                <p style={{ fontSize: '16px', fontWeight: 600 }}>No hay artículos en esta categoría todavía.</p>
+                <p style={{ fontSize: '16px', fontWeight: 600 }}>
+                  {q
+                    ? `No encontramos artículos para "${busqueda}"`
+                    : 'No hay artículos en esta categoría todavía.'}
+                </p>
+                {q && (
+                  <button
+                    onClick={() => setBusqueda('')}
+                    style={{
+                      marginTop: '16px', padding: '10px 24px', borderRadius: '10px',
+                      background: P, color: '#fff', border: 'none', cursor: 'pointer',
+                      fontSize: '14px', fontWeight: 600,
+                    }}
+                  >
+                    Limpiar búsqueda
+                  </button>
+                )}
               </div>
             )}
           </>

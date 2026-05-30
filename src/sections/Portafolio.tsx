@@ -39,6 +39,7 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
           <img
             src={p.imagen}
             alt={p.titulo}
+            loading="lazy"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         )}

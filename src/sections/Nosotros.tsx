@@ -45,7 +45,7 @@ function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
         border: m.foto ? `3px solid ${hovered ? P : '#E5E7EB'}` : 'none',
       }}>
         {m.foto
-          ? <img src={m.foto} alt={m.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={m.foto} alt={m.nombre} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <>
               <span style={{ fontSize: '28px' }}>{m.emoji}</span>
               <div style={{
