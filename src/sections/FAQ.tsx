@@ -67,7 +67,10 @@ export default function FAQ() {
   const [faqs, setFaqs] = useState<FaqItem[]>(faqsEstaticos)
 
   useEffect(() => {
-    getFaqs().then(setFaqs)
+    getFaqs().then(data => {
+      const uniq = data.filter((f, i, arr) => arr.findIndex(x => x.q === f.q) === i)
+      setFaqs(uniq.length > 0 ? uniq : faqsEstaticos)
+    })
   }, [])
 
   return (
