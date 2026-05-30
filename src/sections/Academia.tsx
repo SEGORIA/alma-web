@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { PD, Y, P } from '../tokens'
+import { PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 const stats = [
