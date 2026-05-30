@@ -84,7 +84,7 @@ export default function Nosotros() {
   }, [])
 
   return (
-    <section id="nosotros" style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
+    <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
         {/* ── Header 2 columnas ── */}

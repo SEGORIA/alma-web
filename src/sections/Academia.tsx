@@ -136,7 +136,7 @@ export default function Academia() {
           transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
           style={{
             flex: 1,
-            paddingTop: isMobile ? '24px' : 0,
+            paddingTop: isMobile ? '36px' : 0,
           }}
         >
           <p style={{

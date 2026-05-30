@@ -70,7 +70,7 @@ export default function Calculadora() {
   const reset  = () => { setStep(0); setServicioId(null); setPlanId(null); setExtrasSelected([]) }
 
   return (
-    <section id="calculadora" style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
+    <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
       <div style={{ maxWidth: '860px', margin: '0 auto' }}>
 
         {/* Header */}

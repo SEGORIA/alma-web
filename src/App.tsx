@@ -245,9 +245,9 @@ function Landing() {
     setSplashDone(true)
   }
 
-  const [scrolled,       setScrolled]       = useState(false)
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const [isMobile,       setIsMobile]       = useState(window.innerWidth < 768)
+  const [scrolled,  setScrolled]  = useState(false)
+  const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768)
+  const progressRef = useRef<HTMLDivElement>(null)
   const [menuOpen,       setMenuOpen]       = useState(false)
   const [activeSection,  setActiveSection]  = useState('inicio')
   const [sec,            setSec]            = useState<SeccionesConfig>(seccionesDefault)
@@ -263,8 +263,11 @@ function Landing() {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 40)
-      const total = document.documentElement.scrollHeight - window.innerHeight
-      setScrollProgress(total > 0 ? (window.scrollY / total) * 100 : 0)
+      if (progressRef.current) {
+        const total = document.documentElement.scrollHeight - window.innerHeight
+        const pct   = total > 0 ? Math.min(100, (window.scrollY / total) * 100) : 0
+        progressRef.current.style.width = `${pct}%`
+      }
     }
     const onResize = () => {
       const mobile = window.innerWidth < 768
@@ -325,10 +328,10 @@ function Landing() {
         position: 'fixed', top: 0, left: 0, right: 0,
         zIndex: 300, height: '3px', pointerEvents: 'none',
       }}>
-        <div style={{
+        <div ref={progressRef} style={{
           height: '100%',
           background: `linear-gradient(90deg, ${P}, #9333EA, ${Y})`,
-          width: `${scrollProgress}%`,
+          width: '0%',
           transition: 'width 0.08s linear',
           borderRadius: '0 2px 2px 0',
         }} />
