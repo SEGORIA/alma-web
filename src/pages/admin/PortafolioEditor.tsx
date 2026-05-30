@@ -17,6 +17,7 @@ export default function PortafolioEditor() {
   const [loading, setLoading] = useState(!isNew)
   const [docId,   setDocId]   = useState<string | null>(null)
 
+  // Datos principales
   const [titulo,    setTitulo]    = useState('')
   const [cat,       setCat]       = useState(CATS[0])
   const [desc,      setDesc]      = useState('')
@@ -25,6 +26,14 @@ export default function PortafolioEditor() {
   const [gradient,  setGradient]  = useState(gradientesDisponibles[0].value)
   const [imagen,    setImagen]    = useState('')
   const [featured,  setFeatured]  = useState(false)
+
+  // Caso de estudio
+  const [csDesafio,        setCsDesafio]        = useState('')
+  const [csSolucion,       setCsSolucion]       = useState('')
+  const [csResultados,     setCsResultados]     = useState<string[]>([''])
+  const [csImagenes,       setCsImagenes]       = useState<string[]>(['', '', '', '', ''])
+  const [csTestimonial,    setCsTestimonial]    = useState('')
+  const [csTestimonialAutor, setCsTestimonialAutor] = useState('')
 
   useEffect(() => {
     if (isNew) return
@@ -41,6 +50,18 @@ export default function PortafolioEditor() {
         setImagen(found.imagen ?? '')
         setFeatured(!!found.featured)
         setDocId(found._id ?? null)
+        // Caso de estudio
+        const cs = found.casoEstudio
+        if (cs) {
+          setCsDesafio(cs.desafio ?? '')
+          setCsSolucion(cs.solucion ?? '')
+          const res = cs.resultados?.length ? cs.resultados : ['']
+          setCsResultados(res)
+          const imgs = [...(cs.imagenes ?? []), '', '', '', '', ''].slice(0, 5)
+          setCsImagenes(imgs)
+          setCsTestimonial(cs.testimonial ?? '')
+          setCsTestimonialAutor(cs.testimonialAutor ?? '')
+        }
       }
       setLoading(false)
     })
@@ -50,6 +71,12 @@ export default function PortafolioEditor() {
     if (!titulo.trim()) { alert('El título es obligatorio'); return }
     setSaving(true)
     try {
+      const csResultadosClean = csResultados.map(r => r.trim()).filter(Boolean)
+      const csImagenesClean   = csImagenes.filter(Boolean)
+      const hasCasoEstudio    = csDesafio.trim() || csSolucion.trim() ||
+                                csResultadosClean.length || csImagenesClean.length ||
+                                csTestimonial.trim() || csTestimonialAutor.trim()
+
       const data: Omit<Proyecto, '_id'> = {
         titulo,
         cat,
@@ -59,6 +86,16 @@ export default function PortafolioEditor() {
         g: gradient,
         ...(imagen ? { imagen } : {}),
         featured,
+        ...(hasCasoEstudio ? {
+          casoEstudio: {
+            ...(csDesafio.trim()        ? { desafio:        csDesafio.trim() }        : {}),
+            ...(csSolucion.trim()       ? { solucion:       csSolucion.trim() }       : {}),
+            ...(csResultadosClean.length? { resultados:     csResultadosClean }       : {}),
+            ...(csImagenesClean.length  ? { imagenes:       csImagenesClean }         : {}),
+            ...(csTestimonial.trim()    ? { testimonial:    csTestimonial.trim() }    : {}),
+            ...(csTestimonialAutor.trim()? { testimonialAutor: csTestimonialAutor.trim() } : {}),
+          }
+        } : {}),
       }
       if (isNew || !docId) {
         await createProyecto(data)
@@ -219,6 +256,152 @@ export default function PortafolioEditor() {
                   {titulo || 'Proyecto'}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* ── Caso de estudio ── */}
+          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Caso de estudio
+            </h2>
+            <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '20px' }}>
+              Rellena este bloque para mostrar un modal detallado cuando el usuario haga clic en "Ver caso de estudio".
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+              {/* Desafío */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  🎯 El desafío
+                </label>
+                <textarea
+                  rows={3}
+                  value={csDesafio}
+                  onChange={e => setCsDesafio(e.target.value)}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  placeholder="¿Cuál era el reto del cliente? ¿Qué problema había que resolver?"
+                />
+              </div>
+
+              {/* Solución */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  💡 Nuestra solución
+                </label>
+                <textarea
+                  rows={3}
+                  value={csSolucion}
+                  onChange={e => setCsSolucion(e.target.value)}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  placeholder="¿Cómo lo abordamos? ¿Qué estrategia o proceso seguimos?"
+                />
+              </div>
+
+              {/* Resultados */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  📊 Resultados (métricas clave)
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {csResultados.map((r, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={r}
+                        onChange={e => {
+                          const next = [...csResultados]
+                          next[i] = e.target.value
+                          setCsResultados(next)
+                        }}
+                        style={{ ...inputStyle, flex: 1 }}
+                        placeholder={`Ej: +127% engagement, +3.000 seguidores`}
+                      />
+                      {csResultados.length > 1 && (
+                        <button
+                          onClick={() => setCsResultados(csResultados.filter((_, j) => j !== i))}
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '8px',
+                            border: '1px solid #FECDD3', background: '#FFF5F5',
+                            color: '#E11D48', fontSize: '18px', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          }}
+                        >×</button>
+                      )}
+                    </div>
+                  ))}
+                  {csResultados.length < 6 && (
+                    <button
+                      onClick={() => setCsResultados([...csResultados, ''])}
+                      style={{
+                        padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
+                        border: '1.5px dashed #D1D5DB', background: 'transparent',
+                        color: '#6B7280', cursor: 'pointer', fontWeight: 600,
+                        alignSelf: 'flex-start',
+                      }}
+                    >
+                      + Agregar resultado
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Imágenes de galería */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
+                  🖼️ Galería del caso (hasta 5 imágenes)
+                </label>
+                <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' }}>
+                  Las imágenes se mostrarán en una galería dentro del modal. Puedes subir hasta 5.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  {csImagenes.map((url, i) => (
+                    <div key={i}>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>
+                        Imagen {i + 1}
+                      </p>
+                      <ImageUploader
+                        currentUrl={url}
+                        onUploaded={newUrl => {
+                          const next = [...csImagenes]
+                          next[i] = newUrl
+                          setCsImagenes(next)
+                        }}
+                        height={140}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Testimonial */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  ❝ Testimonial del cliente
+                </label>
+                <textarea
+                  rows={2}
+                  value={csTestimonial}
+                  onChange={e => setCsTestimonial(e.target.value)}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                  placeholder="Cita textual del cliente sobre el resultado…"
+                />
+              </div>
+
+              {/* Autor del testimonial */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Autor del testimonial
+                </label>
+                <input
+                  type="text"
+                  value={csTestimonialAutor}
+                  onChange={e => setCsTestimonialAutor(e.target.value)}
+                  style={inputStyle}
+                  placeholder="Nombre · Cargo o empresa"
+                />
+              </div>
+
             </div>
           </div>
 

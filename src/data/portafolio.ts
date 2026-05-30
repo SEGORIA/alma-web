@@ -1,14 +1,24 @@
+export type CasoEstudio = {
+  desafio?:           string       // El reto del cliente
+  solucion?:          string       // Cómo lo resolvimos
+  resultados?:        string[]     // Métricas clave: ["127% más engagement", "+3K seguidores"]
+  imagenes?:          string[]     // Galería de imágenes del proceso/resultado
+  testimonial?:       string       // Quote del cliente
+  testimonialAutor?:  string       // Nombre + cargo del autor del testimonial
+}
+
 export type Proyecto = {
-  _id?:     string
-  titulo:   string
-  cat:      string
-  desc:     string
-  año:      string
-  tags:     string[]
-  g:        string    // gradient CSS (fallback si no hay imagen)
-  imagen?:  string    // URL de imagen de portada (Firebase Storage)
-  featured?: boolean
-  orden?:   number
+  _id?:         string
+  titulo:       string
+  cat:          string
+  desc:         string
+  año:          string
+  tags:         string[]
+  g:            string    // gradient CSS (fallback si no hay imagen)
+  imagen?:      string    // URL de imagen de portada (Firebase Storage)
+  featured?:    boolean
+  orden?:       number
+  casoEstudio?: CasoEstudio  // Contenido del modal de caso de estudio
 }
 
 export const proyectosEstaticos: Proyecto[] = [

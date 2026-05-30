@@ -9,6 +9,7 @@ import { proyectosEstaticos, filtrosPortafolio, type Proyecto } from '../data/po
 import { contactoDefault } from '../data/config'
 import SiteNav from '../components/SiteNav'
 import { SkeletonProyectoCard } from '../components/Skeleton'
+import CasoEstudioModal from '../components/CasoEstudioModal'
 
 /* ── Tag ──────────────────────────────────────────────────── */
 function Tag({ label }: { label: string }) {
@@ -24,7 +25,7 @@ function Tag({ label }: { label: string }) {
 }
 
 /* ── ProyectoCard ─────────────────────────────────────────── */
-function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase: string }) {
+function ProyectoCard({ p, index, waBase, onVerCaso }: { p: Proyecto; index: number; waBase: string; onVerCaso: (p: Proyecto) => void }) {
   const [hovered, setHovered] = useState(false)
   const waText = encodeURIComponent(
     `Hola, me interesa conocer más sobre el proyecto ${p.titulo} que vi en el portafolio de Alma`
@@ -117,20 +118,20 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
           {p.tags.map(t => <Tag key={t} label={t} />)}
         </div>
-        <a
-          href={`${waBase}?text=${waText}`}
-          target="_blank" rel="noopener noreferrer"
+        <button
+          onClick={() => onVerCaso(p)}
           style={{
             marginTop: '4px', display: 'flex',
             alignItems: 'center', justifyContent: 'space-between',
             padding: '11px 16px', borderRadius: '10px',
             background: hovered ? P : '#F5F3FF', color: hovered ? '#fff' : P,
             fontWeight: 700, fontSize: '13px',
-            textDecoration: 'none', transition: 'all 0.25s ease',
+            border: 'none', cursor: 'pointer', width: '100%',
+            transition: 'all 0.25s ease',
           }}
         >
           Ver caso de estudio <span style={{ fontSize: '16px' }}>→</span>
-        </a>
+        </button>
       </div>
     </motion.div>
   )
@@ -138,9 +139,10 @@ function ProyectoCard({ p, index, waBase }: { p: Proyecto; index: number; waBase
 
 /* ── PortafolioPage ──────────────────────────────────────── */
 export default function PortafolioPage() {
-  const [filtro,    setFiltro]    = useState('Todos')
-  const [proyectos, setProyectos] = useState<Proyecto[]>(proyectosEstaticos)
-  const [loading,   setLoading]   = useState(true)
+  const [filtro,      setFiltro]      = useState('Todos')
+  const [proyectos,   setProyectos]   = useState<Proyecto[]>(proyectosEstaticos)
+  const [loading,     setLoading]     = useState(true)
+  const [casoAbierto, setCasoAbierto] = useState<Proyecto | null>(null)
   const [waBase,    setWaBase]    = useState(`https://wa.me/${contactoDefault.whatsapp}`)
   const [waLink,    setWaLink]    = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
@@ -263,7 +265,7 @@ export default function PortafolioPage() {
                 }}
               >
                 {filtered.map((p, i) => (
-                  <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} />
+                  <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} onVerCaso={setCasoAbierto} />
                 ))}
               </motion.div>
             </AnimatePresence>
@@ -364,6 +366,15 @@ export default function PortafolioPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Caso de estudio modal ── */}
+      {casoAbierto && (
+        <CasoEstudioModal
+          proyecto={casoAbierto}
+          waBase={waBase}
+          onClose={() => setCasoAbierto(null)}
+        />
+      )}
     </div>
   )
 }
