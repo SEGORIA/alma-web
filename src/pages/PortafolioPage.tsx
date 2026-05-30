@@ -25,11 +25,8 @@ function Tag({ label }: { label: string }) {
 }
 
 /* ── ProyectoCard ─────────────────────────────────────────── */
-function ProyectoCard({ p, index, waBase, onVerCaso }: { p: Proyecto; index: number; waBase: string; onVerCaso: (p: Proyecto) => void }) {
+function ProyectoCard({ p, index, onVerCaso }: { p: Proyecto; index: number; onVerCaso: (p: Proyecto) => void }) {
   const [hovered, setHovered] = useState(false)
-  const waText = encodeURIComponent(
-    `Hola, me interesa conocer más sobre el proyecto ${p.titulo} que vi en el portafolio de Alma`
-  )
 
   return (
     <motion.div
@@ -265,7 +262,7 @@ export default function PortafolioPage() {
                 }}
               >
                 {filtered.map((p, i) => (
-                  <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} waBase={waBase} onVerCaso={setCasoAbierto} />
+                  <ProyectoCard key={p._id ?? p.titulo} p={p} index={i} onVerCaso={setCasoAbierto} />
                 ))}
               </motion.div>
             </AnimatePresence>
