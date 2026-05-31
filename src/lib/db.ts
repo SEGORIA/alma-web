@@ -9,12 +9,13 @@ import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/p
 import {
   seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
   contactoDefault, heroStatsDefault, heroSubtituloDefault,
+  principiosDefault, leadMagnetDefault,
 } from '../data/config'
 import { pasosEstaticos, equipoEstatico } from '../data/contenido'
 import type { Articulo } from '../data/articulos'
 import type { Proyecto } from '../data/portafolio'
 import type { Plan, Extra, ServicioCategoria } from '../data/precios'
-import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat } from '../data/config'
+import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -218,6 +219,8 @@ export async function getConfig(): Promise<SiteConfig> {
     contactoInfo:   contactoDefault,
     heroStats:      heroStatsDefault,
     heroSubtitulo:  heroSubtituloDefault,
+    principios:     principiosDefault,
+    leadMagnet:     leadMagnetDefault,
   }
   if (!firebaseReady || !db) return fallback
   if (!_configPromise) {
@@ -231,11 +234,33 @@ export async function getConfig(): Promise<SiteConfig> {
           contactoInfo:   data.contactoInfo  ?? contactoDefault,
           heroStats:      data.heroStats     ?? heroStatsDefault,
           heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
+          principios:     data.principios    ?? principiosDefault,
+          leadMagnet:     data.leadMagnet    ?? leadMagnetDefault,
         }
       })
       .catch(() => fallback)
   }
   return _configPromise
+}
+
+export async function getPrincipios(): Promise<ManifiestoItem[]> {
+  const cfg = await getConfig()
+  return cfg.principios ?? principiosDefault
+}
+
+export async function updatePrincipios(principios: ManifiestoItem[]) {
+  invalidateConfigCache()
+  await updateConfig({ principios })
+}
+
+export async function getLeadMagnetConfig(): Promise<LeadMagnetConfig> {
+  const cfg = await getConfig()
+  return cfg.leadMagnet ?? leadMagnetDefault
+}
+
+export async function updateLeadMagnetConfig(leadMagnet: LeadMagnetConfig) {
+  invalidateConfigCache()
+  await updateConfig({ leadMagnet })
 }
 
 export async function getContactoInfo(): Promise<ContactoInfo> {
@@ -311,10 +336,38 @@ export async function getPasos(): Promise<PasoItem[]> {
   try {
     const snap = await getDocs(query(pasosCol(), orderBy('orden', 'asc')))
     if (snap.empty) return pasosEstaticos
-    return snap.docs.map(d => ({ ...(d.data() as PasoItem), _id: d.id }))
+    const all = snap.docs.map(d => ({ ...(d.data() as PasoItem), _id: d.id }))
+    // Deduplicar por campo `n` — conservar el primero encontrado (orden asc)
+    const seen = new Set<string>()
+    return all.filter(p => {
+      if (seen.has(p.n)) return false
+      seen.add(p.n)
+      return true
+    })
   } catch {
     return pasosEstaticos
   }
+}
+
+/** Elimina documentos duplicados en la colección `proceso` (mismo campo `n`).
+ *  Conserva el primero por fecha de creación y borra el resto. */
+export async function cleanDuplicatePasos(): Promise<number> {
+  if (!firebaseReady || !db) return 0
+  const snap = await getDocs(query(pasosCol(), orderBy('orden', 'asc')))
+  const byN = new Map<string, string[]>()
+  snap.docs.forEach(d => {
+    const n = (d.data() as PasoItem).n
+    if (!byN.has(n)) byN.set(n, [])
+    byN.get(n)!.push(d.id)
+  })
+  let deleted = 0
+  for (const ids of byN.values()) {
+    for (const id of ids.slice(1)) {   // conserva el primero, borra el resto
+      await deleteDoc(doc(db!, 'proceso', id))
+      deleted++
+    }
+  }
+  return deleted
 }
 
 export async function createPaso(data: Omit<PasoItem, '_id'>): Promise<string> {

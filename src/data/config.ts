@@ -49,12 +49,26 @@ export type HeroStat = {
   label:  string
 }
 
+export type ManifiestoItem = {
+  n:      string  // '01'
+  titulo: string
+  desc:   string
+}
+
+export type LeadMagnetConfig = {
+  titulo:    string
+  subtitulo: string
+  recursos:  string[]  // texto de cada beneficio (icono es fijo por posición)
+}
+
 export type SiteConfig = {
   secciones:      SeccionesConfig
   clientes:       string[]
   contactoInfo?:  ContactoInfo
   heroStats?:     HeroStat[]
   heroSubtitulo?: string
+  principios?:    ManifiestoItem[]
+  leadMagnet?:    LeadMagnetConfig
 }
 
 // ── Secciones — información para el admin ─────────────────────
@@ -140,3 +154,24 @@ export const faqsEstaticos: FaqItem[] = [
   { q: '¿El hosting y dominio están incluidos en los planes web?', a: 'No están incluidos, pero te asesoramos para configurarlos correctamente. El costo promedio es entre $80.000 y $120.000 anuales.',                                                                                   orden: 4 },
   { q: '¿Cómo es el proceso de trabajo con Alma?',                 a: 'Briefing → Propuesta creativa → Desarrollo → Revisión → Entrega final. Tendrás acceso directo a tu asesor vía WhatsApp durante todo el proceso.',                                                                   orden: 5 },
 ]
+
+// ── Defaults de Manifiesto y LeadMagnet ──────────────────────
+
+export const principiosDefault: ManifiestoItem[] = [
+  { n: '01', titulo: 'Humanización',  desc: 'Mensajes con alma que generan conexiones reales y duraderas.' },
+  { n: '02', titulo: 'Estrategia',    desc: 'Cada acción tiene un propósito medible desde el inicio.' },
+  { n: '03', titulo: 'Creatividad',   desc: 'Diseño que inspira, diferencia e impacta en cada contacto.' },
+  { n: '04', titulo: 'Resultados',    desc: 'Decisiones basadas en datos para escalar de forma sostenible.' },
+  { n: '05', titulo: 'Autenticidad',  desc: 'Comunicación coherente y alineada con la esencia de tu marca.' },
+  { n: '06', titulo: 'Impacto',       desc: 'Convertimos atención en conversiones y relaciones de valor.' },
+]
+
+export const leadMagnetDefault: LeadMagnetConfig = {
+  titulo:    'Descarga el kit que necesita tu marca digital',
+  subtitulo: 'Herramientas prácticas con IA para que gestiones tus redes, crees contenido y hagas crecer tu marca — sin agencia, sin estrés.',
+  recursos:  [
+    '7 hacks de Instagram con IA',
+    'Plantillas de contenido editables',
+    'Guía de métricas clave para marcas',
+  ],
+}

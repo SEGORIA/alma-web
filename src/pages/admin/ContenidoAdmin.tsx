@@ -3,16 +3,21 @@ import AdminLayout from './AdminLayout'
 import ImageUploader from '../../components/ImageUploader'
 import {
   getConfig, updateConfig,
-  getPasos, createPaso, updatePaso, deletePaso,
+  getPasos, createPaso, updatePaso, deletePaso, cleanDuplicatePasos,
   getEquipo, createEquipoMember, updateEquipoMember, deleteEquipoMember,
+  getPrincipios, updatePrincipios,
+  getLeadMagnetConfig, updateLeadMagnetConfig,
   seedConfig,
 } from '../../lib/db'
 import {
   pasosEstaticos, equipoEstatico, EQUIPO_GRADIENTES,
 } from '../../data/contenido'
-import { contactoDefault, heroStatsDefault, heroSubtituloDefault } from '../../data/config'
+import {
+  contactoDefault, heroStatsDefault, heroSubtituloDefault,
+  principiosDefault, leadMagnetDefault,
+} from '../../data/config'
 import type { PasoItem, EquipoMember } from '../../data/contenido'
-import type { ContactoInfo, HeroStat } from '../../data/config'
+import type { ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../../data/config'
 import { P, Y } from '../../tokens'
 
 /* ── helpers de estilo ──────────────────────────────────────── */
@@ -233,10 +238,22 @@ function TabProceso() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [adding,    setAdding]    = useState(false)
   const [saving,    setSaving]    = useState(false)
+  const [cleaning,  setCleaning]  = useState(false)
   const isMigrated = pasos.some(p => !!p._id)
 
   async function reload() { setPasos(await getPasos()) }
   useEffect(() => { reload() }, [])
+
+  async function handleClean() {
+    if (!confirm('¿Limpiar pasos duplicados? Se conservará solo una copia de cada paso.')) return
+    setCleaning(true)
+    try {
+      const deleted = await cleanDuplicatePasos()
+      await reload()
+      alert(`✅ Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
+    } catch (err) { alert('Error: ' + err) }
+    setCleaning(false)
+  }
 
   async function handleSave(data: Omit<PasoItem, '_id'>) {
     setSaving(true)
@@ -255,14 +272,22 @@ function TabProceso() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
         <p style={{ fontSize: '13px', color: '#6B7280' }}>{pasos.length} pasos del proceso de trabajo.</p>
-        {!adding && isMigrated && (
-          <button onClick={() => { setAdding(true); setEditingId(null) }}
-            style={{ background: P, color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
-            + Nuevo paso
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {isMigrated && (
+            <button onClick={handleClean} disabled={cleaning}
+              style={{ background: cleaning ? '#E5E7EB' : 'rgba(239,68,68,0.08)', color: cleaning ? '#9CA3AF' : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
+              {cleaning ? 'Limpiando…' : '🧹 Limpiar duplicados'}
+            </button>
+          )}
+          {!adding && isMigrated && (
+            <button onClick={() => { setAdding(true); setEditingId(null) }}
+              style={{ background: P, color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+              + Nuevo paso
+            </button>
+          )}
+        </div>
       </div>
 
       {!isMigrated && (
@@ -455,12 +480,169 @@ function TabEquipo() {
   )
 }
 
+/* ══ Tab — Manifiesto ════════════════════════════════════════ */
+function TabManifiesto() {
+  const [principios, setPrincipios] = useState<ManifiestoItem[]>(principiosDefault)
+  const [saving,     setSaving]     = useState(false)
+  const [savedOk,    setSavedOk]    = useState(false)
+
+  useEffect(() => {
+    getPrincipios().then(setPrincipios).catch(() => setPrincipios(principiosDefault))
+  }, [])
+
+  const set = (i: number, key: keyof ManifiestoItem, val: string) =>
+    setPrincipios(prev => prev.map((p, idx) => idx === i ? { ...p, [key]: val } : p))
+
+  const addPrincipio = () => {
+    const n = String(principios.length + 1).padStart(2, '0')
+    setPrincipios(prev => [...prev, { n, titulo: '', desc: '' }])
+  }
+
+  const removePrincipio = (i: number) =>
+    setPrincipios(prev => prev.filter((_, idx) => idx !== i))
+
+  async function save() {
+    setSaving(true); setSavedOk(false)
+    try {
+      await updatePrincipios(principios)
+      setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
+    } catch (err) { alert('Error: ' + err) }
+    setSaving(false)
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+        Los 6 principios que aparecen en la sección Manifiesto de la landing page.
+      </p>
+      {savedOk && saved_banner}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+        {principios.map((p, i) => (
+          <div key={i} style={{ background: '#F9FAFB', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '10px' }}>
+              <div>
+                <label style={lbl}>Nro.</label>
+                <input value={p.n} onChange={e => set(i, 'n', e.target.value)} style={inp} maxLength={2} placeholder="01" />
+              </div>
+              <div>
+                <label style={lbl}>Título</label>
+                <input value={p.titulo} onChange={e => set(i, 'titulo', e.target.value)} style={inp} placeholder="Humanización" />
+              </div>
+              <button
+                onClick={() => removePrincipio(i)}
+                style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', alignSelf: 'flex-end' }}>
+                🗑
+              </button>
+            </div>
+            <div>
+              <label style={lbl}>Descripción</label>
+              <textarea value={p.desc} onChange={e => set(i, 'desc', e.target.value)} rows={2}
+                style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
+                placeholder="Descripción breve del principio..." />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button onClick={addPrincipio}
+          style={{ background: `${P}15`, color: P, border: `1px solid ${P}30`, padding: '9px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+          + Agregar principio
+        </button>
+      </div>
+
+      {saveBtn('💾 Guardar Manifiesto', save, saving)}
+    </div>
+  )
+}
+
+/* ══ Tab — Lead Magnet ═══════════════════════════════════════ */
+function TabLeadMagnet() {
+  const [form,    setForm]    = useState<LeadMagnetConfig>(leadMagnetDefault)
+  const [saving,  setSaving]  = useState(false)
+  const [savedOk, setSavedOk] = useState(false)
+
+  useEffect(() => {
+    getLeadMagnetConfig().then(setForm).catch(() => setForm(leadMagnetDefault))
+  }, [])
+
+  const setRecurso = (i: number, val: string) =>
+    setForm(f => ({ ...f, recursos: f.recursos.map((r, idx) => idx === i ? val : r) }))
+
+  const addRecurso = () =>
+    setForm(f => ({ ...f, recursos: [...f.recursos, ''] }))
+
+  const removeRecurso = (i: number) =>
+    setForm(f => ({ ...f, recursos: f.recursos.filter((_, idx) => idx !== i) }))
+
+  async function save() {
+    setSaving(true); setSavedOk(false)
+    try {
+      await updateLeadMagnetConfig(form)
+      setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
+    } catch (err) { alert('Error: ' + err) }
+    setSaving(false)
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+        El kit gratuito que aparece en la sección de captura de leads.
+      </p>
+      {savedOk && saved_banner}
+
+      <div style={{ marginBottom: '16px' }}>
+        <label style={lbl}>Título del kit</label>
+        <input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} style={inp}
+          placeholder="Descarga el kit que necesita tu marca digital" />
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <label style={lbl}>Subtítulo / descripción</label>
+        <textarea value={form.subtitulo} onChange={e => setForm(f => ({ ...f, subtitulo: e.target.value }))} rows={3}
+          style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
+          placeholder="Herramientas prácticas con IA..." />
+      </div>
+
+      <label style={lbl}>Recursos incluidos en el kit</label>
+      <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px' }}>
+        Los íconos se asignan automáticamente (📱, 🎨, 📊) según el orden.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+        {form.recursos.map((r, i) => (
+          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#9CA3AF', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
+            <input value={r} onChange={e => setRecurso(i, e.target.value)} style={{ ...inp, flex: 1 }}
+              placeholder="Nombre del recurso..." />
+            <button onClick={() => removeRecurso(i)}
+              style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>
+              🗑
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button onClick={addRecurso}
+          style={{ background: `${P}15`, color: P, border: `1px solid ${P}30`, padding: '9px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+          + Agregar recurso
+        </button>
+      </div>
+
+      {saveBtn('💾 Guardar Kit Gratuito', save, saving)}
+    </div>
+  )
+}
+
 /* ══ Página principal ════════════════════════════════════════ */
 const TABS = [
-  { id: 'hero',     label: '🏠 Hero' },
-  { id: 'contacto', label: '📞 Contacto' },
-  { id: 'proceso',  label: '🔄 Proceso' },
-  { id: 'equipo',   label: '👥 Equipo' },
+  { id: 'hero',       label: '🏠 Hero' },
+  { id: 'contacto',   label: '📞 Contacto' },
+  { id: 'proceso',    label: '🔄 Proceso' },
+  { id: 'equipo',     label: '👥 Equipo' },
+  { id: 'manifiesto', label: '✨ Manifiesto' },
+  { id: 'leadmagnet', label: '🎁 Kit Gratuito' },
 ]
 
 export default function ContenidoAdmin() {
@@ -517,10 +699,12 @@ export default function ContenidoAdmin() {
           ))}
         </div>
 
-        {tab === 'hero'     && <TabHero />}
-        {tab === 'contacto' && <TabContacto />}
-        {tab === 'proceso'  && <TabProceso />}
-        {tab === 'equipo'   && <TabEquipo />}
+        {tab === 'hero'       && <TabHero />}
+        {tab === 'contacto'   && <TabContacto />}
+        {tab === 'proceso'    && <TabProceso />}
+        {tab === 'equipo'     && <TabEquipo />}
+        {tab === 'manifiesto' && <TabManifiesto />}
+        {tab === 'leadmagnet' && <TabLeadMagnet />}
 
       </div>
     </AdminLayout>

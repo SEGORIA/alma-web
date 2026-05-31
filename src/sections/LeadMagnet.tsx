@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getContactoInfo } from '../lib/db'
-import { contactoDefault } from '../data/config'
+import { getContactoInfo, getLeadMagnetConfig } from '../lib/db'
+import { contactoDefault, leadMagnetDefault } from '../data/config'
+import type { LeadMagnetConfig } from '../data/config'
 
 /* ── Icons ─────────────────────────────────────────────────── */
 const PhoneIcon = () => (
@@ -50,14 +51,18 @@ const SparkleIcon = ({ color = '#FACC15' }: { color?: string }) => (
   </svg>
 )
 
-const recursos: { icon: React.ReactNode; texto: string }[] = [
-  { icon: <PhoneIcon />, texto: '7 hacks de Instagram con IA' },
-  { icon: <BrushIcon />, texto: 'Plantillas de contenido editables' },
-  { icon: <ChartIcon />, texto: 'Guía de métricas clave para marcas' },
-]
+/* ── Icons assigned positionally (se ciclan si hay más de 3 recursos) ── */
+const RESOURCE_ICONS = [PhoneIcon, BrushIcon, ChartIcon]
+
+function buildRecursos(textos: string[]) {
+  return textos.map((texto, i) => ({
+    icon: RESOURCE_ICONS[i % RESOURCE_ICONS.length],
+    texto,
+  }))
+}
 
 /* ── Resource item with hover lift ─────────────────────────── */
-function ResourceItem({ r, index }: { r: typeof recursos[0]; index: number }) {
+function ResourceItem({ r, index }: { r: { icon: React.FC; texto: string }; index: number }) {
   const [hov, setHov] = useState(false)
   return (
     <motion.div
@@ -79,7 +84,7 @@ function ResourceItem({ r, index }: { r: typeof recursos[0]; index: number }) {
       }}
     >
       <span style={{ color: hov ? P : '#6B7280', transition: 'color 0.2s', display: 'inline-flex' }}>
-        {r.icon}
+        <r.icon />
       </span>
       <span style={{
         fontSize: '13px', fontWeight: 600, flex: 1,
@@ -100,6 +105,7 @@ export default function LeadMagnet() {
   const [sent, setSent]       = useState(false)
   const [phone, setPhone]     = useState(contactoDefault.whatsapp)
   const [btnHov, setBtnHov]   = useState(false)
+  const [lmConfig, setLmConfig] = useState<LeadMagnetConfig>(leadMagnetDefault)
 
   /* 3D card state */
   const cardWrapRef                 = useRef<HTMLDivElement>(null)
@@ -112,6 +118,7 @@ export default function LeadMagnet() {
 
   useEffect(() => {
     getContactoInfo().then(c => setPhone(c.whatsapp))
+    getLeadMagnetConfig().then(setLmConfig).catch(() => setLmConfig(leadMagnetDefault))
     /* Count up to 500 after a brief delay */
     const t = setTimeout(() => {
       let n = 0
@@ -279,7 +286,7 @@ export default function LeadMagnet() {
 
                   {/* Resource items */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                    {recursos.map((r, i) => <ResourceItem key={r.texto as string} r={r} index={i} />)}
+                    {buildRecursos(lmConfig.recursos).map((r, i) => <ResourceItem key={r.texto} r={r} index={i} />)}
                   </div>
 
                   {/* Value strip */}
@@ -381,11 +388,9 @@ export default function LeadMagnet() {
           <h2 style={{
             fontSize: isMobile ? 'clamp(22px,6vw,32px)' : 'clamp(26px,3.5vw,40px)',
             fontWeight: 900, color: '#111827',
-            letterSpacing: '-1.2px', lineHeight: 1.08, marginBottom: '16px',
+            letterSpacing: '-1.2px', lineHeight: 1.15, marginBottom: '16px',
           }}>
-            Descarga el kit que<br />
-            necesita{' '}
-            <span style={{ color: P }}>tu marca digital</span>
+            <span style={{ color: P }}>{lmConfig.titulo}</span>
           </h2>
 
           {/* Body */}
@@ -393,7 +398,7 @@ export default function LeadMagnet() {
             fontSize: isMobile ? '14px' : '16px', color: '#4B5563',
             lineHeight: 1.75, marginBottom: '28px',
           }}>
-            Herramientas prácticas con IA para que gestiones tus redes, crees contenido y hagas crecer tu marca — sin agencia, sin estrés.
+            {lmConfig.subtitulo}
           </p>
 
           {/* Form / success */}

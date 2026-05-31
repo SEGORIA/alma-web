@@ -1,18 +1,18 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-
-const principios = [
-  { n: '01', titulo: 'Humanización',  desc: 'Mensajes con alma que generan conexiones reales y duraderas.' },
-  { n: '02', titulo: 'Estrategia',    desc: 'Cada acción tiene un propósito medible desde el inicio.'       },
-  { n: '03', titulo: 'Creatividad',   desc: 'Diseño que inspira, diferencia e impacta en cada contacto.'    },
-  { n: '04', titulo: 'Resultados',    desc: 'Decisiones basadas en datos para escalar de forma sostenible.' },
-  { n: '05', titulo: 'Autenticidad',  desc: 'Comunicación coherente y alineada con la esencia de tu marca.' },
-  { n: '06', titulo: 'Impacto',       desc: 'Convertimos atención en conversiones y relaciones de valor.'   },
-]
+import { getPrincipios } from '../lib/db'
+import { principiosDefault } from '../data/config'
+import type { ManifiestoItem } from '../data/config'
 
 export default function Manifiesto() {
   const isMobile = useIsMobile()
+  const [principios, setPrincipios] = useState<ManifiestoItem[]>(principiosDefault)
+
+  useEffect(() => {
+    getPrincipios().then(setPrincipios).catch(() => setPrincipios(principiosDefault))
+  }, [])
 
   return (
     <section style={{
