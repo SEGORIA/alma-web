@@ -26,6 +26,82 @@ const SERVICE_GLOWS = [
 
 const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E")`
 
+/* ── SVG icons para servicios y extras ─────────────────────── */
+function SvgIcon({ id, size = 24 }: { id: string; size?: number }) {
+  const s = size
+  const icons: Record<string, React.ReactNode> = {
+    // Servicios por ID
+    web: (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="3" width="20" height="14" rx="2" stroke="white" strokeWidth="2"/>
+        <path d="M8 21h8M12 17v4" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+    branding: (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+        <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+        <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+      </svg>
+    ),
+    marketing: (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    fotovideo: (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M23 7l-7 5 7 5V7z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" stroke="white" strokeWidth="2"/>
+      </svg>
+    ),
+    estrategia: (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2"/>
+        <circle cx="12" cy="12" r="6" stroke="white" strokeWidth="2"/>
+        <circle cx="12" cy="12" r="2" fill="white"/>
+      </svg>
+    ),
+    // Extras por emoji string
+    '📷': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="white" strokeWidth="2"/>
+        <circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2"/>
+      </svg>
+    ),
+    '🎬': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="2" width="20" height="20" rx="2.18" stroke="white" strokeWidth="2"/>
+        <path d="M7 2v20M17 2v20M2 12h20M2 7h5M17 7h5M2 17h5M17 17h5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+    '🚀': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" stroke="white" strokeWidth="2"/>
+        <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" stroke="white" strokeWidth="2"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" stroke="white" strokeWidth="2"/>
+      </svg>
+    ),
+    '🎓': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M6 12v5c3 3 9 3 12 0v-5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    ),
+    '🛡️': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+      </svg>
+    ),
+    '📣': (
+      <svg width={s} height={s} viewBox="0 0 24 24" fill="none">
+        <path d="M3 11l19-9-9 19-2-8-8-2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  }
+  return <>{icons[id] ?? <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2"/></svg>}</>
+}
+
 export default function Calculadora() {
   const isMobile = useIsMobile()
 
@@ -216,9 +292,9 @@ export default function Calculadora() {
                           width: '50px', height: '50px', borderRadius: '14px', flexShrink: 0,
                           background: sel ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.08)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '26px', transition: 'background 0.25s',
+                          transition: 'background 0.25s',
                         }}>
-                          {s.emoji}
+                          <SvgIcon id={s.id} size={26} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <p style={{ fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '3px' }}>{s.label}</p>
@@ -253,8 +329,9 @@ export default function Calculadora() {
                 initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.3 }}
               >
-                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
-                  {servicio?.emoji} {servicio?.label} — ¿Qué alcance necesitas?
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {servicioId && <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '8px', background: servicioColor, boxShadow: `0 3px 10px ${servicioGlow}`, flexShrink: 0 }}><SvgIcon id={servicioId} size={16} /></span>}
+                  {servicio?.label} — ¿Qué alcance necesitas?
                 </h3>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.38)', marginBottom: '24px' }}>Elige el plan que mejor se adapta</p>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '14px' }}>
@@ -344,8 +421,8 @@ export default function Calculadora() {
                           width: '44px', height: '44px', borderRadius: '12px', flexShrink: 0,
                           background: sel ? 'rgba(107,33,168,0.4)' : 'rgba(255,255,255,0.08)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '22px', transition: 'background 0.2s',
-                        }}>{e.emoji}</div>
+                          transition: 'background 0.2s',
+                        }}><SvgIcon id={e.emoji} size={22} /></div>
                         <div style={{ flex: 1 }}>
                           <p style={{ fontSize: '13px', fontWeight: 600, color: '#fff', marginBottom: '2px' }}>{e.label}</p>
                           <p style={{ fontSize: '12px', fontWeight: sel ? 700 : 400, color: sel ? Y : 'rgba(255,255,255,0.35)' }}>
@@ -392,7 +469,7 @@ export default function Calculadora() {
                   marginBottom: '20px',
                   boxShadow: `0 4px 18px ${servicioGlow}`,
                 }}>
-                  <span style={{ fontSize: '16px' }}>{servicio?.emoji}</span>
+                  {servicioId && <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', flexShrink: 0 }}><SvgIcon id={servicioId} size={16} /></span>}
                   <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{servicio?.label}</span>
                 </div>
 
