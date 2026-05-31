@@ -49,6 +49,31 @@
   ::placeholder { color: #9CA3AF; opacity: 1; }
 }
 
+/* ── Texto con gradiente animado ── */
+@keyframes gradientShift {
+  0%   { background-position: 0%   50% }
+  50%  { background-position: 100% 50% }
+  100% { background-position: 0%   50% }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #7C3AED, #9333EA, #EC4899, #FBBF24, #9333EA);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s ease infinite;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #FACC15, #F59E0B, #EC4899, #F59E0B, #FACC15);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s ease infinite;
+}
+
 /* ── Animaciones globales ── */
 @keyframes pageReveal {
   from { opacity: 0; transform: translateY(6px); }
@@ -95,4 +120,8 @@
   }
   html { scroll-behavior: auto; }
   .alma-float { animation: none !important; }
+  .gradient-text, .gradient-text-gold {
+    animation: none !important;
+    background-position: 0% 50%;
+  }
 }

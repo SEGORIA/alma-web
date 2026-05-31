@@ -20,6 +20,17 @@ export default function Manifiesto() {
       padding: isMobile ? '56px 20px' : '80px 24px',
       position: 'relative', overflow: 'hidden',
     }}>
+      {/* Grain texture overlay — profundidad premium */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '250px 250px',
+        opacity: 0.04,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
+
       {/* Glow decorativo */}
       <div style={{
         position: 'absolute', top: '-120px', left: '-120px',
@@ -70,7 +81,7 @@ export default function Manifiesto() {
             color: '#fff', marginBottom: '16px',
           }}>
             Lo que nos<br />
-            <span style={{ color: Y }}>mueve</span> cada día
+            <span className="gradient-text-gold">mueve</span> cada día
           </h2>
 
           <p style={{

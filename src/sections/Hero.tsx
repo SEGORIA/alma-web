@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { P, Y, YD } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -21,7 +21,40 @@ export default function Hero() {
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
   )
 
-  // Parallax sin re-renders: manipulamos el DOM directamente en rAF
+  // ── 3D tilt en cards (desktop) ───────────────────────────────
+  const rawTiltX = useMotionValue(0)
+  const rawTiltY = useMotionValue(0)
+  const tiltX = useSpring(rawTiltX, { stiffness: 160, damping: 22 })
+  const tiltY = useSpring(rawTiltY, { stiffness: 160, damping: 22 })
+
+  const handleTiltMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    rawTiltX.set(((e.clientY - rect.top  - rect.height / 2) / (rect.height / 2)) * -13)
+    rawTiltY.set(((e.clientX - rect.left - rect.width  / 2) / (rect.width  / 2)) *  13)
+  }, [rawTiltX, rawTiltY])
+
+  const handleTiltLeave = useCallback(() => {
+    rawTiltX.set(0)
+    rawTiltY.set(0)
+  }, [rawTiltX, rawTiltY])
+
+  // ── Botón magnético ───────────────────────────────────────────
+  const magX = useSpring(0, { stiffness: 260, damping: 20 })
+  const magY = useSpring(0, { stiffness: 260, damping: 20 })
+
+  const handleMagnetMove = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    magX.set((e.clientX - rect.left - rect.width  / 2) * 0.38)
+    magY.set((e.clientY - rect.top  - rect.height / 2) * 0.38)
+  }, [magX, magY])
+
+  const handleMagnetLeave = useCallback(() => {
+    magX.set(0)
+    magY.set(0)
+    setBtnHover(false)
+  }, [magX, magY])
+
+  // ── Parallax sin re-renders: manipulamos el DOM directamente en rAF
   const blob1Ref = useRef<HTMLDivElement>(null)
   const blob2Ref = useRef<HTMLDivElement>(null)
   const onScroll = useCallback(() => {
@@ -100,7 +133,8 @@ export default function Hero() {
                 key={item.word}
                 initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, delay: 0.1 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                style={{ display: 'inline-block', color: item.colored ? P : '#111827', marginRight: '0.27em' }}
+                className={item.colored ? 'gradient-text' : undefined}
+                style={{ display: 'inline-block', color: item.colored ? undefined : '#111827', marginRight: '0.27em' }}
               >
                 {item.word}
               </motion.span>
@@ -132,21 +166,23 @@ export default function Hero() {
               alignItems: isMobile ? 'stretch' : 'center',
             }}
           >
-            <a
+            <motion.a
               href={waLink} target="_blank" rel="noopener noreferrer"
               onMouseEnter={() => setBtnHover(true)}
-              onMouseLeave={() => setBtnHover(false)}
+              onMouseMove={handleMagnetMove}
+              onMouseLeave={handleMagnetLeave}
               style={{
+                x: magX, y: magY,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 background: btnHover ? YD : Y,
                 color: '#111', padding: '15px 32px', borderRadius: '10px',
                 fontWeight: 700, fontSize: '15px', textDecoration: 'none',
                 boxShadow: btnHover ? '0 8px 24px rgba(234,179,8,0.35)' : '0 4px 14px rgba(250,204,21,0.3)',
-                transition: 'all 0.2s ease',
+                transition: 'background 0.2s ease, box-shadow 0.2s ease',
               }}
             >
               Empezar mi proyecto hoy →
-            </a>
+            </motion.a>
             <a
               href="#servicios"
               style={{
@@ -212,12 +248,21 @@ export default function Hero() {
 
         </div>
 
-        {/* ── Right: floating cards (desktop only) ── */}
+        {/* ── Right: floating cards 3D (desktop only) ── */}
         {!isMobile && (
+          <div
+            style={{ flex: '1 1 320px', maxWidth: '460px', perspective: 900 }}
+            onMouseMove={handleTiltMove}
+            onMouseLeave={handleTiltLeave}
+          >
           <motion.div
             initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            style={{ flex: '1 1 320px', maxWidth: '460px', position: 'relative', minHeight: '440px', paddingBottom: '40px' }}
+            style={{
+              position: 'relative', minHeight: '440px', paddingBottom: '40px',
+              rotateX: tiltX, rotateY: tiltY,
+              transformStyle: 'preserve-3d',
+            }}
           >
             {/* Metrics pill */}
             <motion.div
@@ -334,6 +379,7 @@ export default function Hero() {
               </div>
             </motion.div>
           </motion.div>
+          </div>
         )}
       </div>
     </section>

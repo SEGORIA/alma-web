@@ -1,24 +1,37 @@
 import { motion } from 'framer-motion'
 import { PD, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { AnimatedCounter } from '../components/AnimatedCounter'
+import type { CounterFormat } from '../components/AnimatedCounter'
 
-const stats = [
-  { value: '+1.200', label: 'estudiantes activos' },
-  { value: '30+',   label: 'recursos descargables' },
-  { value: '4.9★',  label: 'valoración promedio' },
+const stats: { num: number; prefix: string; suffix: string; format: CounterFormat; label: string }[] = [
+  { num: 1200, prefix: '+', suffix: '',  format: 'thousands', label: 'estudiantes activos'  },
+  { num: 30,   prefix: '',  suffix: '+', format: 'integer',   label: 'recursos descargables' },
+  { num: 4.9,  prefix: '',  suffix: '★', format: 'float1',    label: 'valoración promedio'   },
 ]
 
 export default function Academia() {
   const isMobile = useIsMobile()
 
   return (
-    <section style={{ background: PD, padding: isMobile ? '60px 20px' : '100px 24px', overflow: 'hidden' }}>
+    <section style={{ background: PD, padding: isMobile ? '60px 20px' : '100px 24px', overflow: 'hidden', position: 'relative' }}>
+      {/* Grain texture overlay — profundidad premium */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '250px 250px',
+        opacity: 0.04,
+        pointerEvents: 'none',
+        zIndex: 0,
+      }} />
       <div style={{
         maxWidth: '1100px', margin: '0 auto',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
         gap: isMobile ? '40px' : '72px',
+        position: 'relative', zIndex: 1,
       }}>
 
         {/* ── Imagen ── */}
@@ -151,7 +164,7 @@ export default function Academia() {
             letterSpacing: '-1px', lineHeight: 1.1, marginBottom: '18px',
           }}>
             Aprende a construir<br />
-            <span style={{ color: Y }}>marcas que perduran</span>
+            <span className="gradient-text-gold">marcas que perduran</span>
           </h2>
           <p style={{
             fontSize: isMobile ? '15px' : '16px',
@@ -167,9 +180,9 @@ export default function Academia() {
             marginBottom: '36px', flexWrap: 'wrap',
           }}>
             {stats.map(s => (
-              <div key={s.value}>
+              <div key={s.label}>
                 <p style={{ fontSize: '22px', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1 }}>
-                  {s.value}
+                  <AnimatedCounter value={s.num} prefix={s.prefix} suffix={s.suffix} format={s.format} duration={1.8} />
                 </p>
                 <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '4px 0 0', fontWeight: 500 }}>
                   {s.label}

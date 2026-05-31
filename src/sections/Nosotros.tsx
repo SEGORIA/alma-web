@@ -7,6 +7,7 @@ import { getEquipo, getContactoInfo } from '../lib/db'
 import { equipoEstatico } from '../data/contenido'
 import { contactoDefault } from '../data/config'
 import type { EquipoMember } from '../data/contenido'
+import { AnimatedCounter } from '../components/AnimatedCounter'
 
 
 function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
@@ -107,7 +108,7 @@ export default function Nosotros() {
             </p>
             <h2 style={{ fontSize: isMobile ? 'clamp(28px,7vw,40px)' : 'clamp(32px,4vw,52px)', fontWeight: 900, color: '#111827', letterSpacing: '-2px', lineHeight: 1.05, marginBottom: '20px' }}>
               Somos Alma,<br />
-              <span style={{ color: P }}>somos tu equipo.</span>
+              <span className="gradient-text">somos tu equipo.</span>
             </h2>
             <p style={{ fontSize: isMobile ? '15px' : '17px', lineHeight: 1.7, color: '#4B5563', marginBottom: '28px' }}>
               Somos una agencia creativa nacida en Manizales con una misión clara: convertir cada marca en una experiencia que conecta, emociona y genera resultados reales.
@@ -147,10 +148,10 @@ export default function Nosotros() {
             }}
           >
             {[
-              { n: '6+',   label: 'Años de experiencia',     color: `linear-gradient(135deg,${P},#9333EA)` },
-              { n: '150+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#E11D48,#F43F5E)' },
-              { n: '98%',  label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#059669,#34D399)' },
-              { n: '3',    label: 'Servicios especializados', color: 'linear-gradient(135deg,#F59E0B,#FBBF24)' },
+              { n: 6,   suffix: '+', label: 'Años de experiencia',     color: `linear-gradient(135deg,${P},#9333EA)` },
+              { n: 150, suffix: '+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#E11D48,#F43F5E)' },
+              { n: 98,  suffix: '%', label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#059669,#34D399)' },
+              { n: 3,   suffix: '',  label: 'Servicios especializados', color: 'linear-gradient(135deg,#F59E0B,#FBBF24)' },
             ].map((s, i) => (
               <motion.div
                 key={s.label}
@@ -165,7 +166,9 @@ export default function Nosotros() {
                   textAlign: 'center',
                 }}
               >
-                <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>{s.n}</p>
+                <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+                  <AnimatedCounter value={s.n} suffix={s.suffix} duration={1.6} />
+                </p>
                 <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '6px', fontWeight: 600, lineHeight: 1.3 }}>{s.label}</p>
               </motion.div>
             ))}
