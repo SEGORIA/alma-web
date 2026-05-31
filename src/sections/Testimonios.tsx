@@ -60,7 +60,10 @@ export default function Testimonios() {
   const [testimonios, setTestimonios] = useState<Testimonio[]>(testimoniosEstaticos)
 
   useEffect(() => {
-    getTestimonios().then(setTestimonios)
+    getTestimonios().then(data => {
+      const uniq = data.filter((t, i, arr) => arr.findIndex(x => x.nombre === t.nombre && x.texto === t.texto) === i)
+      setTestimonios(uniq.length > 0 ? uniq : testimoniosEstaticos)
+    })
   }, [])
 
   const fila1 = testimonios.filter(t => t.fila === 1)
