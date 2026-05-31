@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { P, Y } from '../tokens'
+import { Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getTestimonios } from '../lib/db'
 import { testimoniosEstaticos } from '../data/config'
@@ -15,21 +15,24 @@ const StarIcon = () => (
 function TestimonioCard({ t }: { t: Testimonio }) {
   return (
     <div style={{
-      background: '#fff', border: '1px solid #F3F4F6', borderRadius: '20px', padding: '24px',
-      width: '300px', flexShrink: 0, boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+      background: 'rgba(255,255,255,0.05)',
+      border: '1px solid rgba(255,255,255,0.10)',
+      backdropFilter: 'blur(12px)',
+      borderRadius: '20px', padding: '24px',
+      width: '300px', flexShrink: 0, boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
       display: 'flex', flexDirection: 'column', gap: '14px',
     }}>
       <div style={{ display: 'flex', gap: '3px' }}>
         {Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} />)}
       </div>
-      <p style={{ fontSize: '13px', lineHeight: 1.7, color: '#374151', flex: 1, fontStyle: 'italic' }}>"{t.texto}"</p>
+      <p style={{ fontSize: '13px', lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', flex: 1, fontStyle: 'italic' }}>"{t.texto}"</p>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#fff', flexShrink: 0, boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}>
           {t.iniciales}
         </div>
         <div>
-          <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>{t.nombre}</p>
-          <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '1px' }}>{t.rol} · {t.empresa}</p>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>{t.nombre}</p>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginTop: '1px' }}>{t.rol} · {t.empresa}</p>
         </div>
       </div>
     </div>
@@ -70,7 +73,7 @@ export default function Testimonios() {
   const fila2 = testimonios.filter(t => t.fila === 2)
 
   return (
-    <section style={{ background: '#F9FAFB', padding: isMobile ? '60px 0' : '100px 0', overflow: 'hidden' }}>
+    <section style={{ background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)', padding: isMobile ? '60px 0' : '100px 0', overflow: 'hidden' }}>
 
       {/* Header */}
       <motion.div
@@ -78,12 +81,12 @@ export default function Testimonios() {
         viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.6 }}
         style={{ textAlign: 'center', marginBottom: isMobile ? '32px' : '56px', padding: '0 24px' }}
       >
-        <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>Testimonios</p>
-        <h2 style={{ fontSize: 'clamp(26px,4vw,46px)', fontWeight: 900, color: '#111827', letterSpacing: '-1px', lineHeight: 1.1 }}>
-          Lo que dicen nuestros <span style={{ color: P }}>clientes</span>
+        <p style={{ color: Y, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '12px' }}>Testimonios</p>
+        <h2 style={{ fontSize: 'clamp(26px,4vw,46px)', fontWeight: 900, color: '#fff', letterSpacing: '-1px', lineHeight: 1.1 }}>
+          Lo que dicen nuestros <span className="gradient-text-gold">clientes</span>
         </h2>
         {!isMobile && (
-          <p style={{ color: '#6B7280', fontSize: '16px', marginTop: '16px', maxWidth: '440px', margin: '16px auto 0', lineHeight: 1.65 }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '16px', marginTop: '16px', maxWidth: '440px', margin: '16px auto 0', lineHeight: 1.65 }}>
             Más de 150 proyectos entregados y una comunidad de clientes que confían en Alma para crecer.
           </p>
         )}
@@ -102,16 +105,19 @@ export default function Testimonios() {
         style={{ display: 'flex', justifyContent: 'center', marginTop: isMobile ? '32px' : '56px', padding: '0 24px' }}
       >
         <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '12px', background: '#fff',
-          border: '1px solid #E5E7EB', borderRadius: '20px', padding: '12px 24px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+          display: 'inline-flex', alignItems: 'center', gap: '12px',
+          background: 'rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '20px', padding: '12px 24px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         }}>
           <div style={{ display: 'flex', gap: '2px' }}>
             {Array.from({ length: 5 }).map((_, i) => <StarIcon key={i} />)}
           </div>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>4.9 / 5</span>
-          <span style={{ width: '1px', height: '16px', background: '#E5E7EB' }} />
-          <span style={{ fontSize: '13px', color: '#6B7280', fontWeight: 500 }}>+150 proyectos entregados</span>
+          <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>4.9 / 5</span>
+          <span style={{ width: '1px', height: '16px', background: 'rgba(255,255,255,0.15)' }} />
+          <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>+150 proyectos entregados</span>
         </div>
       </motion.div>
     </section>

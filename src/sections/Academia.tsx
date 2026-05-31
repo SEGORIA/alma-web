@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { PD, Y } from '../tokens'
+import { Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { AnimatedCounter } from '../components/AnimatedCounter'
 import type { CounterFormat } from '../components/AnimatedCounter'
@@ -14,7 +14,7 @@ export default function Academia() {
   const isMobile = useIsMobile()
 
   return (
-    <section style={{ background: PD, padding: isMobile ? '60px 20px' : '100px 24px', overflow: 'hidden', position: 'relative' }}>
+    <section style={{ background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)', padding: isMobile ? '60px 20px' : '100px 24px', overflow: 'hidden', position: 'relative' }}>
       {/* Grain texture overlay — profundidad premium */}
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0,

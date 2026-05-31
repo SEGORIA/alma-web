@@ -16,7 +16,7 @@ export default function Manifiesto() {
 
   return (
     <section style={{
-      background: '#0F0A1A',
+      background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)',
       padding: isMobile ? '56px 20px' : '80px 24px',
       position: 'relative', overflow: 'hidden',
     }}>
