@@ -86,7 +86,7 @@ export const contactoDefault: ContactoInfo = {
   telefono:  '+57 301 336 9325',
   email:     'alma.directivo@gmail.com',
   ubicacion: 'Manizales, Colombia',
-  instagram: 'https://instagram.com/almaagenciacreativa',
+  instagram: 'https://www.instagram.com/alma.agenciacreativa',
   academia:  'https://edu.almaagenciacreativa.com',
 }
 

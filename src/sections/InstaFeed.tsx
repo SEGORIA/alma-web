@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { P, PL, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 
-const IG_URL = 'https://instagram.com/alma.agenciacreativa'
+const IG_URL = 'https://www.instagram.com/alma.agenciacreativa'
 
 /*
   ── Para reemplazar con fotos reales ──────────────────────────
