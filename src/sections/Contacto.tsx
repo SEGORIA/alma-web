@@ -16,12 +16,43 @@ const EMAILJS_OK  = !!(EJ_SERVICE && EJ_TEMPLATE && EJ_KEY)
 
 const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E")`
 
-const SERVICES = [
-  { id: 'Desarrollo Web',     icon: '💻' },
-  { id: 'Branding',           icon: '🎨' },
-  { id: 'Marketing Digital',  icon: '📱' },
-  { id: 'Foto & Video',       icon: '📸' },
-  { id: 'Estrategia Digital', icon: '🎯' },
+const SvcMonitor = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+    <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+)
+const SvcLayers = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+    <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+  </svg>
+)
+const SvcChart = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+const SvcCamera = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+    <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+  </svg>
+)
+const SvcTarget = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+  </svg>
+)
+
+const SERVICES: { id: string; icon: React.ReactNode }[] = [
+  { id: 'Desarrollo Web',     icon: <SvcMonitor /> },
+  { id: 'Branding',           icon: <SvcLayers /> },
+  { id: 'Marketing Digital',  icon: <SvcChart /> },
+  { id: 'Foto & Video',       icon: <SvcCamera /> },
+  { id: 'Estrategia Digital', icon: <SvcTarget /> },
 ]
 
 /* ── Contact info card ──────────────────────────────────────── */
@@ -169,7 +200,7 @@ function ServiceChips({ selected, onSelect }: { selected: string; onSelect: (s: 
                 transition: 'background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
               }}
             >
-              <span style={{ fontSize: '14px' }}>{s.icon}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>{s.icon}</span>
               {s.id}
               <AnimatePresence>
                 {active && (
@@ -618,7 +649,13 @@ export default function Contacto() {
             <Link to="/admin/login" style={{ color: 'rgba(255,255,255,0.15)', textDecoration: 'none' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.15)')}
-            >🔐 Equipo</Link>
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
+                <rect x="5" y="11" width="14" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Equipo
+            </Link>
           </div>
         </div>
       </footer>
