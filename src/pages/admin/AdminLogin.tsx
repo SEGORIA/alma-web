@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { P, PD } from '../../tokens'
+import { P } from '../../tokens'
 
 export default function AdminLogin() {
   const { login }              = useAuth()
@@ -27,15 +27,16 @@ export default function AdminLogin() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#F9FAFB',
+      minHeight: '100vh',
+      background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '24px',
     }}>
       <div style={{
         background: '#fff', borderRadius: '24px',
         padding: '48px 40px', width: '100%', maxWidth: '420px',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
-        border: '1px solid #E5E7EB',
+        boxShadow: '0 24px 80px rgba(107,33,168,0.25)',
+        border: '1px solid rgba(107,33,168,0.12)',
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '36px' }}>
@@ -119,7 +120,7 @@ export default function AdminLogin() {
               cursor: loading ? 'not-allowed' : 'pointer',
               transition: 'background 0.2s ease',
             }}
-            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = PD }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#581C87' }}
             onMouseLeave={e => { if (!loading) e.currentTarget.style.background = P }}
           >
             {loading ? 'Ingresando...' : 'Ingresar al panel'}

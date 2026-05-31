@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { getArticulos, deleteArticulo } from '../../lib/db'
-import { P } from '../../tokens'
+import { P, Y } from '../../tokens'
 import type { Articulo } from '../../data/articulos'
 
 export default function BlogAdmin() {
@@ -105,8 +105,8 @@ export default function BlogAdmin() {
                     </h3>
                     {a.destacado && (
                       <span style={{
-                        fontSize: '12px', fontWeight: 700, color: '#92400E',
-                        background: '#FEF3C7', padding: '2px 8px', borderRadius: '20px',
+                        fontSize: '12px', fontWeight: 700, color: '#78350F',
+                        background: `${Y}30`, padding: '2px 8px', borderRadius: '20px',
                         flexShrink: 0,
                       }}>
                         ★ Destacado

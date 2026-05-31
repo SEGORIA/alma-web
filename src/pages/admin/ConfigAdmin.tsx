@@ -69,7 +69,7 @@ function TabSecciones() {
       </p>
 
       {saved && (
-        <div style={{ background: '#D1FAE5', color: '#065F46', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
           ✅ Cambios guardados
         </div>
       )}
@@ -174,7 +174,7 @@ function TabClientes() {
       </p>
 
       {saved && (
-        <div style={{ background: '#D1FAE5', color: '#065F46', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
           ✅ Lista guardada
         </div>
       )}
@@ -223,14 +223,14 @@ function TabClientes() {
 /* ══ Tab 3 — Testimonios ════════════════════════════════════ */
 
 const GRADIENTES = [
-  'linear-gradient(135deg,#F5D0FE,#A855F7)',
-  'linear-gradient(135deg,#DDD6FE,#7C3AED)',
-  'linear-gradient(135deg,#FECDD3,#E11D48)',
-  'linear-gradient(135deg,#FDE68A,#F59E0B)',
-  'linear-gradient(135deg,#BAE6FD,#0284C7)',
-  'linear-gradient(135deg,#D1FAE5,#059669)',
-  'linear-gradient(135deg,#FED7AA,#EA580C)',
-  'linear-gradient(135deg,#E0E7FF,#6366F1)',
+  'linear-gradient(135deg,#3B0764,#6B21A8)',
+  'linear-gradient(135deg,#6B21A8,#9333EA)',
+  'linear-gradient(135deg,#4A0E8F,#7E22CE)',
+  'linear-gradient(135deg,#7E22CE,#A855F7)',
+  'linear-gradient(135deg,#D97706,#FBBF24)',
+  'linear-gradient(135deg,#5B21B6,#9333EA)',
+  'linear-gradient(135deg,#581C87,#A855F7)',
+  'linear-gradient(135deg,#E11D48,#F43F5E)',
 ]
 
 function TestimonioForm({ initial, onSave, onCancel, saving }: {

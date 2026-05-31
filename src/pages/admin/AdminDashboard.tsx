@@ -58,7 +58,7 @@ export default function AdminDashboard() {
       label:  'Proyectos en portafolio',
       value:  nProyectos ?? '…',
       icon:   '🖼️',
-      color:  '#0284C7',
+      color:  '#7C3AED',
       to:     '/admin/portafolio',
       action: 'Gestionar portafolio',
     },
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       label:  `Planes (${nPlanes ?? '…'}) + Extras (${nExtras ?? '…'})`,
       value:  nPlanes !== null && nExtras !== null ? nPlanes + nExtras : '…',
       icon:   '💰',
-      color:  '#059669',
+      color:  '#D97706',
       to:     '/admin/precios',
       action: 'Gestionar precios',
     },
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       label:  `Proceso (${nPasos ?? '…'}) · Equipo (${nEquipo ?? '…'})`,
       value:  nPasos !== null && nEquipo !== null ? nPasos + nEquipo : '…',
       icon:   '📄',
-      color:  '#0891B2',
+      color:  '#4A0E8F',
       to:     '/admin/contenido',
       action: 'Editar contenido',
     },
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
               to="/admin/portafolio/nuevo"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: '#0284C7', color: '#fff',
+                background: P, color: '#fff',
                 padding: '10px 20px', borderRadius: '10px',
                 textDecoration: 'none', fontWeight: 700, fontSize: '14px',
               }}

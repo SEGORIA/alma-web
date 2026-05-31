@@ -9,11 +9,11 @@ import ImageUploader from '../../components/ImageUploader'
 
 const GRADIENTS = [
   { label: 'Morado',   value: 'linear-gradient(135deg, #6B21A8 0%, #9333EA 100%)' },
-  { label: 'Azul',     value: 'linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)' },
-  { label: 'Rosa',     value: 'linear-gradient(135deg, #E11D48 0%, #F43F5E 100%)' },
-  { label: 'Verde',    value: 'linear-gradient(135deg, #059669 0%, #34D399 100%)' },
-  { label: 'Ámbar',    value: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)' },
+  { label: 'Profundo', value: 'linear-gradient(135deg, #3B0764 0%, #6B21A8 100%)' },
   { label: 'Violeta',  value: 'linear-gradient(135deg, #9333EA 0%, #C084FC 100%)' },
+  { label: 'Índigo',   value: 'linear-gradient(135deg, #4A0E8F 0%, #7C3AED 100%)' },
+  { label: 'Ámbar',    value: 'linear-gradient(135deg, #D97706 0%, #FBBF24 100%)' },
+  { label: 'Rosa',     value: 'linear-gradient(135deg, #E11D48 0%, #F43F5E 100%)' },
 ]
 
 const CATS = categorias.filter(c => c !== 'Todos')

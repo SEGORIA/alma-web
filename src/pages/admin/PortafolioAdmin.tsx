@@ -42,7 +42,7 @@ export default function PortafolioAdmin() {
             to="/admin/portafolio/nuevo"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: '#0284C7', color: '#fff',
+              background: '#6B21A8', color: '#fff',
               padding: '11px 22px', borderRadius: '12px',
               textDecoration: 'none', fontWeight: 700, fontSize: '14px',
             }}
@@ -66,7 +66,7 @@ export default function PortafolioAdmin() {
             <p style={{ fontSize: '14px', color: '#9CA3AF', marginBottom: '24px' }}>
               Agrega proyectos o migra los datos desde el dashboard.
             </p>
-            <Link to="/admin/portafolio/nuevo" style={{ color: '#0284C7', fontWeight: 700, fontSize: '14px' }}>
+            <Link to="/admin/portafolio/nuevo" style={{ color: '#6B21A8', fontWeight: 700, fontSize: '14px' }}>
               + Agregar primer proyecto →
             </Link>
           </div>
@@ -155,9 +155,9 @@ export default function PortafolioAdmin() {
                       style={{
                         flex: 1, textAlign: 'center',
                         padding: '8px', borderRadius: '8px',
-                        background: '#EFF6FF', color: '#0284C7',
+                        background: 'rgba(107,33,168,0.08)', color: '#6B21A8',
                         textDecoration: 'none', fontSize: '13px', fontWeight: 700,
-                        border: '1px solid #BAE6FD',
+                        border: '1px solid rgba(107,33,168,0.2)',
                       }}
                     >
                       Editar

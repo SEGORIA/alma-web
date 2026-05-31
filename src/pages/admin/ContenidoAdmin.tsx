@@ -33,7 +33,7 @@ const card: React.CSSProperties = {
   justifyContent: 'space-between', gap: '12px',
 }
 const saved_banner = (
-  <div style={{ background: '#D1FAE5', color: '#065F46', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+  <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
     ✅ Guardado
   </div>
 )
@@ -182,12 +182,12 @@ function TabContacto() {
 
 /* ══ Tab — Proceso ════════════════════════════════════════ */
 const PASO_GRADIENTES = [
+  'linear-gradient(135deg,#3B0764,#6B21A8)',
   'linear-gradient(135deg,#6B21A8,#9333EA)',
   'linear-gradient(135deg,#7C3AED,#A855F7)',
   'linear-gradient(135deg,#9333EA,#C026D3)',
   'linear-gradient(135deg,#6D28D9,#9333EA)',
-  'linear-gradient(135deg,#4F46E5,#7C3AED)',
-  'linear-gradient(135deg,#0284C7,#38BDF8)',
+  'linear-gradient(135deg,#D97706,#FBBF24)',
 ]
 
 function PasoForm({ initial, onSave, onCancel, saving }: {

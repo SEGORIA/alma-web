@@ -110,11 +110,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isMobile) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
+      <div style={{ minHeight: '100vh', background: '#F5F4FF' }}>
         {/* Top bar mobile */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 50,
-          background: '#111827', display: 'flex',
+          background: 'linear-gradient(180deg, #0D0220 0%, #1A0535 100%)', display: 'flex',
           alignItems: 'center', justifyContent: 'space-between',
           padding: '12px 16px',
           borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -146,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Drawer */}
         <aside style={{
           position: 'fixed', top: 0, left: 0, bottom: 0,
-          width: '260px', background: '#111827',
+          width: '260px', background: 'linear-gradient(180deg, #0D0220 0%, #1A0535 100%)',
           zIndex: 70,
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
@@ -163,11 +163,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F9FAFB' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F5F4FF' }}>
       {/* ── Sidebar desktop ── */}
       <aside style={{
         width: '240px', flexShrink: 0,
-        background: '#111827',
+        background: 'linear-gradient(180deg, #0D0220 0%, #1A0535 100%)',
         display: 'flex', flexDirection: 'column',
         position: 'fixed', top: 0, left: 0, bottom: 0,
         zIndex: 50,
