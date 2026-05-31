@@ -598,7 +598,7 @@ export default function Contacto() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: PD, borderTop: '1px solid rgba(255,255,255,0.07)', padding: '22px 24px' }}>
+      <footer style={{ background: PD, borderTop: '1px solid rgba(255,255,255,0.07)', padding: isMobile ? '22px 24px 80px' : '22px 24px' }}>
         <div style={{
           maxWidth: '1100px', margin: '0 auto',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
