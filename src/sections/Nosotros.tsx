@@ -165,7 +165,7 @@ function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
             animate={{ background: hov ? `linear-gradient(135deg, ${P}15, ${PL}18)` : 'rgba(107,33,168,0.07)' }}
             style={{
               display: 'inline-flex', padding: '4px 13px', borderRadius: '20px',
-              fontSize: '11px', fontWeight: 700, color: P, letterSpacing: '0.3px',
+              fontSize: '12px', fontWeight: 700, color: P, letterSpacing: '0.3px',
               marginBottom: '14px', border: `1px solid ${hov ? 'rgba(107,33,168,0.18)' : 'transparent'}`,
               transition: 'border-color 0.25s ease',
             }}
@@ -275,7 +275,7 @@ function EquipoCard() {
                     background: a.bg,
                     border: '2.5px solid rgba(255,255,255,0.55)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', fontWeight: 800, color: '#fff',
+                    fontSize: '12px', fontWeight: 800, color: '#fff',
                     zIndex: fanHov ? i + 1 : 5 - i,
                     boxShadow: '0 3px 12px rgba(0,0,0,0.25)',
                   }}
@@ -448,7 +448,7 @@ export default function Nosotros() {
                 <p style={{ fontSize: '30px', fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
                   <AnimatedCounter value={s.n} suffix={s.suffix} duration={1.6} />
                 </p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.82)', marginTop: '7px', fontWeight: 600, lineHeight: 1.35 }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.82)', marginTop: '7px', fontWeight: 600, lineHeight: 1.35 }}>
                   {s.label}
                 </p>
               </motion.div>

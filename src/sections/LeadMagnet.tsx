@@ -455,6 +455,7 @@ export default function LeadMagnet() {
                 }}>
                   <input
                     type="email" required value={email}
+                    aria-label="Correo electrónico"
                     onChange={e => setEmail(e.target.value)}
                     onFocus={() => setFocused(true)}
                     onBlur={() => setFocused(false)}

@@ -69,6 +69,7 @@ export default function Academia() {
           <img
             src="/academia-hero.jpg"
             alt="Aprende diseño y marketing con Alma"
+            loading="lazy"
             style={{
               width: '100%',
               height: isMobile ? '280px' : '420px',

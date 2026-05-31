@@ -92,7 +92,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         {/* Logo → home */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+        <Link to="/" aria-label="Alma Agencia Creativa — Ir al inicio" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
           <div style={{
             background: P, padding: '5px 12px', borderRadius: '10px', display: 'inline-flex',
           }}>

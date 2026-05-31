@@ -162,7 +162,7 @@ export default function Calculadora() {
 
   return (
     <section style={{
-      background: 'linear-gradient(160deg,#080818 0%,#0F0824 55%,#130A1E 100%)',
+      background: 'linear-gradient(160deg,#0D0220 0%,#1A0535 55%,#0A0118 100%)',
       padding: isMobile ? '60px 20px' : '100px 24px',
       position: 'relative', overflow: 'hidden',
     }}>

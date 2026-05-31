@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import emailjs from '@emailjs/browser'
-import { P, PL, PD, Y } from '../tokens'
+import { P, PL, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getContactoInfo } from '../lib/db'
 import { contactoDefault } from '../data/config'
@@ -629,7 +629,7 @@ export default function Contacto() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: PD, borderTop: '1px solid rgba(255,255,255,0.07)', padding: isMobile ? '22px 24px 80px' : '22px 24px' }}>
+      <footer style={{ background: '#060010', borderTop: '1px solid rgba(255,255,255,0.07)', padding: isMobile ? '22px 24px 80px' : '22px 24px' }}>
         <div style={{
           maxWidth: '1100px', margin: '0 auto',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',

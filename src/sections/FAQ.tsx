@@ -24,8 +24,9 @@ function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
         style={{
           width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '18px 20px',
-          background: open ? '#F5F3FF' : '#fff',
-          border: `1px solid ${open ? '#DDD6FE' : '#E5E7EB'}`,
+          background: '#fff',
+          border: `1px solid ${open ? 'rgba(107,33,168,0.22)' : '#E5E7EB'}`,
+          borderLeft: open ? `3px solid ${P}` : '1px solid #E5E7EB',
           borderRadius: open ? '14px 14px 0 0' : '14px',
           cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease',
         }}
@@ -52,7 +53,7 @@ function FAQItem({ faq, idx }: { faq: FaqItem; idx: number }) {
             exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{ padding: '14px 20px 18px', background: '#F5F3FF', border: '1px solid #DDD6FE', borderTop: 'none', borderRadius: '0 0 14px 14px', fontSize: '14px', color: '#4B5563', lineHeight: 1.7 }}>
+            <div style={{ padding: '14px 20px 18px', background: '#fff', borderLeft: `3px solid ${P}`, borderBottom: '1px solid rgba(107,33,168,0.18)', borderRight: '1px solid rgba(107,33,168,0.18)', borderTop: 'none', borderRadius: '0 0 14px 14px', fontSize: '14px', color: '#4B5563', lineHeight: 1.7 }}>
               {faq.a}
             </div>
           </motion.div>

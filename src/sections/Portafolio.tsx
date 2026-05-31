@@ -100,8 +100,8 @@ function ProyectoCard({ p, index, isMobile }: { p: Proyecto; index: number; isMo
         {/* Mobile badges */}
         {isMobile && (
           <>
-            <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, color: '#fff' }}>{p.cat}</div>
-            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', padding: '3px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>{p.año}</div>
+            <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, color: '#fff' }}>{p.cat}</div>
+            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', padding: '3px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>{p.año}</div>
           </>
         )}
       </div>
@@ -119,7 +119,7 @@ function ProyectoCard({ p, index, isMobile }: { p: Proyecto; index: number; isMo
           }}>{p.titulo}</h3>
           {!isMobile && (
             <span style={{
-              fontSize: '11px', fontWeight: 700, color: P,
+              fontSize: '12px', fontWeight: 700, color: P,
               background: 'rgba(107,33,168,0.07)', padding: '2px 8px',
               borderRadius: '20px', whiteSpace: 'nowrap', flexShrink: 0,
             }}>{p.año}</span>
@@ -128,7 +128,7 @@ function ProyectoCard({ p, index, isMobile }: { p: Proyecto; index: number; isMo
 
         {/* Category (desktop only — saves space) */}
         {!isMobile && (
-          <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 600 }}>{p.cat}</span>
+          <span style={{ fontSize: '12px', color: '#9CA3AF', fontWeight: 600 }}>{p.cat}</span>
         )}
 
         {/* Description — 2-line clamp */}
@@ -143,14 +143,14 @@ function ProyectoCard({ p, index, isMobile }: { p: Proyecto; index: number; isMo
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
             {p.tags.slice(0, isMobile ? 2 : 3).map(t => (
               <span key={t} style={{
-                fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px',
+                fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px',
                 background: 'rgba(107,33,168,0.06)', color: P,
                 border: '1px solid rgba(107,33,168,0.12)',
                 whiteSpace: 'nowrap',
               }}>{t}</span>
             ))}
             {p.tags.length > (isMobile ? 2 : 3) && (
-              <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px', background: '#F3F4F6', color: '#9CA3AF' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px', background: '#F3F4F6', color: '#9CA3AF' }}>
                 +{p.tags.length - (isMobile ? 2 : 3)}
               </span>
             )}
@@ -159,9 +159,10 @@ function ProyectoCard({ p, index, isMobile }: { p: Proyecto; index: number; isMo
             to="/portafolio"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '4px',
-              fontSize: '11px', fontWeight: 800, color: hovered ? P : '#9CA3AF',
+              fontSize: '12px', fontWeight: 800, color: hovered ? P : '#9CA3AF',
               textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
               transition: 'color 0.2s ease',
+              padding: '10px 4px', margin: '-10px -4px',
             }}
           >
             Ver caso

@@ -123,11 +123,14 @@ export default function Hero() {
           </motion.div>
 
           {/* Headline */}
-          <h1 style={{
-            fontSize: isMobile ? 'clamp(34px,9vw,46px)' : 'clamp(38px,5.5vw,64px)',
-            fontWeight: 900, lineHeight: 1.08, letterSpacing: '-2px',
-            marginBottom: isMobile ? '14px' : '20px',
-          }}>
+          <h1
+            aria-label="Convertimos tu visión en realidad digital"
+            style={{
+              fontSize: isMobile ? 'clamp(34px,9vw,46px)' : 'clamp(38px,5.5vw,64px)',
+              fontWeight: 900, lineHeight: 1.08, letterSpacing: '-2px',
+              marginBottom: isMobile ? '14px' : '20px',
+            }}
+          >
             {headline.map((item, i) => (
               <motion.span
                 key={item.word}

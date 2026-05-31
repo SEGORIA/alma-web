@@ -149,7 +149,7 @@ function PasoCard({ paso, index, isMobile }: { paso: PasoItem; index: number; is
         transition: 'all 0.3s ease', position: 'relative', zIndex: 1,
       }}>
         <span style={{
-          fontSize: '11px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase',
+          fontSize: '12px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase',
           color: hovered ? col.to : 'rgba(255,255,255,0.35)',
           transition: 'color 0.3s ease',
         }}>
@@ -248,7 +248,7 @@ export default function Proceso() {
                     width: '28px', height: '28px', borderRadius: '50%',
                     background: `linear-gradient(135deg, ${col.from}, ${col.to})`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', fontWeight: 800, color: '#fff',
+                    fontSize: '12px', fontWeight: 800, color: '#fff',
                     boxShadow: `0 0 0 3px ${col.from}22, 0 4px 12px ${col.glow}`,
                     flexShrink: 0,
                   }}>{p.n}</div>
@@ -307,7 +307,7 @@ export default function Proceso() {
               </div>
               <div>
                 <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', margin: 0, lineHeight: 1.2 }}>{s.value}</p>
-                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.38)', marginTop: '2px', fontWeight: 500 }}>{s.label}</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.38)', marginTop: '2px', fontWeight: 500 }}>{s.label}</p>
               </div>
             </div>
           ))}
