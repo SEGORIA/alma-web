@@ -390,10 +390,38 @@ export async function getEquipo(): Promise<EquipoMember[]> {
   try {
     const snap = await getDocs(query(equipoCol(), orderBy('orden', 'asc')))
     if (snap.empty) return equipoEstatico
-    return snap.docs.map(d => ({ ...(d.data() as EquipoMember), _id: d.id }))
+    const all = snap.docs.map(d => ({ ...(d.data() as EquipoMember), _id: d.id }))
+    // Deduplicar por `nombre` — conservar el primero (orden asc)
+    const seen = new Set<string>()
+    return all.filter(m => {
+      if (seen.has(m.nombre)) return false
+      seen.add(m.nombre)
+      return true
+    })
   } catch {
     return equipoEstatico
   }
+}
+
+/** Elimina miembros duplicados en la colección `equipo` (mismo `nombre`).
+ *  Conserva el primero por orden y borra el resto. */
+export async function cleanDuplicateEquipo(): Promise<number> {
+  if (!firebaseReady || !db) return 0
+  const snap = await getDocs(query(equipoCol(), orderBy('orden', 'asc')))
+  const byNombre = new Map<string, string[]>()
+  snap.docs.forEach(d => {
+    const nombre = (d.data() as EquipoMember).nombre
+    if (!byNombre.has(nombre)) byNombre.set(nombre, [])
+    byNombre.get(nombre)!.push(d.id)
+  })
+  let deleted = 0
+  for (const ids of byNombre.values()) {
+    for (const id of ids.slice(1)) {
+      await deleteDoc(doc(db!, 'equipo', id))
+      deleted++
+    }
+  }
+  return deleted
 }
 
 export async function createEquipoMember(data: Omit<EquipoMember, '_id'>): Promise<string> {

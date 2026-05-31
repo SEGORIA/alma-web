@@ -4,7 +4,7 @@ import ImageUploader from '../../components/ImageUploader'
 import {
   getConfig, updateConfig,
   getPasos, createPaso, updatePaso, deletePaso, cleanDuplicatePasos,
-  getEquipo, createEquipoMember, updateEquipoMember, deleteEquipoMember,
+  getEquipo, createEquipoMember, updateEquipoMember, deleteEquipoMember, cleanDuplicateEquipo,
   getPrincipios, updatePrincipios,
   getLeadMagnetConfig, updateLeadMagnetConfig,
   seedConfig,
@@ -410,10 +410,22 @@ function TabEquipo() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [adding,    setAdding]    = useState(false)
   const [saving,    setSaving]    = useState(false)
+  const [cleaning,  setCleaning]  = useState(false)
   const isMigrated = equipo.some(m => !!m._id)
 
   async function reload() { setEquipo(await getEquipo()) }
   useEffect(() => { reload() }, [])
+
+  async function handleClean() {
+    if (!confirm('¿Limpiar miembros duplicados del equipo? Se conservará solo una copia de cada persona.')) return
+    setCleaning(true)
+    try {
+      const deleted = await cleanDuplicateEquipo()
+      await reload()
+      alert(`✅ Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
+    } catch (err) { alert('Error: ' + err) }
+    setCleaning(false)
+  }
 
   async function handleSave(data: Omit<EquipoMember, '_id'>) {
     setSaving(true)
@@ -432,14 +444,22 @@ function TabEquipo() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
         <p style={{ fontSize: '13px', color: '#6B7280' }}>{equipo.length} miembro{equipo.length !== 1 ? 's' : ''} del equipo — aparecen en la sección Nosotros.</p>
-        {!adding && isMigrated && (
-          <button onClick={() => { setAdding(true); setEditingId(null) }}
-            style={{ background: P, color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
-            + Nuevo miembro
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {isMigrated && (
+            <button onClick={handleClean} disabled={cleaning}
+              style={{ background: cleaning ? '#E5E7EB' : 'rgba(239,68,68,0.08)', color: cleaning ? '#9CA3AF' : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
+              {cleaning ? 'Limpiando…' : '🧹 Limpiar duplicados'}
+            </button>
+          )}
+          {!adding && isMigrated && (
+            <button onClick={() => { setAdding(true); setEditingId(null) }}
+              style={{ background: P, color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+              + Nuevo miembro
+            </button>
+          )}
+        </div>
       </div>
 
       {!isMigrated && (
