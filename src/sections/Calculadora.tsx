@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { P, PD, Y } from '../tokens'
+import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getPlanes, getExtras, getCategorias, getContactoInfo } from '../lib/db'
 import { categoriasEstaticas, planesEstaticos, extrasEstaticos, fmtPrecio, type Plan, type Extra, type ServicioCategoria } from '../data/precios'
