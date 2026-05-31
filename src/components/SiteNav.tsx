@@ -43,9 +43,25 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
     }
   }, [])
 
+  // Scroll lock seguro para Android e iOS (overflow:hidden solo rompe touch events en Android)
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (menuOpen) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+    } else {
+      const top = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (top) window.scrollTo(0, -parseInt(top))
+    }
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+    }
   }, [menuOpen])
 
   const linkStyle = (active: boolean): React.CSSProperties => ({
@@ -64,6 +80,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
       backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
       background: 'rgba(255,255,255,0.96)',
       borderBottom: '1px solid rgba(107,33,168,0.1)',
       boxShadow: scrolled ? '0 2px 20px rgba(107,33,168,0.08)' : 'none',
@@ -137,8 +154,10 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
             aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              padding: '8px', display: 'flex', flexDirection: 'column',
+              padding: '12px', display: 'flex', flexDirection: 'column',
               gap: '5px', alignItems: 'center',
+              minWidth: '44px', minHeight: '44px', justifyContent: 'center',
+              touchAction: 'manipulation',
             }}
           >
             {[
@@ -160,13 +179,16 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
           background: '#fff', borderTop: '1px solid rgba(107,33,168,0.08)',
           padding: '12px 24px 24px',
           display: 'flex', flexDirection: 'column', gap: '2px',
+          maxHeight: 'calc(100vh - 68px)',
+          overflowY: 'auto',
         }}>
           {LINKS.map(l => {
             const sharedMobile: React.CSSProperties = {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 8px', borderBottom: '1px solid #F3F4F6',
+              padding: '14px 8px', borderBottom: '1px solid #F3F4F6',
               textDecoration: 'none', fontSize: '16px', fontWeight: 600,
-              color: '#111827',
+              color: '#111827', minHeight: '48px',
+              touchAction: 'manipulation',
             }
             const arrow = <span style={{ color: Y, fontWeight: 900, fontSize: '18px' }}>›</span>
             if (l.to) return (
