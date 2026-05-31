@@ -10,18 +10,18 @@ const STEPS = ['Servicio', 'Plan', 'Extras', 'Resumen']
 
 // Paleta de colores por posición para las tarjetas de servicio
 const SERVICE_GRADIENTS = [
+  'linear-gradient(135deg,#3B0764,#6B21A8)',
   'linear-gradient(135deg,#6B21A8,#9333EA)',
-  'linear-gradient(135deg,#7C3AED,#A78BFA)',
-  'linear-gradient(135deg,#9D174D,#FDA4AF)',
-  'linear-gradient(135deg,#D97706,#F59E0B)',
-  'linear-gradient(135deg,#DB2777,#EC4899)',
+  'linear-gradient(135deg,#4A0E8F,#7E22CE)',
+  'linear-gradient(135deg,#D97706,#FBBF24)',
+  'linear-gradient(135deg,#7E22CE,#A855F7)',
 ]
 const SERVICE_GLOWS = [
+  'rgba(59,7,100,0.45)',
   'rgba(107,33,168,0.45)',
-  'rgba(124,58,237,0.45)',
-  'rgba(157,23,77,0.45)',
+  'rgba(74,14,143,0.45)',
   'rgba(217,119,6,0.45)',
-  'rgba(219,39,119,0.45)',
+  'rgba(126,34,206,0.45)',
 ]
 
 const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E")`

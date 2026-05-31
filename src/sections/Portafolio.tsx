@@ -195,7 +195,7 @@ export default function Portafolio() {
 
   return (
     <section style={{
-      background: 'linear-gradient(160deg, #FFFFFF 0%, #F5F3FF 55%, #FAF8FF 100%)',
+      background: '#FFFFFF',
       padding: isMobile ? '60px 20px' : '90px 24px',
       position: 'relative', overflow: 'hidden',
     }}>

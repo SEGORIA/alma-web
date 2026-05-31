@@ -10,12 +10,12 @@ const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'
 
 /* ── Step accent colors (by 0-based index) ─────────────────── */
 const STEP_COLORS = [
+  { from: '#3B0764', to: '#6B21A8', glow: 'rgba(59,7,100,0.4)'    },
   { from: '#6B21A8', to: '#9333EA', glow: 'rgba(107,33,168,0.4)'  },
-  { from: '#7C3AED', to: '#A78BFA', glow: 'rgba(124,58,237,0.4)'  },
-  { from: '#DB2777', to: '#F472B6', glow: 'rgba(219,39,119,0.4)'  },
-  { from: '#D97706', to: '#FCD34D', glow: 'rgba(217,119,6,0.4)'   },
-  { from: '#9D174D', to: '#FDA4AF', glow: 'rgba(157,23,77,0.4)'   },
-  { from: '#4C1D95', to: '#818CF8', glow: 'rgba(76,29,149,0.4)'   },
+  { from: '#7E22CE', to: '#A855F7', glow: 'rgba(126,34,206,0.4)'  },
+  { from: '#D97706', to: '#FBBF24', glow: 'rgba(217,119,6,0.4)'   },
+  { from: '#4A0E8F', to: '#7C3AED', glow: 'rgba(74,14,143,0.4)'   },
+  { from: '#5B21B6', to: '#C084FC', glow: 'rgba(91,33,182,0.4)'   },
 ]
 
 /* ── SVG icons by step index ───────────────────────────────── */

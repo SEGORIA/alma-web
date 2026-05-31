@@ -37,17 +37,17 @@ const TargetSvg = () => (
 
 const STATS = [
   { n: 6,   suffix: '+', label: 'Años de experiencia',     color: `linear-gradient(135deg,${P},#7C3AED)`,      icon: <ClockSvg />   },
-  { n: 150, suffix: '+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#DB2777,#EC4899)',    icon: <CheckboxSvg /> },
-  { n: 98,  suffix: '%', label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#9D174D,#FDA4AF)',    icon: <HeartSvg />   },
+  { n: 150, suffix: '+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#6B21A8,#9333EA)',    icon: <CheckboxSvg /> },
+  { n: 98,  suffix: '%', label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#7E22CE,#A855F7)',    icon: <HeartSvg />   },
   { n: 3,   suffix: '',  label: 'Líneas de servicio',       color: `linear-gradient(135deg,#D97706,#FBBF24)`,   icon: <TargetSvg />  },
 ]
 
 const TEAM_EXTRAS = [
-  { iniciales: 'AN', bg: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
-  { iniciales: 'AM', bg: 'linear-gradient(135deg,#D97706,#FBBF24)' },
-  { iniciales: 'MA', bg: 'linear-gradient(135deg,#4C1D95,#818CF8)' },
-  { iniciales: 'DR', bg: 'linear-gradient(135deg,#7C3AED,#A78BFA)' },
-  { iniciales: 'RF', bg: 'linear-gradient(135deg,#6B21A8,#9333EA)' },
+  { iniciales: 'AN', bg: 'linear-gradient(135deg,#D97706,#FBBF24)' },
+  { iniciales: 'AM', bg: 'linear-gradient(135deg,#3B0764,#6B21A8)' },
+  { iniciales: 'MA', bg: 'linear-gradient(135deg,#6B21A8,#9333EA)' },
+  { iniciales: 'DR', bg: 'linear-gradient(135deg,#4A0E8F,#7E22CE)' },
+  { iniciales: 'RF', bg: 'linear-gradient(135deg,#7E22CE,#A855F7)' },
 ]
 
 /* ── 3D Team Card ──────────────────────────────────────────── */
@@ -337,7 +337,7 @@ export default function Nosotros() {
 
   return (
     <section style={{
-      background: 'linear-gradient(160deg, #FFFFFF 0%, #F5F3FF 55%, #FAF8FF 100%)',
+      background: '#FFFFFF',
       padding: isMobile ? '60px 20px' : '100px 24px',
       position: 'relative', overflow: 'hidden',
     }}>

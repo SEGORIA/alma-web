@@ -62,7 +62,7 @@ export const equipoEstatico: EquipoMember[] = [
   {
     nombre: 'Mariana Alvarán', rol: 'Diseñadora Gráfica & Publicista',
     desc: 'Crea piezas que enamoran. Fusiona diseño gráfico y comunicación publicitaria para dar vida a identidades visuales memorables y coherentes.',
-    iniciales: 'MA', emoji: '🎨', color: 'linear-gradient(135deg,#DB2777,#F472B6)', orden: 5,
+    iniciales: 'MA', emoji: '🎨', color: 'linear-gradient(135deg,#6B21A8,#9333EA)', orden: 5,
   },
   {
     nombre: 'Daniela Ruiz', rol: 'Estratega Holística',
@@ -83,12 +83,12 @@ export const equipoEstatico: EquipoMember[] = [
 
 // gradientes disponibles para avatar del equipo
 export const EQUIPO_GRADIENTES = [
-  'linear-gradient(135deg,#E11D48,#F43F5E)',
+  'linear-gradient(135deg,#3B0764,#6B21A8)',
   'linear-gradient(135deg,#6B21A8,#9333EA)',
-  'linear-gradient(135deg,#4C1D95,#818CF8)',
-  'linear-gradient(135deg,#9D174D,#FDA4AF)',
-  'linear-gradient(135deg,#D97706,#FCD34D)',
-  'linear-gradient(135deg,#7C3AED,#A78BFA)',
-  'linear-gradient(135deg,#DB2777,#F472B6)',
-  'linear-gradient(135deg,#581C87,#9333EA)',
+  'linear-gradient(135deg,#4A0E8F,#7E22CE)',
+  'linear-gradient(135deg,#7E22CE,#A855F7)',
+  'linear-gradient(135deg,#D97706,#FBBF24)',
+  'linear-gradient(135deg,#5B21B6,#9333EA)',
+  'linear-gradient(135deg,#3B0764,#9333EA)',
+  'linear-gradient(135deg,#581C87,#A855F7)',
 ]

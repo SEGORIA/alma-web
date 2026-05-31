@@ -143,7 +143,7 @@ export default function LeadMagnet() {
 
   return (
     <section style={{
-      background: 'linear-gradient(135deg, #F0EBFF 0%, #EDE9FE 45%, #F5F3FF 100%)',
+      background: '#FFFFFF',
       padding: isMobile ? '60px 20px' : '100px 24px',
       position: 'relative', overflow: 'hidden',
     }}>

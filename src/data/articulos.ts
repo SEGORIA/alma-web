@@ -224,7 +224,7 @@ export const articulos: Articulo[] = [
     minutos:   4,
     fecha:     'Ene 2026',
     emoji:     '📖',
-    gradient:  'linear-gradient(135deg, #9D174D 0%, #F9A8D4 100%)',
+    gradient:  'linear-gradient(135deg, #4A0E8F 0%, #9333EA 100%)',
     contenido: [
       { tipo: 'p', texto: 'Imagina contratar a un diseñador freelance para hacer una pieza. Termina, te entrega el trabajo y... los colores no son exactamente los tuyos, la tipografía es diferente a la que usas, el logo tiene proporciones distintas. ¿Te ha pasado?' },
       { tipo: 'p', texto: 'Eso es exactamente lo que evita un manual de marca. Es el documento que le dice a cualquier diseñador, empleado o socio exactamente cómo debe verse y sonar tu empresa.' },
@@ -319,7 +319,7 @@ export const catColor: Record<string, string> = {
   Branding:            '#6B21A8',
   'Diseño Web':        '#7C3AED',
   'Marketing Digital': '#9333EA',
-  Estrategia:          '#DB2777',
+  Estrategia:          '#9333EA',
 }
 
 export const categorias = ['Todos', 'Branding', 'Diseño Web', 'Marketing Digital', 'Estrategia']

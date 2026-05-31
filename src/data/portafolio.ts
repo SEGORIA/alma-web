@@ -70,7 +70,7 @@ export const proyectosEstaticos: Proyecto[] = [
     desc:   'Gestión mensual de redes sociales, diseño de contenido y campañas de pauta con enfoque en reservas online.',
     año:    '2024',
     tags:   ['Community', 'Diseño', 'Conversión'],
-    g:      'linear-gradient(135deg,#FCE7F3 0%,#DB2777 100%)',
+    g:      'linear-gradient(135deg,#EDE9FE 0%,#6B21A8 100%)',
   },
 ]
 
@@ -82,7 +82,7 @@ export const gradientesDisponibles = [
   { label: 'Ámbar',    value: 'linear-gradient(135deg,#FDE68A 0%,#F59E0B 100%)' },
   { label: 'Rosa',     value: 'linear-gradient(135deg,#FECDD3 0%,#E11D48 100%)' },
   { label: 'Índigo',   value: 'linear-gradient(135deg,#EDE9FE 0%,#7C3AED 100%)' },
-  { label: 'Rosado',  value: 'linear-gradient(135deg,#FCE7F3 0%,#DB2777 100%)' },
+  { label: 'Violeta', value: 'linear-gradient(135deg,#EDE9FE 0%,#6B21A8 100%)' },
   { label: 'Violeta',  value: 'linear-gradient(135deg,#6B21A8 0%,#9333EA 100%)' },
   { label: 'Naranja',  value: 'linear-gradient(135deg,#FED7AA 0%,#EA580C 100%)' },
 ]
