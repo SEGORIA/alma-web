@@ -10,12 +10,12 @@ const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'
 
 /* ── Step accent colors (by 0-based index) ─────────────────── */
 const STEP_COLORS = [
-  { from: '#2563EB', to: '#60A5FA', glow: 'rgba(37,99,235,0.4)'   },
+  { from: '#6B21A8', to: '#9333EA', glow: 'rgba(107,33,168,0.4)'  },
   { from: '#7C3AED', to: '#A78BFA', glow: 'rgba(124,58,237,0.4)'  },
   { from: '#DB2777', to: '#F472B6', glow: 'rgba(219,39,119,0.4)'  },
   { from: '#D97706', to: '#FCD34D', glow: 'rgba(217,119,6,0.4)'   },
-  { from: '#059669', to: '#34D399', glow: 'rgba(5,150,105,0.4)'   },
-  { from: '#0891B2', to: '#67E8F9', glow: 'rgba(8,145,178,0.4)'   },
+  { from: '#9D174D', to: '#FDA4AF', glow: 'rgba(157,23,77,0.4)'   },
+  { from: '#4C1D95', to: '#818CF8', glow: 'rgba(76,29,149,0.4)'   },
 ]
 
 /* ── SVG icons by step index ───────────────────────────────── */

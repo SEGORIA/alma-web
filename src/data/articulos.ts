@@ -78,7 +78,7 @@ export const articulos: Articulo[] = [
     minutos:   4,
     fecha:     'Abr 2026',
     emoji:     '💻',
-    gradient:  'linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)',
+    gradient:  'linear-gradient(135deg, #4C1D95 0%, #818CF8 100%)',
     contenido: [
       { tipo: 'p', texto: 'En 2025, "tener presencia digital" ya no significa tener Instagram. Significa tener un ecosistema digital propio que trabaje por ti las 24 horas, los 7 días de la semana. Y el centro de ese ecosistema es tu sitio web.' },
       { tipo: 'p', texto: 'Si todavía dependes exclusivamente de las redes sociales para que te encuentren, estás construyendo sobre terreno prestado. Hoy Instagram te da alcance, mañana cambia el algoritmo y desapareces.' },
@@ -224,7 +224,7 @@ export const articulos: Articulo[] = [
     minutos:   4,
     fecha:     'Ene 2026',
     emoji:     '📖',
-    gradient:  'linear-gradient(135deg, #059669 0%, #34D399 100%)',
+    gradient:  'linear-gradient(135deg, #9D174D 0%, #F9A8D4 100%)',
     contenido: [
       { tipo: 'p', texto: 'Imagina contratar a un diseñador freelance para hacer una pieza. Termina, te entrega el trabajo y... los colores no son exactamente los tuyos, la tipografía es diferente a la que usas, el logo tiene proporciones distintas. ¿Te ha pasado?' },
       { tipo: 'p', texto: 'Eso es exactamente lo que evita un manual de marca. Es el documento que le dice a cualquier diseñador, empleado o socio exactamente cómo debe verse y sonar tu empresa.' },
@@ -317,9 +317,9 @@ export const articulos: Articulo[] = [
 // ── Helper ─────────────────────────────────────────────────────
 export const catColor: Record<string, string> = {
   Branding:            '#6B21A8',
-  'Diseño Web':        '#0284C7',
+  'Diseño Web':        '#7C3AED',
   'Marketing Digital': '#9333EA',
-  Estrategia:          '#059669',
+  Estrategia:          '#DB2777',
 }
 
 export const categorias = ['Todos', 'Branding', 'Diseño Web', 'Marketing Digital', 'Estrategia']

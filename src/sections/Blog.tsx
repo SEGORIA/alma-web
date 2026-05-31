@@ -165,7 +165,7 @@ export default function Blog() {
 
   return (
     <section id="blog" style={{
-      background: 'linear-gradient(160deg, #0A0118 0%, #160330 50%, #0D0220 100%)',
+      background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)',
       padding: isMobile ? '52px 20px' : '76px 24px',
       position: 'relative', overflow: 'hidden',
     }}>

@@ -30,7 +30,7 @@ const StarIcon = ({ size = 13, color = '#F59E0B' }: { size?: number; color?: str
 )
 const CheckIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-    <path d="M20 6L9 17l-5-5" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 6L9 17l-5-5" stroke="#9333EA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 const GiftIcon = ({ size = 22, color = 'white' }: { size?: number; color?: string }) => (
@@ -162,7 +162,7 @@ export default function LeadMagnet() {
       {/* Small floating dot accents */}
       {!isMobile && ([
         { top: '15%', left: '8%',  size: 8,  color: P,       delay: 0 },
-        { top: '70%', left: '12%', size: 6,  color: '#10B981', delay: 1.2 },
+        { top: '70%', left: '12%', size: 6,  color: '#EC4899', delay: 1.2 },
         { top: '25%', right: '6%', size: 10, color: Y,       delay: 0.6 },
         { top: '80%', right: '9%', size: 7,  color: P,       delay: 2 },
       ] as const).map((d, i) => (
@@ -187,16 +187,15 @@ export default function LeadMagnet() {
         gap: isMobile ? '32px' : '72px',
       }}>
 
-        {/* ── LEFT: 3D interactive card (desktop only) ── */}
-        {!isMobile && (
-          <motion.div
-            initial={{ opacity: 0, x: -36 }}
-            whileInView={{ opacity: 1, x: 0 }}
+        {/* ── LEFT: 3D interactive card ── */}
+        <motion.div
+            initial={{ opacity: 0, x: isMobile ? 0 : -36, y: isMobile ? -20 : 0 }}
+            whileInView={{ opacity: 1, x: 0, y: 0 }}
             viewport={{ once: true, margin: '-60px' }}
             transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-            style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center' }}
+            style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', maxWidth: isMobile ? '100%' : undefined }}
           >
-            <div style={{ position: 'relative', width: '100%', maxWidth: '340px' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: isMobile ? '380px' : '340px' }}>
 
               {/* Perspective wrapper — receives mouse events */}
               <div
@@ -361,7 +360,6 @@ export default function LeadMagnet() {
               </motion.div>
             </div>
           </motion.div>
-        )}
 
         {/* ── RIGHT: Text + form ── */}
         <motion.div
@@ -371,32 +369,6 @@ export default function LeadMagnet() {
           transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
           style={{ flex: '1 1 300px', maxWidth: isMobile ? '100%' : '480px' }}
         >
-          {/* Mobile mini kit card */}
-          {isMobile && (
-            <div style={{
-              background: '#fff', borderRadius: '16px', padding: '16px 20px',
-              marginBottom: '24px',
-              border: '1px solid rgba(107,33,168,0.1)',
-              boxShadow: '0 4px 20px rgba(107,33,168,0.08)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: `linear-gradient(135deg,${P},#9333EA)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <GiftIcon size={18} color="white" />
-                </div>
-                <p style={{ fontSize: '12px', color: P, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Kit gratuito incluye</p>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {recursos.map(r => (
-                  <div key={r.texto as string} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#374151', fontWeight: 500 }}>
-                    <span style={{ display: 'inline-flex', color: '#6B7280' }}>{r.icon}</span>
-                    <span style={{ flex: 1 }}>{r.texto}</span>
-                    <CheckIcon />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Eyebrow */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
             <div style={{ height: '2px', width: '24px', background: P, borderRadius: '2px' }} />
@@ -434,8 +406,8 @@ export default function LeadMagnet() {
                 exit={{ opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 22 }}
                 style={{
-                  background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
-                  border: '1.5px solid #86EFAC', borderRadius: '18px',
+                  background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)',
+                  border: '1.5px solid #A78BFA', borderRadius: '18px',
                   padding: '28px 24px',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
                 }}
@@ -446,19 +418,19 @@ export default function LeadMagnet() {
                   transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
                   style={{
                     width: '60px', height: '60px', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #22C55E, #16A34A)',
+                    background: 'linear-gradient(135deg, #6B21A8, #9333EA)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 28px rgba(34,197,94,0.35)',
+                    boxShadow: '0 8px 28px rgba(107,33,168,0.35)',
                   }}
                 >
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
                     <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </motion.div>
-                <p style={{ color: '#166534', fontWeight: 800, fontSize: '16px', textAlign: 'center' }}>
+                <p style={{ color: '#3B0764', fontWeight: 800, fontSize: '16px', textAlign: 'center' }}>
                   ¡Te lo enviamos por WhatsApp ahora mismo!
                 </p>
-                <p style={{ color: '#15803D', fontSize: '13px', textAlign: 'center' }}>
+                <p style={{ color: '#6B21A8', fontSize: '13px', textAlign: 'center' }}>
                   Revisa tus mensajes — llegará en segundos.
                 </p>
               </motion.div>
@@ -517,7 +489,7 @@ export default function LeadMagnet() {
                 {/* Trust */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#10B981" strokeWidth="2" strokeLinejoin="round"/>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#9333EA" strokeWidth="2" strokeLinejoin="round"/>
                   </svg>
                   <p style={{ fontSize: '12px', color: '#9CA3AF' }}>Sin spam. Solo recursos que realmente sirven.</p>
                 </div>

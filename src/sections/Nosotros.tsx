@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { P, Y } from '../tokens'
+import { P, PL, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getEquipo, getContactoInfo } from '../lib/db'
 import { equipoEstatico } from '../data/contenido'
@@ -9,69 +9,320 @@ import { contactoDefault } from '../data/config'
 import type { EquipoMember } from '../data/contenido'
 import { AnimatedCounter } from '../components/AnimatedCounter'
 
+/* ── Stat card icons ───────────────────────────────────────── */
+const ClockSvg = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+)
+const CheckboxSvg = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+)
+const HeartSvg = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+  </svg>
+)
+const TargetSvg = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="6"  stroke="currentColor" strokeWidth="2"/>
+    <circle cx="12" cy="12" r="2"  fill="currentColor"/>
+  </svg>
+)
 
+const STATS = [
+  { n: 6,   suffix: '+', label: 'Años de experiencia',     color: `linear-gradient(135deg,${P},#7C3AED)`,      icon: <ClockSvg />   },
+  { n: 150, suffix: '+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#DB2777,#EC4899)',    icon: <CheckboxSvg /> },
+  { n: 98,  suffix: '%', label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#9D174D,#FDA4AF)',    icon: <HeartSvg />   },
+  { n: 3,   suffix: '',  label: 'Líneas de servicio',       color: `linear-gradient(135deg,#D97706,#FBBF24)`,   icon: <TargetSvg />  },
+]
+
+const TEAM_EXTRAS = [
+  { iniciales: 'AN', bg: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
+  { iniciales: 'AM', bg: 'linear-gradient(135deg,#D97706,#FBBF24)' },
+  { iniciales: 'MA', bg: 'linear-gradient(135deg,#4C1D95,#818CF8)' },
+  { iniciales: 'DR', bg: 'linear-gradient(135deg,#7C3AED,#A78BFA)' },
+  { iniciales: 'RF', bg: 'linear-gradient(135deg,#6B21A8,#9333EA)' },
+]
+
+/* ── 3D Team Card ──────────────────────────────────────────── */
 function TeamCard({ m, index }: { m: EquipoMember; index: number }) {
-  const [hovered, setHovered] = useState(false)
+  const wrapRef                 = useRef<HTMLDivElement>(null)
+  const [tilt,  setTilt]        = useState({ x: 0, y: 0 })
+  const [hov,   setHov]         = useState(false)
+  const [sheen, setSheen]       = useState({ x: 50, y: 50 })
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!wrapRef.current) return
+    const r  = wrapRef.current.getBoundingClientRect()
+    const nx = (e.clientX - r.left) / r.width
+    const ny = (e.clientY - r.top)  / r.height
+    setTilt({ x: (ny - 0.5) * -20, y: (nx - 0.5) * 22 })
+    setSheen({ x: nx * 100, y: ny * 100 })
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        background: '#fff',
-        border: `1.5px solid ${hovered ? P : '#E5E7EB'}`,
-        borderRadius: '20px',
-        padding: '28px 24px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-        transform: hovered ? 'translateY(-6px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 20px 56px rgba(107,33,168,0.14)' : '0 2px 12px rgba(0,0,0,0.04)',
-        transition: 'all 0.3s ease',
-        cursor: 'default',
-      }}
+      transition={{ duration: 0.55, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      style={{ height: '100%' }}
     >
-      {/* Avatar */}
-      <div style={{
-        width: '88px', height: '88px', borderRadius: '50%',
-        background: m.foto ? 'transparent' : m.color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: '20px', flexShrink: 0,
-        overflow: 'hidden',
-        boxShadow: hovered ? '0 12px 32px rgba(107,33,168,0.25)' : '0 4px 16px rgba(0,0,0,0.12)',
-        transition: 'box-shadow 0.3s ease',
-        position: 'relative',
-        border: m.foto ? `3px solid ${hovered ? P : '#E5E7EB'}` : 'none',
-      }}>
-        {m.foto
-          ? <img src={m.foto} alt={m.nombre} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <>
-              <span style={{ fontSize: '28px' }}>{m.emoji}</span>
-              <div style={{
-                position: 'absolute', bottom: '-2px', right: '-2px',
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: '#fff', border: `2px solid ${hovered ? P : '#E5E7EB'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '12px', fontWeight: 900, color: P,
-                transition: 'border-color 0.3s ease',
-              }}>
-                {m.iniciales[0]}
-              </div>
-            </>
-        }
-      </div>
+      <div
+        ref={wrapRef}
+        onMouseMove={onMove}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => { setHov(false); setTilt({ x: 0, y: 0 }) }}
+        style={{ perspective: '900px', height: '100%', position: 'relative' }}
+      >
+        {/* Ambient glow behind card */}
+        <div style={{
+          position: 'absolute', inset: '-20px', borderRadius: '36px',
+          background: `radial-gradient(ellipse, ${P}1E 0%, transparent 65%)`,
+          filter: 'blur(20px)',
+          opacity: hov ? 1 : 0, transition: 'opacity 0.35s ease',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
 
-      <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#111827', marginBottom: '4px' }}>{m.nombre}</h3>
-      <p style={{ fontSize: '12px', fontWeight: 700, color: P, marginBottom: '12px', letterSpacing: '0.5px' }}>{m.rol}</p>
-      <p style={{ fontSize: '13px', lineHeight: 1.65, color: '#6B7280' }}>{m.desc}</p>
+        {/* 3D card surface */}
+        <motion.div
+          animate={{
+            rotateX: hov ? tilt.x : 0,
+            rotateY: hov ? tilt.y : 0,
+            scale:   hov ? 1.04  : 1,
+          }}
+          transition={{ type: 'spring', stiffness: 290, damping: 26, mass: 0.85 }}
+          style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '32px 24px',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', textAlign: 'center',
+            height: '100%', minHeight: '300px',
+            boxShadow: hov
+              ? `${-tilt.y * 1.2}px ${tilt.x}px 52px rgba(107,33,168,0.2), 0 20px 44px rgba(107,33,168,0.07)`
+              : '0 2px 18px rgba(107,33,168,0.07)',
+            border: `1.5px solid ${hov ? 'rgba(107,33,168,0.2)' : 'rgba(107,33,168,0.08)'}`,
+            position: 'relative', overflow: 'hidden',
+            cursor: 'default', zIndex: 1,
+          }}
+        >
+          {/* Sheen highlight */}
+          <div style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: `radial-gradient(ellipse 80% 60% at ${sheen.x}% ${sheen.y}%, rgba(255,255,255,0.32) 0%, transparent 58%)`,
+            opacity: hov ? 1 : 0, transition: 'opacity 0.22s ease',
+          }} />
+
+          {/* Expanding accent line at top */}
+          <motion.div
+            animate={{ width: hov ? '72%' : '28%' }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)',
+              height: '3px', background: `linear-gradient(90deg, ${P}, ${PL})`,
+              borderRadius: '0 0 4px 4px',
+            }}
+          />
+
+          {/* Avatar — lifts in Z on hover */}
+          <motion.div
+            animate={{ y: hov ? -8 : 0, scale: hov ? 1.08 : 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{
+              width: '90px', height: '90px', borderRadius: '50%',
+              overflow: 'hidden', marginBottom: '20px', flexShrink: 0,
+              background: m.foto ? 'transparent' : (m.color ?? `linear-gradient(135deg, ${P}, ${PL})`),
+              boxShadow: hov
+                ? `0 18px 42px rgba(107,33,168,0.3), 0 0 0 4px rgba(107,33,168,0.15)`
+                : `0 4px 18px rgba(0,0,0,0.12), 0 0 0 2px rgba(107,33,168,0.08)`,
+              transition: 'box-shadow 0.3s ease',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            {m.foto
+              ? <img src={m.foto} alt={m.nombre} loading="lazy"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: '22px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>
+                  {m.iniciales}
+                </span>
+            }
+          </motion.div>
+
+          {/* Name */}
+          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#111827', marginBottom: '7px', lineHeight: 1.2 }}>
+            {m.nombre}
+          </h3>
+
+          {/* Role pill */}
+          <motion.span
+            animate={{ background: hov ? `linear-gradient(135deg, ${P}15, ${PL}18)` : 'rgba(107,33,168,0.07)' }}
+            style={{
+              display: 'inline-flex', padding: '4px 13px', borderRadius: '20px',
+              fontSize: '11px', fontWeight: 700, color: P, letterSpacing: '0.3px',
+              marginBottom: '14px', border: `1px solid ${hov ? 'rgba(107,33,168,0.18)' : 'transparent'}`,
+              transition: 'border-color 0.25s ease',
+            }}
+          >
+            {m.rol}
+          </motion.span>
+
+          {/* Description */}
+          <p style={{ fontSize: '13px', lineHeight: 1.7, color: '#6B7280', flex: 1 }}>
+            {m.desc}
+          </p>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
 
+/* ── Ver Equipo card ───────────────────────────────────────── */
+function EquipoCard() {
+  const wrapRef                 = useRef<HTMLDivElement>(null)
+  const [tilt,   setTilt]       = useState({ x: 0, y: 0 })
+  const [hov,    setHov]        = useState(false)
+  const [sheen,  setSheen]      = useState({ x: 50, y: 50 })
+  const [fanHov, setFanHov]     = useState(false)
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!wrapRef.current) return
+    const r  = wrapRef.current.getBoundingClientRect()
+    const nx = (e.clientX - r.left) / r.width
+    const ny = (e.clientY - r.top)  / r.height
+    setTilt({ x: (ny - 0.5) * -18, y: (nx - 0.5) * 20 })
+    setSheen({ x: nx * 100, y: ny * 100 })
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      style={{ height: '100%' }}
+    >
+      <Link to="/equipo" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+        <div
+          ref={wrapRef}
+          onMouseMove={onMove}
+          onMouseEnter={() => { setHov(true); setFanHov(true) }}
+          onMouseLeave={() => { setHov(false); setFanHov(false); setTilt({ x: 0, y: 0 }) }}
+          style={{ perspective: '900px', height: '100%', position: 'relative' }}
+        >
+          {/* Glow */}
+          <div style={{
+            position: 'absolute', inset: '-20px', borderRadius: '36px',
+            background: `radial-gradient(ellipse, ${P}30 0%, transparent 65%)`,
+            filter: 'blur(22px)',
+            opacity: hov ? 1 : 0.4, transition: 'opacity 0.35s ease',
+            pointerEvents: 'none', zIndex: 0,
+          }} />
+
+          {/* 3D card surface */}
+          <motion.div
+            animate={{
+              rotateX: hov ? tilt.x : 0,
+              rotateY: hov ? tilt.y : 0,
+              scale:   hov ? 1.04  : 1,
+            }}
+            transition={{ type: 'spring', stiffness: 290, damping: 26, mass: 0.85 }}
+            style={{
+              background: `linear-gradient(145deg, ${P} 0%, #7C3AED 50%, #9333EA 100%)`,
+              borderRadius: '24px',
+              padding: '32px 24px',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', textAlign: 'center',
+              height: '100%', minHeight: '300px', justifyContent: 'center', gap: '18px',
+              boxShadow: hov
+                ? `${-tilt.y * 1.2}px ${tilt.x}px 52px rgba(107,33,168,0.4), 0 20px 44px rgba(107,33,168,0.25)`
+                : '0 8px 36px rgba(107,33,168,0.22)',
+              position: 'relative', overflow: 'hidden',
+              zIndex: 1, cursor: 'pointer',
+            }}
+          >
+            {/* Sheen */}
+            <div style={{
+              position: 'absolute', inset: 0, pointerEvents: 'none',
+              background: `radial-gradient(ellipse 80% 60% at ${sheen.x}% ${sheen.y}%, rgba(255,255,255,0.18) 0%, transparent 58%)`,
+              opacity: hov ? 1 : 0, transition: 'opacity 0.22s ease',
+            }} />
+            {/* Background decorative circles */}
+            <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '180px', height: '180px', borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: '-40px', left: '-40px', width: '130px', height: '130px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+
+            {/* Fanning avatars */}
+            <div style={{ position: 'relative', height: '48px', width: '200px', margin: '0 auto' }}>
+              {TEAM_EXTRAS.map((a, i) => (
+                <motion.div
+                  key={a.iniciales}
+                  animate={{
+                    x:     fanHov ? 2 + i * 40 : 30 + i * 26,
+                    y:     fanHov ? -Math.abs(i - 2) * 7 : 0,
+                    scale: fanHov ? 1.14 : 1,
+                    rotate: fanHov ? (i - 2) * 6 : 0,
+                  }}
+                  transition={{ type: 'spring', stiffness: 350, damping: 22, delay: i * 0.035 }}
+                  style={{
+                    position: 'absolute', top: 4, left: 0,
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    background: a.bg,
+                    border: '2.5px solid rgba(255,255,255,0.55)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '11px', fontWeight: 800, color: '#fff',
+                    zIndex: fanHov ? i + 1 : 5 - i,
+                    boxShadow: '0 3px 12px rgba(0,0,0,0.25)',
+                  }}
+                >
+                  {a.iniciales}
+                </motion.div>
+              ))}
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <p style={{ fontSize: '16px', fontWeight: 800, color: '#fff', marginBottom: '8px' }}>
+                +5 personas más
+              </p>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.6, maxWidth: '200px', margin: '0 auto' }}>
+                Diseñadores, estrategas, creadores y programadores listos para tu proyecto.
+              </p>
+            </div>
+
+            {/* CTA pill */}
+            <motion.div
+              animate={{ scale: hov ? 1.06 : 1, y: hov ? -2 : 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                background: Y, color: '#111',
+                padding: '10px 22px', borderRadius: '12px',
+                fontWeight: 800, fontSize: '13px',
+                boxShadow: hov ? '0 8px 24px rgba(250,204,21,0.45)' : '0 4px 14px rgba(250,204,21,0.3)',
+                transition: 'box-shadow 0.25s ease',
+                position: 'relative', zIndex: 2,
+              }}
+            >
+              Ver equipo completo
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </motion.div>
+          </motion.div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
+/* ── Main ──────────────────────────────────────────────────── */
 export default function Nosotros() {
-  const isMobile = useIsMobile()
+  const isMobile              = useIsMobile()
   const [equipo,  setEquipo]  = useState<EquipoMember[]>(equipoEstatico)
   const [waLink,  setWaLink]  = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20conocer%20m%C3%A1s%20sobre%20Alma`
@@ -85,17 +336,26 @@ export default function Nosotros() {
   }, [])
 
   return (
-    <section style={{ background: '#fff', padding: isMobile ? '60px 20px' : '100px 24px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <section style={{
+      background: 'linear-gradient(160deg, #FFFFFF 0%, #F5F3FF 55%, #FAF8FF 100%)',
+      padding: isMobile ? '60px 20px' : '100px 24px',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      {/* Ambient glows */}
+      <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '480px', height: '480px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(107,33,168,0.07) 0%, transparent 65%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-80px', left: '-60px', width: '360px', height: '360px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(250,204,21,0.07) 0%, transparent 65%)', pointerEvents: 'none' }} />
 
-        {/* ── Header 2 columnas ── */}
+      <div style={{ maxWidth: '1100px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+
+        {/* ── About section ── */}
         <div style={{
-          display: 'flex', gap: isMobile ? '32px' : '80px',
+          display: 'flex', gap: isMobile ? '40px' : '80px',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: isMobile ? 'flex-start' : 'center',
-          marginBottom: isMobile ? '48px' : '72px',
+          marginBottom: isMobile ? '56px' : '80px',
         }}>
-          {/* Left */}
+
+          {/* Left — text */}
           <motion.div
             initial={{ opacity: 0, x: -24 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -103,37 +363,53 @@ export default function Nosotros() {
             transition={{ duration: 0.6 }}
             style={{ flex: '1 1 320px' }}
           >
-            <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px' }}>
-              Quiénes somos
-            </p>
-            <h2 style={{ fontSize: isMobile ? 'clamp(28px,7vw,40px)' : 'clamp(32px,4vw,52px)', fontWeight: 900, color: '#111827', letterSpacing: '-2px', lineHeight: 1.05, marginBottom: '20px' }}>
+            {/* Eyebrow */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <div style={{ height: '2px', width: '24px', background: P, borderRadius: '2px' }} />
+              <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                Quiénes somos
+              </p>
+            </div>
+
+            <h2 style={{
+              fontSize: isMobile ? 'clamp(28px,7vw,40px)' : 'clamp(32px,4vw,52px)',
+              fontWeight: 900, color: '#111827',
+              letterSpacing: '-2px', lineHeight: 1.05, marginBottom: '20px',
+            }}>
               Somos Alma,<br />
-              <span className="gradient-text">somos tu equipo.</span>
+              <span style={{ color: P }}>somos tu equipo.</span>
             </h2>
-            <p style={{ fontSize: isMobile ? '15px' : '17px', lineHeight: 1.7, color: '#4B5563', marginBottom: '28px' }}>
+
+            <p style={{ fontSize: isMobile ? '15px' : '16px', lineHeight: 1.75, color: '#4B5563', marginBottom: '20px' }}>
               Somos una agencia creativa nacida en Manizales con una misión clara: convertir cada marca en una experiencia que conecta, emociona y genera resultados reales.
             </p>
-            <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#4B5563', marginBottom: '32px' }}>
+            <p style={{ fontSize: '15px', lineHeight: 1.75, color: '#4B5563', marginBottom: '32px' }}>
               No somos intermediarios ni plantillas. Cada proyecto tiene un equipo dedicado, un proceso claro y una obsesión por los detalles que marcan la diferencia.
             </p>
-            <a
+
+            {/* CTA */}
+            <motion.a
               href={waLink}
               target="_blank" rel="noopener noreferrer"
+              whileHover={{ scale: 1.03, y: -2 }}
+              whileTap={{ scale: 0.97 }}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: P, color: '#fff',
-                padding: '14px 28px', borderRadius: '12px',
+                display: 'inline-flex', alignItems: 'center', gap: '10px',
+                background: `linear-gradient(135deg, ${P}, #7C3AED)`,
+                color: '#fff', padding: '14px 28px', borderRadius: '12px',
                 fontWeight: 700, fontSize: '14px', textDecoration: 'none',
-                transition: 'background 0.2s ease',
+                boxShadow: `0 6px 22px rgba(107,33,168,0.32)`,
+                transition: 'box-shadow 0.2s ease',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#581C87')}
-              onMouseLeave={e => (e.currentTarget.style.background = P)}
             >
-              Trabaja con nosotros →
-            </a>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              Trabaja con nosotros
+            </motion.a>
           </motion.div>
 
-          {/* Right — stats */}
+          {/* Right — stats grid with 3D hover */}
           <motion.div
             initial={{ opacity: 0, x: 24 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -143,143 +419,82 @@ export default function Nosotros() {
               flex: '0 0 auto',
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: '16px',
+              gap: '14px',
               width: isMobile ? '100%' : '340px',
             }}
           >
-            {[
-              { n: 6,   suffix: '+', label: 'Años de experiencia',     color: `linear-gradient(135deg,${P},#9333EA)` },
-              { n: 150, suffix: '+', label: 'Proyectos entregados',    color: 'linear-gradient(135deg,#E11D48,#F43F5E)' },
-              { n: 98,  suffix: '%', label: 'Clientes satisfechos',    color: 'linear-gradient(135deg,#059669,#34D399)' },
-              { n: 3,   suffix: '',  label: 'Servicios especializados', color: 'linear-gradient(135deg,#F59E0B,#FBBF24)' },
-            ].map((s, i) => (
+            {STATS.map((s, i) => (
               <motion.div
                 key={s.label}
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.88 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
+                whileHover={{ scale: 1.07, rotateX: -5, rotateY: 6, z: 20 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.35, delay: 0.2 + i * 0.08, type: 'spring', stiffness: 280, damping: 22 }}
                 style={{
                   background: s.color,
-                  borderRadius: '16px',
-                  padding: '20px 16px',
+                  borderRadius: '18px',
+                  padding: '22px 16px',
                   textAlign: 'center',
+                  boxShadow: '0 4px 18px rgba(0,0,0,0.12)',
+                  cursor: 'default',
+                  perspective: '600px',
                 }}
               >
-                <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px', color: 'rgba(255,255,255,0.75)' }}>
+                  {s.icon}
+                </div>
+                <p style={{ fontSize: '30px', fontWeight: 900, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
                   <AnimatedCounter value={s.n} suffix={s.suffix} duration={1.6} />
                 </p>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', marginTop: '6px', fontWeight: 600, lineHeight: 1.3 }}>{s.label}</p>
+                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.82)', marginTop: '7px', fontWeight: 600, lineHeight: 1.35 }}>
+                  {s.label}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </div>
 
-        {/* ── Equipo ── */}
+        {/* ── Team section heading ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.5 }}
-          style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '40px' }}
+          style={{ textAlign: 'center', marginBottom: isMobile ? '28px' : '44px' }}
         >
-          <p style={{ color: P, fontSize: '12px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>El equipo</p>
-          <h3 style={{ fontSize: 'clamp(22px,3vw,32px)', fontWeight: 900, color: '#111827', letterSpacing: '-1px' }}>
-            Las personas detrás de <span style={{ color: P }}>cada proyecto</span>
+          <p style={{
+            color: P, fontSize: '12px', fontWeight: 700,
+            letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px',
+          }}>El equipo</p>
+          <h3 style={{
+            fontSize: isMobile ? 'clamp(22px,5vw,32px)' : 'clamp(24px,3vw,36px)',
+            fontWeight: 900, color: '#111827', letterSpacing: '-1px', lineHeight: 1.1,
+          }}>
+            Las personas detrás de{' '}
+            <span style={{ color: P }}>cada proyecto</span>
           </h3>
         </motion.div>
 
+        {/* ── 3 cards ── */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
           maxWidth: isMobile ? '100%' : '960px',
           margin: '0 auto',
           gap: isMobile ? '14px' : '20px',
-          marginBottom: isMobile ? '40px' : '64px',
         }}>
-          {/* Solo los 2 fundadores */}
-          {equipo.slice(0, 2).map((m, i) => <TeamCard key={m._id ?? m.nombre} m={m} index={i} />)}
-
-          {/* Tarjeta-enlace al equipo completo */}
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Link
-              to="/equipo"
-              style={{ textDecoration: 'none', display: 'block', height: '100%' }}
-            >
-              <div style={{
-                background: `linear-gradient(135deg, ${P}, #9333EA)`,
-                border: '1.5px solid transparent',
-                borderRadius: '20px',
-                padding: '28px 24px',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', textAlign: 'center',
-                height: '100%', minHeight: '240px',
-                justifyContent: 'center', gap: '16px',
-                boxShadow: '0 8px 32px rgba(107,33,168,0.2)',
-                cursor: 'pointer',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-              }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-6px)'
-                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 20px 52px rgba(107,33,168,0.3)'
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
-                  ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 32px rgba(107,33,168,0.2)'
-                }}
-              >
-                {/* Avatares mini apilados */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '4px' }}>
-                  {[
-                    { iniciales: 'AN', bg: 'linear-gradient(135deg,#EC4899,#F43F5E)' },
-                    { iniciales: 'AM', bg: 'linear-gradient(135deg,#D97706,#FBBF24)' },
-                    { iniciales: 'MA', bg: 'linear-gradient(135deg,#0891B2,#67E8F9)' },
-                    { iniciales: 'DR', bg: 'linear-gradient(135deg,#7C3AED,#A78BFA)' },
-                    { iniciales: 'RF', bg: 'linear-gradient(135deg,#059669,#34D399)'  },
-                  ].map((a, i) => (
-                    <div key={a.iniciales} style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      background: a.bg,
-                      border: '2px solid rgba(255,255,255,0.4)',
-                      marginLeft: i > 0 ? '-8px' : '0',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '12px', fontWeight: 800, color: '#fff',
-                      position: 'relative', zIndex: 5 - i,
-                    }}>
-                      {a.iniciales}
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <p style={{ fontSize: '15px', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
-                    +5 personas más
-                  </p>
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
-                    Diseñadores, estrategas, creadores y programadores listos para tu proyecto.
-                  </p>
-                </div>
-
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  background: Y, color: '#111',
-                  padding: '9px 20px', borderRadius: '10px',
-                  fontWeight: 700, fontSize: '13px',
-                  marginTop: '4px',
-                }}>
-                  Ver equipo completo →
-                </div>
-              </div>
-            </Link>
-          </motion.div>
+          {equipo.slice(0, 2).map((m, i) => (
+            <TeamCard key={m._id ?? m.nombre} m={m} index={i} />
+          ))}
+          <EquipoCard />
         </div>
 
       </div>
+
+      {/* Suppress AnimatePresence warning */}
+      <AnimatePresence />
     </section>
   )
 }

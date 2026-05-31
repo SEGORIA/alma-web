@@ -47,7 +47,7 @@ export const equipoEstatico: EquipoMember[] = [
   {
     nombre: 'Lina Márquez', rol: 'Coordinadora de Clientes',
     desc: 'El puente entre el equipo y cada cliente. Asegura que cada experiencia sea clara, cercana y que los proyectos avancen con total tranquilidad.',
-    iniciales: 'LM', emoji: '🤝', color: 'linear-gradient(135deg,#0284C7,#38BDF8)', orden: 2,
+    iniciales: 'LM', emoji: '🤝', color: 'linear-gradient(135deg,#4C1D95,#818CF8)', orden: 2,
   },
   {
     nombre: 'Anny', rol: 'Creadora Audiovisual',
@@ -62,7 +62,7 @@ export const equipoEstatico: EquipoMember[] = [
   {
     nombre: 'Mariana Alvarán', rol: 'Diseñadora Gráfica & Publicista',
     desc: 'Crea piezas que enamoran. Fusiona diseño gráfico y comunicación publicitaria para dar vida a identidades visuales memorables y coherentes.',
-    iniciales: 'MA', emoji: '🎨', color: 'linear-gradient(135deg,#0891B2,#67E8F9)', orden: 5,
+    iniciales: 'MA', emoji: '🎨', color: 'linear-gradient(135deg,#DB2777,#F472B6)', orden: 5,
   },
   {
     nombre: 'Daniela Ruiz', rol: 'Estratega Holística',
@@ -72,12 +72,12 @@ export const equipoEstatico: EquipoMember[] = [
   {
     nombre: 'Roger Flores', rol: 'Programador',
     desc: 'Convierte diseños en experiencias digitales que funcionan. Construye webs y aplicaciones rápidas, accesibles y optimizadas para convertir visitantes en clientes.',
-    iniciales: 'RF', emoji: '⚙️', color: 'linear-gradient(135deg,#059669,#34D399)', orden: 7,
+    iniciales: 'RF', emoji: '⚙️', color: 'linear-gradient(135deg,#6B21A8,#9333EA)', orden: 7,
   },
   {
     nombre: 'Natalia Sánchez', rol: 'Abogada',
     desc: 'Protege cada proyecto desde su base legal. Asesora en contratos, propiedad intelectual y cumplimiento normativo para que la marca opere con total respaldo jurídico.',
-    iniciales: 'NS', emoji: '⚖️', color: 'linear-gradient(135deg,#1D4ED8,#60A5FA)', orden: 8,
+    iniciales: 'NS', emoji: '⚖️', color: 'linear-gradient(135deg,#9D174D,#FDA4AF)', orden: 8,
   },
 ]
 
@@ -85,10 +85,10 @@ export const equipoEstatico: EquipoMember[] = [
 export const EQUIPO_GRADIENTES = [
   'linear-gradient(135deg,#E11D48,#F43F5E)',
   'linear-gradient(135deg,#6B21A8,#9333EA)',
-  'linear-gradient(135deg,#0284C7,#38BDF8)',
-  'linear-gradient(135deg,#059669,#34D399)',
+  'linear-gradient(135deg,#4C1D95,#818CF8)',
+  'linear-gradient(135deg,#9D174D,#FDA4AF)',
   'linear-gradient(135deg,#D97706,#FCD34D)',
   'linear-gradient(135deg,#7C3AED,#A78BFA)',
-  'linear-gradient(135deg,#DC2626,#F87171)',
-  'linear-gradient(135deg,#0891B2,#67E8F9)',
+  'linear-gradient(135deg,#DB2777,#F472B6)',
+  'linear-gradient(135deg,#581C87,#9333EA)',
 ]

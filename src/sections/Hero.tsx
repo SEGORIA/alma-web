@@ -278,12 +278,12 @@ export default function Hero() {
             >
               <div style={{
                 width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-                background: 'linear-gradient(135deg,#D1FAE5,#059669)',
+                background: 'linear-gradient(135deg,#EDE9FE,#7C3AED)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '18px', fontWeight: 900, color: '#fff',
               }}>↑</div>
               <div>
-                <p style={{ fontSize: '13px', fontWeight: 800, color: '#059669', lineHeight: 1.2 }}>+127% Engagement</p>
+                <p style={{ fontSize: '13px', fontWeight: 800, color: '#7C3AED', lineHeight: 1.2 }}>+127% Engagement</p>
                 <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px', fontWeight: 500 }}>vs. mes anterior</p>
               </div>
             </motion.div>
@@ -323,7 +323,7 @@ export default function Hero() {
                     <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>Tipografía Principal</p>
                     <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px' }}>Playfair Display · Bold</p>
                   </div>
-                  <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#ECFDF5', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#059669' }}>✓</div>
+                  <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#F5F3FF', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: '#7C3AED' }}>✓</div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
@@ -341,7 +341,7 @@ export default function Hero() {
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid #F3F4F6' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10B981' }} />
+                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#9333EA' }} />
                     <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500 }}>Entregado al cliente</span>
                   </div>
                   <span style={{ fontSize: '12px', fontWeight: 700, color: P }}>Ver caso →</span>

@@ -62,7 +62,7 @@ export const proyectosEstaticos: Proyecto[] = [
     desc:   'Sitio corporativo para firma de abogados con blog integrado, formulario de consultas y SEO posicionado.',
     año:    '2023',
     tags:   ['Corporativo', 'Blog', 'SEO'],
-    g:      'linear-gradient(135deg,#BAE6FD 0%,#0284C7 100%)',
+    g:      'linear-gradient(135deg,#EDE9FE 0%,#7C3AED 100%)',
   },
   {
     titulo: 'Bloom Spa',
@@ -70,7 +70,7 @@ export const proyectosEstaticos: Proyecto[] = [
     desc:   'Gestión mensual de redes sociales, diseño de contenido y campañas de pauta con enfoque en reservas online.',
     año:    '2024',
     tags:   ['Community', 'Diseño', 'Conversión'],
-    g:      'linear-gradient(135deg,#D1FAE5 0%,#059669 100%)',
+    g:      'linear-gradient(135deg,#FCE7F3 0%,#DB2777 100%)',
   },
 ]
 
@@ -81,8 +81,8 @@ export const gradientesDisponibles = [
   { label: 'Índigo',   value: 'linear-gradient(135deg,#DDD6FE 0%,#7C3AED 100%)' },
   { label: 'Ámbar',    value: 'linear-gradient(135deg,#FDE68A 0%,#F59E0B 100%)' },
   { label: 'Rosa',     value: 'linear-gradient(135deg,#FECDD3 0%,#E11D48 100%)' },
-  { label: 'Azul',     value: 'linear-gradient(135deg,#BAE6FD 0%,#0284C7 100%)' },
-  { label: 'Verde',    value: 'linear-gradient(135deg,#D1FAE5 0%,#059669 100%)' },
+  { label: 'Índigo',   value: 'linear-gradient(135deg,#EDE9FE 0%,#7C3AED 100%)' },
+  { label: 'Rosado',  value: 'linear-gradient(135deg,#FCE7F3 0%,#DB2777 100%)' },
   { label: 'Violeta',  value: 'linear-gradient(135deg,#6B21A8 0%,#9333EA 100%)' },
   { label: 'Naranja',  value: 'linear-gradient(135deg,#FED7AA 0%,#EA580C 100%)' },
 ]

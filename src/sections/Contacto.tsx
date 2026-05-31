@@ -326,7 +326,7 @@ export default function Contacto() {
   return (
     <>
       <section style={{
-        background: 'linear-gradient(155deg, #1E0B3B 0%, #2D1060 45%, #150829 100%)',
+        background: 'linear-gradient(160deg, #0D0220 0%, #1A0535 55%, #0A0118 100%)',
         padding: isMobile ? '60px 20px' : '100px 24px',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -375,18 +375,18 @@ export default function Contacto() {
               transition={{ duration: 0.5 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
+                background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.25)',
                 borderRadius: '20px', padding: '6px 14px',
                 marginBottom: '24px', alignSelf: 'flex-start',
               }}
             >
               <span style={{
-                width: '7px', height: '7px', borderRadius: '50%', background: '#10B981',
-                boxShadow: '0 0 0 3px rgba(16,185,129,0.2)',
+                width: '7px', height: '7px', borderRadius: '50%', background: '#9333EA',
+                boxShadow: '0 0 0 3px rgba(147,51,234,0.2)',
                 display: 'block', flexShrink: 0,
                 animation: 'pulse-ring 1.4s ease-in-out infinite',
               }} />
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#34D399' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#C084FC' }}>
                 Disponibles · Respondemos en &lt;24h
               </span>
             </motion.div>

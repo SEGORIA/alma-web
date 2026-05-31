@@ -24,7 +24,7 @@ const posts = [
   {
     id:       2,
     img:      '/instagram/post2.jpg',
-    gradient: 'linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)',
+    gradient: 'linear-gradient(135deg, #4C1D95 0%, #818CF8 100%)',
     emoji:    '💻',
     tag:      'Diseño Web',
   },
@@ -38,7 +38,7 @@ const posts = [
   {
     id:       4,
     img:      '/instagram/post4.jpg',
-    gradient: 'linear-gradient(135deg, #059669 0%, #34D399 100%)',
+    gradient: 'linear-gradient(135deg, #9D174D 0%, #F9A8D4 100%)',
     emoji:    '📱',
     tag:      'Redes Sociales',
   },

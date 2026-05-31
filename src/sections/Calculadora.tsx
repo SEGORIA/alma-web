@@ -10,16 +10,16 @@ const STEPS = ['Servicio', 'Plan', 'Extras', 'Resumen']
 
 // Paleta de colores por posición para las tarjetas de servicio
 const SERVICE_GRADIENTS = [
-  'linear-gradient(135deg,#2563EB,#1D4ED8)',
-  'linear-gradient(135deg,#7C3AED,#9333EA)',
-  'linear-gradient(135deg,#059669,#10B981)',
+  'linear-gradient(135deg,#6B21A8,#9333EA)',
+  'linear-gradient(135deg,#7C3AED,#A78BFA)',
+  'linear-gradient(135deg,#9D174D,#FDA4AF)',
   'linear-gradient(135deg,#D97706,#F59E0B)',
   'linear-gradient(135deg,#DB2777,#EC4899)',
 ]
 const SERVICE_GLOWS = [
-  'rgba(37,99,235,0.45)',
+  'rgba(107,33,168,0.45)',
   'rgba(124,58,237,0.45)',
-  'rgba(5,150,105,0.45)',
+  'rgba(157,23,77,0.45)',
   'rgba(217,119,6,0.45)',
   'rgba(219,39,119,0.45)',
 ]
@@ -213,9 +213,9 @@ export default function Calculadora() {
               <div key={s} style={{ display: 'flex', alignItems: 'center' }}>
                 <motion.div
                   animate={{
-                    background: done ? '#10B981' : current ? P : 'rgba(255,255,255,0.08)',
+                    background: done ? '#9333EA' : current ? P : 'rgba(255,255,255,0.08)',
                     boxShadow: current ? `0 0 0 4px rgba(107,33,168,0.2), 0 0 22px ${P}66` : 'none',
-                    borderColor: done ? '#10B981' : current ? P : 'rgba(255,255,255,0.15)',
+                    borderColor: done ? '#9333EA' : current ? P : 'rgba(255,255,255,0.15)',
                   }}
                   transition={{ duration: 0.35 }}
                   style={{
@@ -231,12 +231,12 @@ export default function Calculadora() {
                 {!isMobile && (
                   <span style={{
                     fontSize: '12px', fontWeight: 600, marginLeft: '6px', transition: 'color 0.3s',
-                    color: done ? '#10B981' : current ? Y : 'rgba(255,255,255,0.3)',
+                    color: done ? '#9333EA' : current ? Y : 'rgba(255,255,255,0.3)',
                   }}>{s}</span>
                 )}
                 {i < STEPS.length - 1 && (
                   <motion.div
-                    animate={{ background: done ? '#10B981' : 'rgba(255,255,255,0.08)' }}
+                    animate={{ background: done ? '#9333EA' : 'rgba(255,255,255,0.08)' }}
                     transition={{ duration: 0.4 }}
                     style={{ width: isMobile ? '24px' : '40px', height: '2px', margin: isMobile ? '0 6px' : '0 12px', borderRadius: '2px', flexShrink: 0 }}
                   />
