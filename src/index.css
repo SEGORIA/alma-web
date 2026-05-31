@@ -103,7 +103,7 @@
 
 /* ── Móvil: espacio para barra sticky de WhatsApp ── */
 @media (max-width: 767px) {
-  body { padding-bottom: 58px; background: #070014; }
+  body { padding-bottom: 58px; background: #581C87; }
 }
 
 /* ── Buscador del Blog (placeholder translúcido sobre fondo morado) ── */
