@@ -6,9 +6,6 @@ import { getBriefFormConfig } from '../lib/db'
 import type { BriefFormConfig } from '../data/briefs'
 
 /* ── Config ─────────────────────────────────────────────────── */
-const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbw5ta5-0VXxIvavzKNLxnpCp0rDx8NyvtTAn45cWySqZM6H21ziERvvABuRlFsi5k92/exec'
-
 const V   = '#6E2DFF'  // violet
 const AME = '#A855F7'  // amethyst
 
@@ -345,14 +342,6 @@ export default function BriefPage() {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
       }).catch(err => console.warn('[brief] email API:', err))
-
-      /* 3. Google Sheets (no-cors — fire & forget) */
-      fetch(APPS_SCRIPT_URL, {
-        method:  'POST',
-        mode:    'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body:    JSON.stringify(payload),
-      }).catch(err => console.warn('[brief] sheets:', err))
 
       setSubmitted(true)
       showToast('✅ ¡Briefing enviado! Te contactaremos pronto.', 'success')
