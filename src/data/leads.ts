@@ -13,6 +13,7 @@ export type KitArchivo = {
 export type Lead = {
   _id?:      string
   email:     string
+  telefono?: string
   fuente:    'kit'
   estado:    'nuevo' | 'contactado' | 'cerrado'
   createdAt?: unknown

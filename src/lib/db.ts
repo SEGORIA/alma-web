@@ -468,11 +468,12 @@ export async function updateKitArchivoOrden(id: string, orden: number) {
 
 /* ══ LEADS ══════════════════════════════════════════════════ */
 
-export async function saveLead(email: string): Promise<void> {
+export async function saveLead(email: string, telefono?: string): Promise<void> {
   if (!firebaseReady || !db) return
   try {
     await addDoc(leadsCol(), {
       email:     email.trim().toLowerCase(),
+      ...(telefono ? { telefono: telefono.trim() } : {}),
       fuente:    'kit',
       estado:    'nuevo',
       createdAt: serverTimestamp(),

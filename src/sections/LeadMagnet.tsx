@@ -102,11 +102,13 @@ function ResourceItem({ r, index }: { r: { icon: React.FC; texto: string }; inde
 /* ── Main ──────────────────────────────────────────────────── */
 export default function LeadMagnet() {
   const isMobile              = useIsMobile()
-  const [email, setEmail]     = useState('')
-  const [focused, setFocused] = useState(false)
-  const [sent, setSent]       = useState(false)
-  const [phone, setPhone]     = useState(contactoDefault.whatsapp)
-  const [btnHov, setBtnHov]   = useState(false)
+  const [email,     setEmail]     = useState('')
+  const [telefono,  setTelefono]  = useState('')
+  const [focused,   setFocused]   = useState<'email'|'tel'|null>(null)
+  const [sent,      setSent]      = useState(false)
+  const [sending,   setSending]   = useState(false)
+  const [phone,     setPhone]     = useState(contactoDefault.whatsapp)
+  const [btnHov,    setBtnHov]    = useState(false)
   const [lmConfig,      setLmConfig]      = useState<LeadMagnetConfig>(leadMagnetDefault)
   const [kitArchivos,   setKitArchivos]   = useState<KitArchivo[]>([])
 
@@ -147,14 +149,34 @@ export default function LeadMagnet() {
   const handle = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
-    // Guardar lead en Firestore (en background, no bloquea)
-    saveLead(email)
+    setSending(true)
+    // Guardar en Firestore (background)
+    saveLead(email, telefono || undefined)
+    // Llamar API de email
+    try {
+      await fetch('/api/send-kit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          email:    email.trim(),
+          telefono: telefono.trim() || undefined,
+          archivos: kitArchivos.map(a => ({
+            nombre:      a.nombre,
+            url:         a.url,
+            tipo:        a.tipo,
+            descripcion: a.descripcion,
+          })),
+        }),
+      })
+    } catch { /* silencioso — igual mostramos la pantalla de éxito */ }
+    setSending(false)
     setSent(true)
   }
 
   const openWhatsApp = () => {
+    const wa = telefono.replace(/\D/g, '') || phone
     const texto = `Hola, acabo de descargar el kit gratuito de Alma. Mi correo es: ${email.trim()}`
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
+    window.open(`https://wa.me/${wa}?text=${encodeURIComponent(texto)}`, '_blank')
   }
 
   return (
@@ -533,58 +555,87 @@ export default function LeadMagnet() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
               >
-                {/* Email + button row */}
+                {/* Email */}
                 <div style={{
-                  display: 'flex',
-                  flexDirection: isMobile ? 'column' : 'row',
-                  borderRadius: '14px', overflow: 'hidden',
-                  boxShadow: focused
-                    ? `0 0 0 3px rgba(107,33,168,0.18), 0 8px 28px rgba(107,33,168,0.12)`
-                    : '0 4px 18px rgba(0,0,0,0.07)',
-                  transition: 'box-shadow 0.25s ease',
-                  border: `2px solid ${focused ? P : '#E5E7EB'}`,
+                  display: 'flex', alignItems: 'center',
+                  borderRadius: '12px', overflow: 'hidden',
+                  boxShadow: focused === 'email'
+                    ? `0 0 0 3px rgba(107,33,168,0.18)`
+                    : '0 2px 10px rgba(0,0,0,0.06)',
+                  border: `2px solid ${focused === 'email' ? P : '#E5E7EB'}`,
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                  background: '#fff',
                 }}>
+                  <span style={{ padding: '0 12px 0 14px', fontSize: '16px', color: focused === 'email' ? P : '#9CA3AF' }}>✉️</span>
                   <input
                     type="email" required value={email}
                     aria-label="Correo electrónico"
                     onChange={e => setEmail(e.target.value)}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
+                    onFocus={() => setFocused('email')}
+                    onBlur={() => setFocused(null)}
                     placeholder="tu@correo.com"
-                    style={{
-                      flex: 1, padding: '16px 18px',
-                      border: 'none', outline: 'none',
-                      fontSize: '15px', color: '#111', background: '#fff',
-                    }}
+                    style={{ flex: 1, padding: '14px 14px 14px 0', border: 'none', outline: 'none', fontSize: '15px', color: '#111', background: 'transparent' }}
                   />
-                  <button
-                    type="submit"
-                    onMouseEnter={() => setBtnHov(true)}
-                    onMouseLeave={() => setBtnHov(false)}
-                    style={{
-                      background: btnHov
-                        ? `linear-gradient(135deg, #581C87, ${P})`
-                        : `linear-gradient(135deg, ${P}, #7C3AED)`,
-                      color: '#fff',
-                      padding: isMobile ? '16px' : '16px 26px',
-                      border: 'none', cursor: 'pointer',
-                      fontWeight: 800, fontSize: '14px',
-                      whiteSpace: 'nowrap',
-                      transition: 'background 0.25s ease',
-                      letterSpacing: '-0.2px',
-                    }}
-                  >
-                    Quiero el kit →
-                  </button>
                 </div>
 
+                {/* Teléfono / WhatsApp */}
+                <div style={{
+                  display: 'flex', alignItems: 'center',
+                  borderRadius: '12px', overflow: 'hidden',
+                  boxShadow: focused === 'tel'
+                    ? `0 0 0 3px rgba(37,211,102,0.18)`
+                    : '0 2px 10px rgba(0,0,0,0.06)',
+                  border: `2px solid ${focused === 'tel' ? '#25D366' : '#E5E7EB'}`,
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                  background: '#fff',
+                }}>
+                  <span style={{ padding: '0 12px 0 14px', fontSize: '16px', color: focused === 'tel' ? '#15803D' : '#9CA3AF' }}>📱</span>
+                  <input
+                    type="tel" value={telefono}
+                    aria-label="Número de WhatsApp"
+                    onChange={e => setTelefono(e.target.value)}
+                    onFocus={() => setFocused('tel')}
+                    onBlur={() => setFocused(null)}
+                    placeholder="WhatsApp (ej: 573001234567)"
+                    style={{ flex: 1, padding: '14px 14px 14px 0', border: 'none', outline: 'none', fontSize: '15px', color: '#111', background: 'transparent' }}
+                  />
+                </div>
+
+                {/* Botón */}
+                <button
+                  type="submit"
+                  disabled={sending}
+                  onMouseEnter={() => setBtnHov(true)}
+                  onMouseLeave={() => setBtnHov(false)}
+                  style={{
+                    background: sending
+                      ? '#E5E7EB'
+                      : btnHov
+                        ? `linear-gradient(135deg, #581C87, ${P})`
+                        : `linear-gradient(135deg, ${P}, #7C3AED)`,
+                    color: sending ? '#9CA3AF' : '#fff',
+                    padding: '15px',
+                    border: 'none', cursor: sending ? 'not-allowed' : 'pointer',
+                    borderRadius: '12px',
+                    fontWeight: 800, fontSize: '15px',
+                    transition: 'background 0.25s ease',
+                    letterSpacing: '-0.2px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}
+                >
+                  {sending
+                    ? <><span style={{ fontSize: '16px' }}>⏳</span> Enviando kit…</>
+                    : <><span>🎁</span> Quiero el kit gratis</>}
+                </button>
+
                 {/* Trust */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#9333EA" strokeWidth="2" strokeLinejoin="round"/>
                   </svg>
-                  <p style={{ fontSize: '12px', color: '#9CA3AF' }}>Sin spam. Solo recursos que realmente sirven.</p>
+                  <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0 }}>Sin spam · El kit llega a tu correo al instante</p>
                 </div>
               </motion.form>
             )}

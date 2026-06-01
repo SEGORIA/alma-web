@@ -67,9 +67,13 @@ export default function LeadsAdmin() {
     } catch (err) { alert('Error: ' + err) }
   }
 
-  const openWhatsApp = (email: string) => {
-    const texto = `Hola, te escribo del equipo de Alma. Vi que descargaste nuestro kit gratuito con el correo ${email}. ¿Podemos ayudarte con tu marca?`
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
+  const openWhatsApp = (lead: Lead) => {
+    const texto = `Hola, te escribo del equipo de Alma. Vi que descargaste nuestro kit gratuito con el correo ${lead.email}. ¿Podemos ayudarte con tu marca?`
+    // Si el lead dejó su número, usarlo; si no, abrir WhatsApp Web genérico
+    const numero = lead.telefono
+      ? lead.telefono.replace(/\D/g, '')
+      : phone
+    window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank')
   }
 
   const filtered = filter === 'todos' ? leads : leads.filter(l => l.estado === filter)
@@ -160,13 +164,20 @@ export default function LeadsAdmin() {
                 </div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: '180px' }}>
-                  <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827', margin: '0 0 3px' }}>
+                <div style={{ flex: 1, minWidth: '160px' }}>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {lead.email}
                   </p>
-                  <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0 }}>
-                    {formatFecha(lead.createdAt)} · kit gratuito
-                  </p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {lead.telefono && (
+                      <span style={{ fontSize: '11px', color: '#15803D', fontWeight: 600, background: 'rgba(37,211,102,0.08)', padding: '1px 7px', borderRadius: '10px' }}>
+                        📱 {lead.telefono}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                      {formatFecha(lead.createdAt)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Estado badge */}
@@ -192,7 +203,7 @@ export default function LeadsAdmin() {
                 {/* Acciones */}
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                   <button
-                    onClick={() => openWhatsApp(lead.email)}
+                    onClick={() => openWhatsApp(lead)}
                     title="Contactar por WhatsApp"
                     style={{
                       background: 'rgba(37,211,102,0.1)', color: '#15803D',
