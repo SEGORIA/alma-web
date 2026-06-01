@@ -1,7 +1,5 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 interface KitArchivoLean {
   nombre:       string
   url:          string
@@ -178,17 +176,22 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ ok: true, skipped: true, reason: 'no_api_key' })
   }
 
+  // Crear cliente Resend con la clave ya verificada
+  const resendClient = new Resend(apiKey)
+
+  console.log(`[send-kit] Enviando kit a: ${email} | admin: ${adminEmail}`)
+
   try {
     const [leadResult, adminResult] = await Promise.allSettled([
       // Email al lead con los archivos
-      resend.emails.send({
+      resendClient.emails.send({
         from:    'Alma Agencia Creativa <onboarding@resend.dev>',
         to:      email,
         subject: '🎁 Tu kit gratuito de Alma está listo para descargar',
         html:    buildLeadEmail(email, archivos),
       }),
       // Notificación al admin
-      resend.emails.send({
+      resendClient.emails.send({
         from:    'Alma Leads <onboarding@resend.dev>',
         to:      adminEmail,
         subject: `🎯 Nuevo lead: ${email}`,
@@ -196,18 +199,36 @@ export default async function handler(req: any, res: any) {
       }),
     ])
 
-    const leadOk  = leadResult.status  === 'fulfilled' && !leadResult.value.error
-    const adminOk = adminResult.status === 'fulfilled' && !adminResult.value.error
+    // Extraer mensaje de error de SDK o de promesa rechazada
+    const leadErr  = leadResult.status  === 'rejected'
+      ? String(leadResult.reason)
+      : leadResult.value.error
+        ? JSON.stringify(leadResult.value.error)
+        : undefined
+
+    const adminErr = adminResult.status === 'rejected'
+      ? String(adminResult.reason)
+      : adminResult.value.error
+        ? JSON.stringify(adminResult.value.error)
+        : undefined
+
+    const leadOk  = !leadErr
+    const adminOk = !adminErr
+
+    if (leadErr)  console.error('[send-kit] Error lead email:',  leadErr)
+    if (adminErr) console.error('[send-kit] Error admin email:', adminErr)
+
+    console.log(`[send-kit] Resultado: lead=${leadOk ? 'ok' : 'fail'} | admin=${adminOk ? 'ok' : 'fail'}`)
 
     return res.status(200).json({
-      ok:    leadOk,
-      lead:  leadOk  ? 'sent' : 'failed',
-      admin: adminOk ? 'sent' : 'failed',
-      leadError:  leadResult.status  === 'rejected' ? String(leadResult.reason)  : undefined,
-      adminError: adminResult.status === 'rejected' ? String(adminResult.reason) : undefined,
+      ok:         leadOk,
+      lead:       leadOk  ? 'sent' : 'failed',
+      admin:      adminOk ? 'sent' : 'failed',
+      leadError:  leadErr,
+      adminError: adminErr,
     })
   } catch (err) {
-    console.error('Error en send-kit:', err)
+    console.error('[send-kit] Error inesperado:', err)
     return res.status(500).json({ error: String(err) })
   }
 }

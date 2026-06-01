@@ -110,6 +110,7 @@ export default function LeadMagnet() {
   const [phone,     setPhone]     = useState(contactoDefault.whatsapp)
   const [btnHov,    setBtnHov]    = useState(false)
   const [emailSent, setEmailSent] = useState<boolean | null>(null)   // null=sin info, true=ok, false=falló
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [lmConfig,      setLmConfig]      = useState<LeadMagnetConfig>(leadMagnetDefault)
   const [kitArchivos,   setKitArchivos]   = useState<KitArchivo[]>([])
 
@@ -171,9 +172,12 @@ export default function LeadMagnet() {
       })
       const data = await resp.json().catch(() => ({}))
       // skipped = API key no configurada; ok = enviado exitosamente
-      setEmailSent(data?.ok === true && data?.skipped !== true)
-    } catch {
+      const sent = data?.ok === true && data?.skipped !== true
+      setEmailSent(sent)
+      if (!sent && data?.leadError) setEmailError(data.leadError)
+    } catch (err) {
       setEmailSent(false)
+      setEmailError(String(err))
     }
     setSending(false)
     setSent(true)
@@ -491,10 +495,20 @@ export default function LeadMagnet() {
                   </div>
                 )}
                 {emailSent === false && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.35)' }}>
-                    <span style={{ fontSize: '15px' }}>⚠️</span>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#92400E', fontWeight: 600 }}>
-                      El correo no pudo enviarse. Descarga los archivos aquí abajo o contáctanos por WhatsApp.
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.35)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '15px' }}>⚠️</span>
+                      <p style={{ margin: 0, fontSize: '12px', color: '#92400E', fontWeight: 700 }}>
+                        El correo no pudo enviarse.
+                      </p>
+                    </div>
+                    {emailError && (
+                      <p style={{ margin: '0 0 0 23px', fontSize: '11px', color: '#B45309', fontWeight: 500, wordBreak: 'break-all' }}>
+                        {emailError}
+                      </p>
+                    )}
+                    <p style={{ margin: '0 0 0 23px', fontSize: '11px', color: '#92400E' }}>
+                      Descarga los archivos aquí abajo o contáctanos por WhatsApp.
                     </p>
                   </div>
                 )}
