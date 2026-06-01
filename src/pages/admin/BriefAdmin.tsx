@@ -314,7 +314,6 @@ export default function BriefAdmin() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {displayed.map(b => {
-              const estado = BRIEF_ESTADOS.find(e => e.value === b.estado) ?? BRIEF_ESTADOS[0]
               return (
                 <div
                   key={b._id}
