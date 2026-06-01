@@ -36,16 +36,22 @@ import { Navigate } from 'react-router-dom'
 import { P, PD, Y } from './tokens'
 
 /* ── Admin pages — lazy loaded (no se cargan hasta /admin) ── */
-const AdminLogin      = lazy(() => import('./pages/admin/AdminLogin'))
-const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'))
-const BlogAdmin       = lazy(() => import('./pages/admin/BlogAdmin'))
-const BlogEditor      = lazy(() => import('./pages/admin/BlogEditor'))
-const PortafolioAdmin = lazy(() => import('./pages/admin/PortafolioAdmin'))
+const AdminLogin       = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminDashboard   = lazy(() => import('./pages/admin/AdminDashboard'))
+const BlogAdmin        = lazy(() => import('./pages/admin/BlogAdmin'))
+const BlogEditor       = lazy(() => import('./pages/admin/BlogEditor'))
+const PortafolioAdmin  = lazy(() => import('./pages/admin/PortafolioAdmin'))
 const PortafolioEditor = lazy(() => import('./pages/admin/PortafolioEditor'))
-const PreciosAdmin    = lazy(() => import('./pages/admin/PreciosAdmin'))
-const ConfigAdmin     = lazy(() => import('./pages/admin/ConfigAdmin'))
-const ContenidoAdmin  = lazy(() => import('./pages/admin/ContenidoAdmin'))
-const LeadsAdmin      = lazy(() => import('./pages/admin/LeadsAdmin'))
+const PreciosAdmin     = lazy(() => import('./pages/admin/PreciosAdmin'))
+const ConfigAdmin      = lazy(() => import('./pages/admin/ConfigAdmin'))
+const ContenidoAdmin   = lazy(() => import('./pages/admin/ContenidoAdmin'))
+const LeadsAdmin       = lazy(() => import('./pages/admin/LeadsAdmin'))
+/* ── Módulos de negocio ── */
+const BriefAdmin       = lazy(() => import('./pages/admin/BriefAdmin'))
+const FinanzasAdmin    = lazy(() => import('./pages/admin/FinanzasAdmin'))
+const ContratosAdmin   = lazy(() => import('./pages/admin/ContratosAdmin'))
+const ClientesAdmin    = lazy(() => import('./pages/admin/ClientesAdmin'))
+const AcademiaAdmin    = lazy(() => import('./pages/admin/AcademiaAdmin'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -575,10 +581,16 @@ export default function App() {
         <Route path="/admin/blog/:id" element={<RequireAuth><BlogEditor /></RequireAuth>} />
         <Route path="/admin/portafolio" element={<RequireAuth><PortafolioAdmin /></RequireAuth>} />
         <Route path="/admin/portafolio/:id" element={<RequireAuth><PortafolioEditor /></RequireAuth>} />
-        <Route path="/admin/precios"   element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
-        <Route path="/admin/contenido" element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
-        <Route path="/admin/config"    element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
-        <Route path="/admin/leads"     element={<RequireAuth><LeadsAdmin /></RequireAuth>} />
+        <Route path="/admin/precios"    element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
+        <Route path="/admin/contenido"  element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
+        <Route path="/admin/config"     element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
+        <Route path="/admin/leads"      element={<RequireAuth><LeadsAdmin /></RequireAuth>} />
+        {/* ── Módulos de negocio ── */}
+        <Route path="/admin/brief"      element={<RequireAuth><BriefAdmin /></RequireAuth>} />
+        <Route path="/admin/finanzas"   element={<RequireAuth><FinanzasAdmin /></RequireAuth>} />
+        <Route path="/admin/contratos"  element={<RequireAuth><ContratosAdmin /></RequireAuth>} />
+        <Route path="/admin/clientes"   element={<RequireAuth><ClientesAdmin /></RequireAuth>} />
+        <Route path="/admin/academia"   element={<RequireAuth><AcademiaAdmin /></RequireAuth>} />
       </Routes>
     </Suspense>
   )
