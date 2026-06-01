@@ -48,6 +48,7 @@ const ContenidoAdmin   = lazy(() => import('./pages/admin/ContenidoAdmin'))
 const LeadsAdmin       = lazy(() => import('./pages/admin/LeadsAdmin'))
 /* ── Módulos de negocio ── */
 const BriefAdmin       = lazy(() => import('./pages/admin/BriefAdmin'))
+const BriefPage        = lazy(() => import('./pages/BriefPage'))
 const FinanzasAdmin    = lazy(() => import('./pages/admin/FinanzasAdmin'))
 const ContratosAdmin   = lazy(() => import('./pages/admin/ContratosAdmin'))
 const ClientesAdmin    = lazy(() => import('./pages/admin/ClientesAdmin'))
@@ -568,6 +569,7 @@ export default function App() {
       <Routes>
         {/* Público */}
         <Route path="/"              element={<Landing />} />
+        <Route path="/brief"         element={<BriefPage />} />
         <Route path="/blog"          element={<BlogPage />} />
         <Route path="/blog/:slug"    element={<ArticuloPage />} />
         <Route path="/portafolio"    element={<PortafolioPage />} />

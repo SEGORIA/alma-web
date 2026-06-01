@@ -18,6 +18,7 @@ import type { Plan, Extra, ServicioCategoria } from '../data/precios'
 import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
 import type { KitArchivo, Lead } from '../data/leads'
+import type { Brief } from '../data/briefs'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -32,6 +33,7 @@ function pasosCol()       { return collection(db!, 'proceso') }
 function equipoCol()      { return collection(db!, 'equipo') }
 function kitCol()         { return collection(db!, 'kit_archivos') }
 function leadsCol()       { return collection(db!, 'leads') }
+function briefsCol()      { return collection(db!, 'briefs') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -497,6 +499,31 @@ export async function updateLeadEstado(id: string, estado: Lead['estado']) {
 
 export async function deleteLead(id: string) {
   await deleteDoc(doc(db!, 'leads', id))
+}
+
+/* ══ BRIEFS ═════════════════════════════════════════════════ */
+
+export async function saveBrief(data: Omit<Brief, '_id'>): Promise<string> {
+  const ref = await addDoc(briefsCol(), { ...data, createdAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function getBriefs(): Promise<Brief[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(briefsCol(), orderBy('createdAt', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Brief), _id: d.id }))
+  } catch {
+    return []
+  }
+}
+
+export async function updateBriefEstado(id: string, estado: Brief['estado']) {
+  await updateDoc(doc(db!, 'briefs', id), { estado, updatedAt: serverTimestamp() })
+}
+
+export async function deleteBrief(id: string) {
+  await deleteDoc(doc(db!, 'briefs', id))
 }
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
