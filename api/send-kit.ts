@@ -179,53 +179,54 @@ export default async function handler(req: any, res: any) {
   // Crear cliente Resend con la clave ya verificada
   const resendClient = new Resend(apiKey)
 
-  console.log(`[send-kit] Enviando kit a: ${email} | admin: ${adminEmail}`)
+  console.log(`[send-kit] Nuevo lead: ${email} | admin: ${adminEmail}`)
 
   try {
-    const [leadResult, adminResult] = await Promise.allSettled([
-      // Email al lead con los archivos
-      resendClient.emails.send({
-        from:    'Alma Agencia Creativa <onboarding@resend.dev>',
+    // ── 1. Notificación al admin (siempre funciona — va al correo de la cuenta Resend) ──
+    const adminResult = await resendClient.emails.send({
+      from:    'Alma Leads <onboarding@resend.dev>',
+      to:      adminEmail,
+      subject: `🎯 Nuevo lead: ${email}`,
+      html:    buildAdminEmail(email, telefono, archivos),
+    })
+
+    const adminErr = adminResult.error ? JSON.stringify(adminResult.error) : undefined
+    const adminOk  = !adminErr
+
+    if (adminErr) console.error('[send-kit] Error admin email:', adminErr)
+    else          console.log('[send-kit] Admin notificado ✓')
+
+    // ── 2. Email al lead — requiere dominio verificado en resend.com/domains ──
+    // TODO: cambiar from a 'noreply@tudominio.com' tras verificar el dominio en Resend
+    // Por ahora se omite porque onboarding@resend.dev solo puede enviar al correo de la cuenta.
+    // El lead recibe el kit directamente en la pantalla de éxito (botones de descarga).
+    let leadOk  = false
+    let leadErr: string | undefined = 'domain_not_verified'
+
+    if (process.env.RESEND_FROM_DOMAIN) {
+      // Si ya configuraste RESEND_FROM_DOMAIN (ej: 'noreply@almaagenciacreativa.com')
+      // activamos el envío automático al lead
+      const leadResult = await resendClient.emails.send({
+        from:    `Alma Agencia Creativa <${process.env.RESEND_FROM_DOMAIN}>`,
         to:      email,
         subject: '🎁 Tu kit gratuito de Alma está listo para descargar',
         html:    buildLeadEmail(email, archivos),
-      }),
-      // Notificación al admin
-      resendClient.emails.send({
-        from:    'Alma Leads <onboarding@resend.dev>',
-        to:      adminEmail,
-        subject: `🎯 Nuevo lead: ${email}`,
-        html:    buildAdminEmail(email, telefono, archivos),
-      }),
-    ])
-
-    // Extraer mensaje de error de SDK o de promesa rechazada
-    const leadErr  = leadResult.status  === 'rejected'
-      ? String(leadResult.reason)
-      : leadResult.value.error
-        ? JSON.stringify(leadResult.value.error)
-        : undefined
-
-    const adminErr = adminResult.status === 'rejected'
-      ? String(adminResult.reason)
-      : adminResult.value.error
-        ? JSON.stringify(adminResult.value.error)
-        : undefined
-
-    const leadOk  = !leadErr
-    const adminOk = !adminErr
-
-    if (leadErr)  console.error('[send-kit] Error lead email:',  leadErr)
-    if (adminErr) console.error('[send-kit] Error admin email:', adminErr)
-
-    console.log(`[send-kit] Resultado: lead=${leadOk ? 'ok' : 'fail'} | admin=${adminOk ? 'ok' : 'fail'}`)
+      })
+      leadErr = leadResult.error ? JSON.stringify(leadResult.error) : undefined
+      leadOk  = !leadErr
+      if (leadErr) console.error('[send-kit] Error lead email:', leadErr)
+      else         console.log(`[send-kit] Email enviado al lead ${email} ✓`)
+    } else {
+      console.log('[send-kit] Email al lead omitido — configura RESEND_FROM_DOMAIN para activarlo')
+    }
 
     return res.status(200).json({
-      ok:         leadOk,
-      lead:       leadOk  ? 'sent' : 'failed',
+      // ok=true si el admin fue notificado (el lead tiene los archivos en pantalla)
+      ok:         adminOk,
+      lead:       leadOk  ? 'sent' : 'pending_domain',
       admin:      adminOk ? 'sent' : 'failed',
-      leadError:  leadErr,
       adminError: adminErr,
+      leadError:  leadOk  ? undefined : leadErr,
     })
   } catch (err) {
     console.error('[send-kit] Error inesperado:', err)

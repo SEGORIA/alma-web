@@ -171,10 +171,12 @@ export default function LeadMagnet() {
         }),
       })
       const data = await resp.json().catch(() => ({}))
-      // skipped = API key no configurada; ok = enviado exitosamente
-      const sent = data?.ok === true && data?.skipped !== true
-      setEmailSent(sent)
-      if (!sent && data?.leadError) setEmailError(data.leadError)
+      // ok=true → admin notificado (lead ve archivos en pantalla)
+      // skipped → sin API key configurada
+      const notified = data?.ok === true && data?.skipped !== true
+      setEmailSent(notified)
+      // Solo mostramos error al usuario si el admin tampoco fue notificado
+      if (!notified && data?.adminError) setEmailError(data.adminError)
     } catch (err) {
       setEmailSent(false)
       setEmailError(String(err))
@@ -490,7 +492,7 @@ export default function LeadMagnet() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)' }}>
                     <span style={{ fontSize: '15px' }}>✅</span>
                     <p style={{ margin: 0, fontSize: '12px', color: '#065F46', fontWeight: 600 }}>
-                      Te enviamos el kit a <strong>{email}</strong>
+                      ¡Listo! Descarga tus archivos aquí abajo. También te contactaremos pronto.
                     </p>
                   </div>
                 )}
