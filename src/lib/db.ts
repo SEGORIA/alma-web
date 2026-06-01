@@ -18,7 +18,8 @@ import type { Plan, Extra, ServicioCategoria } from '../data/precios'
 import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
 import type { KitArchivo, Lead } from '../data/leads'
-import type { Brief } from '../data/briefs'
+import type { Brief, BriefFormConfig } from '../data/briefs'
+import { DEFAULT_BRIEF_CONFIG } from '../data/briefs'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -34,6 +35,7 @@ function equipoCol()      { return collection(db!, 'equipo') }
 function kitCol()         { return collection(db!, 'kit_archivos') }
 function leadsCol()       { return collection(db!, 'leads') }
 function briefsCol()      { return collection(db!, 'briefs') }
+function briefConfigDoc() { return doc(db!, 'brief_config', 'v1') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -524,6 +526,34 @@ export async function updateBriefEstado(id: string, estado: Brief['estado']) {
 
 export async function deleteBrief(id: string) {
   await deleteDoc(doc(db!, 'briefs', id))
+}
+
+export async function updateBrief(id: string, data: Partial<Brief>): Promise<void> {
+  if (!firebaseReady || !db) return
+  await updateDoc(doc(db!, 'briefs', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function getBriefFormConfig(): Promise<BriefFormConfig> {
+  if (!firebaseReady || !db) return DEFAULT_BRIEF_CONFIG
+  try {
+    const snap = await getDoc(briefConfigDoc())
+    if (!snap.exists()) return DEFAULT_BRIEF_CONFIG
+    const data = snap.data() as BriefFormConfig
+    // Merge with defaults so new fields added later are always present
+    const existingKeys = new Set(data.fields.map(f => f.key))
+    const mergedFields = [
+      ...data.fields,
+      ...DEFAULT_BRIEF_CONFIG.fields.filter(f => !existingKeys.has(f.key)),
+    ]
+    return { ...data, fields: mergedFields }
+  } catch {
+    return DEFAULT_BRIEF_CONFIG
+  }
+}
+
+export async function saveBriefFormConfig(config: BriefFormConfig): Promise<void> {
+  if (!firebaseReady || !db) return
+  await setDoc(briefConfigDoc(), { ...config, updatedAt: serverTimestamp() })
 }
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */

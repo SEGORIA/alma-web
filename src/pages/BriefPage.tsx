@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { db, firebaseReady } from '../lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { getBriefFormConfig } from '../lib/db'
+import type { BriefFormConfig } from '../data/briefs'
 
 /* ── Config ─────────────────────────────────────────────────── */
 const APPS_SCRIPT_URL =
@@ -214,6 +216,26 @@ export default function BriefPage() {
   const [errors, setErrors]     = useState<string[]>([])
   const [toast, setToast]       = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const fileInputRef            = useRef<HTMLInputElement>(null)
+  const [fConfig, setFConfig]   = useState<BriefFormConfig | null>(null)
+  const [customVals, setCustomVals] = useState<Record<string, string>>({})
+
+  useEffect(() => { getBriefFormConfig().then(setFConfig) }, [])
+
+  // Helpers para leer la config — si no hay config cargada, todo activo por defecto
+  function isSecActive(key: string): boolean {
+    if (!fConfig) return true
+    return fConfig.sections.find(s => s.key === key)?.active ?? true
+  }
+  function isFieldActive(key: string): boolean {
+    if (!fConfig) return true
+    return fConfig.fields.find(f => f.key === key)?.active ?? true
+  }
+  function getLabel(key: string, fallback: string): string {
+    return fConfig?.fields.find(f => f.key === key)?.label ?? fallback
+  }
+  function customFieldsFor(secKey: string) {
+    return fConfig?.fields.filter(f => f.sectionKey === secKey && f.custom && f.active) ?? []
+  }
 
   /* helpers */
   function setField(field: keyof FormData, value: string) {
@@ -305,6 +327,7 @@ export default function BriefPage() {
       link_archivos:            form.link_archivos            || '—',
       notas_adicionales:        form.notas_adicionales        || '—',
       estado:                   'nuevo' as const,
+      ...(Object.keys(customVals).length > 0 ? { custom_fields: customVals } : {}),
     }
 
     try {
@@ -463,9 +486,11 @@ export default function BriefPage() {
           }}>
 
             {/* 01 — Datos personales */}
+            {isSecActive('s1') && (
             <SectionBlock num="01" title="Datos Personales">
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                <FieldWrap label="Dirección de correo electrónico *" hasError={errors.includes('email_direccion')}>
+                {isFieldActive('email_direccion') && (
+                <FieldWrap label={getLabel('email_direccion', 'Dirección de correo electrónico *')} hasError={errors.includes('email_direccion')}>
                   <input
                     style={{ ...inp, borderColor: errors.includes('email_direccion') ? '#FF4D8D' : undefined }}
                     type="email" placeholder="correo@empresa.com"
@@ -473,7 +498,9 @@ export default function BriefPage() {
                     onChange={e => setField('email_direccion', e.target.value)}
                   />
                 </FieldWrap>
-                <FieldWrap label="Nombre completo *" hasError={errors.includes('nombre')}>
+                )}
+                {isFieldActive('nombre') && (
+                <FieldWrap label={getLabel('nombre', 'Nombre completo *')} hasError={errors.includes('nombre')}>
                   <input
                     style={{ ...inp, borderColor: errors.includes('nombre') ? '#FF4D8D' : undefined }}
                     type="text" placeholder="Tu nombre completo"
@@ -481,18 +508,24 @@ export default function BriefPage() {
                     onChange={e => setField('nombre', e.target.value)}
                   />
                 </FieldWrap>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                <FieldWrap label="Documento de identidad">
+                {isFieldActive('documento') && (
+                <FieldWrap label={getLabel('documento', 'Documento de identidad')}>
                   <input style={inp} type="text" placeholder="CC / NIT / Pasaporte" value={form.documento} onChange={e => setField('documento', e.target.value)} />
                 </FieldWrap>
-                <FieldWrap label="Teléfono / Celular">
+                )}
+                {isFieldActive('telefono') && (
+                <FieldWrap label={getLabel('telefono', 'Teléfono / Celular')}>
                   <input style={inp} type="tel" placeholder="+57 300 000 0000" value={form.telefono} onChange={e => setField('telefono', e.target.value)} />
                 </FieldWrap>
+                )}
               </div>
 
-              <FieldWrap label="Correo electrónico de la empresa *" hasError={errors.includes('email')}>
+              {isFieldActive('email') && (
+              <FieldWrap label={getLabel('email', 'Correo electrónico de la empresa *')} hasError={errors.includes('email')}>
                 <input
                   style={{ ...inp, borderColor: errors.includes('email') ? '#FF4D8D' : undefined }}
                   type="email" placeholder="correo@empresa.com"
@@ -500,24 +533,34 @@ export default function BriefPage() {
                   onChange={e => setField('email', e.target.value)}
                 />
               </FieldWrap>
+              )}
+              {customFieldsFor('s1').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea'
+                    ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />
+                    : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />
+                  }
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 02 — Información de marca */}
+            {isSecActive('s2') && (
             <SectionBlock num="02" title="Información de la Marca">
-              <FieldWrap label="Nombre de la marca *" hasError={errors.includes('marca')} style={{ marginBottom: '16px' }}>
-                <input
-                  style={{ ...inp, borderColor: errors.includes('marca') ? '#FF4D8D' : undefined }}
-                  type="text" placeholder="Nombre de tu marca o producto"
-                  value={form.marca}
-                  onChange={e => setField('marca', e.target.value)}
-                />
+              {isFieldActive('marca') && (
+              <FieldWrap label={getLabel('marca', 'Nombre de la marca *')} hasError={errors.includes('marca')} style={{ marginBottom: '16px' }}>
+                <input style={{ ...inp, borderColor: errors.includes('marca') ? '#FF4D8D' : undefined }} type="text" placeholder="Nombre de tu marca o producto" value={form.marca} onChange={e => setField('marca', e.target.value)} />
               </FieldWrap>
-
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                <FieldWrap label="¿Cuándo nació la marca?">
+                {isFieldActive('nacimiento_marca') && (
+                <FieldWrap label={getLabel('nacimiento_marca', '¿Cuándo nació la marca?')}>
                   <input style={inp} type="text" placeholder="Ej: 2019, hace 3 años..." value={form.nacimiento_marca} onChange={e => setField('nacimiento_marca', e.target.value)} />
                 </FieldWrap>
-                <FieldWrap label="¿Tienes logo?">
+                )}
+                {isFieldActive('tiene_logo') && (
+                <FieldWrap label={getLabel('tiene_logo', '¿Tienes logo?')}>
                   <select style={{ ...inp, cursor: 'pointer' }} value={form.tiene_logo} onChange={e => setField('tiene_logo', e.target.value)}>
                     <option value="">Seleccionar</option>
                     <option>Sí, tengo logo definitivo</option>
@@ -525,144 +568,193 @@ export default function BriefPage() {
                     <option>No, necesito uno</option>
                   </select>
                 </FieldWrap>
+                )}
               </div>
-
-              <FieldWrap label="¿Tienes slogan? ¿Cuál?" style={{ marginBottom: '16px' }}>
+              {isFieldActive('slogan') && (
+              <FieldWrap label={getLabel('slogan', '¿Tienes slogan? ¿Cuál?')} style={{ marginBottom: '16px' }}>
                 <input style={inp} type="text" placeholder="Escribe tu slogan si tienes uno..." value={form.slogan} onChange={e => setField('slogan', e.target.value)} />
               </FieldWrap>
-
-              <FieldWrap label="¿Tienes presencia en redes sociales? (adjunta links)">
+              )}
+              {isFieldActive('presencia_redes') && (
+              <FieldWrap label={getLabel('presencia_redes', '¿Tienes presencia en redes sociales? (adjunta links)')}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder={'Ej: Instagram @mimarca — https://instagram.com/mimarca\nFacebook — https://facebook.com/mimarca'} value={form.presencia_redes} onChange={e => setField('presencia_redes', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s2').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 03 — Credenciales */}
+            {isSecActive('s3') && (
             <SectionBlock num="03" title="Accesos y Credenciales">
+              {isFieldActive('credenciales_redes') && (
               <div style={{ background: 'rgba(110,45,255,0.05)', border: `1px solid rgba(110,45,255,0.25)`, borderRadius: '8px', padding: '20px', marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: AME, fontWeight: 500, marginBottom: '14px' }}>
                   🔒 Redes sociales que vamos a administrar
                 </div>
-                <FieldWrap label="Usuarios y contraseñas de redes sociales">
+                <FieldWrap label={getLabel('credenciales_redes', 'Usuarios y contraseñas de redes sociales')}>
                   <textarea style={{ ...ta, minHeight: '100px' }} placeholder={'Instagram — @mimarca — Contraseña: •••\nFacebook — @mimarca — Contraseña: •••'} value={form.credenciales_redes} onChange={e => setField('credenciales_redes', e.target.value)} />
-                  <p style={{ fontSize: '11px', color: 'rgba(160,160,176,0.6)', letterSpacing: '0.02em', marginTop: '4px', fontStyle: 'italic' }}>
-                    🔒 Esta información es estrictamente confidencial.
-                  </p>
+                  <p style={{ fontSize: '11px', color: 'rgba(160,160,176,0.6)', letterSpacing: '0.02em', marginTop: '4px', fontStyle: 'italic' }}>🔒 Esta información es estrictamente confidencial.</p>
                 </FieldWrap>
               </div>
-
+              )}
+              {isFieldActive('credenciales_plataformas') && (
               <div style={{ background: 'rgba(110,45,255,0.05)', border: `1px solid rgba(110,45,255,0.25)`, borderRadius: '8px', padding: '20px' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: AME, fontWeight: 500, marginBottom: '14px' }}>
                   🌐 Plataformas adicionales (CRM, sitio web, etc.)
                 </div>
-                <FieldWrap label="Usuarios y contraseñas de plataformas">
+                <FieldWrap label={getLabel('credenciales_plataformas', 'Usuarios y contraseñas de plataformas')}>
                   <textarea style={{ ...ta, minHeight: '110px' }} placeholder={'Plataforma — URL — Usuario: xxx — Contraseña: xxx\nEj: WordPress — mimarca.com — admin — •••'} value={form.credenciales_plataformas} onChange={e => setField('credenciales_plataformas', e.target.value)} />
-                  <p style={{ fontSize: '11px', color: 'rgba(160,160,176,0.6)', letterSpacing: '0.02em', marginTop: '4px', fontStyle: 'italic' }}>
-                    🔒 Incluye CRM, sitio web, herramientas de email marketing, tienda online, etc.
-                  </p>
+                  <p style={{ fontSize: '11px', color: 'rgba(160,160,176,0.6)', letterSpacing: '0.02em', marginTop: '4px', fontStyle: 'italic' }}>🔒 Incluye CRM, sitio web, herramientas de email marketing, tienda online, etc.</p>
                 </FieldWrap>
               </div>
+              )}
+              {customFieldsFor('s3').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 04 — ADN de marca */}
+            {isSecActive('s4') && (
             <SectionBlock num="04" title="ADN de Marca">
-              <FieldWrap label="¿Qué tipo de personalidad tiene tu marca?" style={{ marginBottom: '20px' }}>
+              {isFieldActive('personalidad') && (
+              <FieldWrap label={getLabel('personalidad', '¿Qué tipo de personalidad tiene tu marca?')} style={{ marginBottom: '20px' }}>
                 <PillToggle items={PERSONALIDADES} selected={form.personalidad} onToggle={v => toggleArr('personalidad', v)} />
                 <input style={{ ...inp, marginTop: '10px' }} type="text" placeholder="Otra personalidad..." value={form.personalidad_otra} onChange={e => setField('personalidad_otra', e.target.value)} />
               </FieldWrap>
-
-              <FieldWrap label="¿Cuáles son los valores de tu marca?" style={{ marginBottom: '20px' }}>
+              )}
+              {isFieldActive('valores_marca') && (
+              <FieldWrap label={getLabel('valores_marca', '¿Cuáles son los valores de tu marca?')} style={{ marginBottom: '20px' }}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="Ej: Honestidad, innovación, calidad, sostenibilidad..." value={form.valores_marca} onChange={e => setField('valores_marca', e.target.value)} />
               </FieldWrap>
-
-              <FieldWrap label="¿Qué colores representan tu marca?">
+              )}
+              {isFieldActive('colores_marca') && (
+              <FieldWrap label={getLabel('colores_marca', '¿Qué colores representan tu marca?')}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
                   {COLOR_OPTS.map(c => {
                     const active = form.colores.includes(c.label)
                     return (
-                      <button
-                        key={c.label}
-                        type="button"
-                        onClick={() => toggleArr('colores', c.label)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          background: active ? 'rgba(110,45,255,0.15)' : 'rgba(42,42,51,0.6)',
-                          border: `1px solid ${active ? V : 'rgba(255,255,255,0.08)'}`,
-                          borderRadius: '100px', padding: '6px 14px 6px 8px',
-                          fontSize: '11px', letterSpacing: '0.06em',
-                          color: active ? '#fff' : '#A0A0B0',
-                          cursor: 'pointer', transition: 'all 0.2s',
-                          fontFamily: "'DM Sans', sans-serif",
-                        }}
-                      >
-                        <span style={{
-                          width: '14px', height: '14px', borderRadius: '50%',
-                          background: c.color, flexShrink: 0,
-                          border: c.color === '#FFFFFF' ? '1px solid rgba(255,255,255,0.3)' : 'none',
-                        }} />
+                      <button key={c.label} type="button" onClick={() => toggleArr('colores', c.label)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: active ? 'rgba(110,45,255,0.15)' : 'rgba(42,42,51,0.6)', border: `1px solid ${active ? V : 'rgba(255,255,255,0.08)'}`, borderRadius: '100px', padding: '6px 14px 6px 8px', fontSize: '11px', letterSpacing: '0.06em', color: active ? '#fff' : '#A0A0B0', cursor: 'pointer', transition: 'all 0.2s', fontFamily: "'DM Sans', sans-serif" }}>
+                        <span style={{ width: '14px', height: '14px', borderRadius: '50%', background: c.color, flexShrink: 0, border: c.color === '#FFFFFF' ? '1px solid rgba(255,255,255,0.3)' : 'none' }} />
                         {c.label}
                       </button>
                     )
                   })}
                 </div>
-                <input
-                  style={inp}
-                  type="text"
-                  placeholder="Describe tus colores con más detalle o códigos HEX..."
-                  value={form.colores_descripcion}
-                  onChange={e => setField('colores_descripcion', e.target.value)}
-                />
+                <input style={inp} type="text" placeholder="Describe tus colores con más detalle o códigos HEX..." value={form.colores_descripcion} onChange={e => setField('colores_descripcion', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s4').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 05 — Propuesta de valor */}
+            {isSecActive('s5') && (
             <SectionBlock num="05" title="Propuesta de Valor">
-              <FieldWrap label="¿Cuáles son tus clientes potenciales?" style={{ marginBottom: '16px' }}>
+              {isFieldActive('clientes_potenciales') && (
+              <FieldWrap label={getLabel('clientes_potenciales', '¿Cuáles son tus clientes potenciales?')} style={{ marginBottom: '16px' }}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="Describe tu cliente ideal: edad, género, intereses, ubicación..." value={form.clientes_potenciales} onChange={e => setField('clientes_potenciales', e.target.value)} />
               </FieldWrap>
-              <FieldWrap label="¿Qué problema resuelves con tu producto / servicio?" style={{ marginBottom: '16px' }}>
+              )}
+              {isFieldActive('problema_resuelve') && (
+              <FieldWrap label={getLabel('problema_resuelve', '¿Qué problema resuelves con tu producto / servicio?')} style={{ marginBottom: '16px' }}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="¿Cuál es el dolor, necesidad o problema que tiene tu cliente?" value={form.problema_resuelve} onChange={e => setField('problema_resuelve', e.target.value)} />
               </FieldWrap>
-              <FieldWrap label="¿Cuál es tu propuesta de valor? ¿Qué te diferencia?" style={{ marginBottom: '16px' }}>
+              )}
+              {isFieldActive('propuesta_valor') && (
+              <FieldWrap label={getLabel('propuesta_valor', '¿Cuál es tu propuesta de valor? ¿Qué te diferencia?')} style={{ marginBottom: '16px' }}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="¿Por qué un cliente debería elegirte a ti y no a tu competencia?" value={form.propuesta_valor} onChange={e => setField('propuesta_valor', e.target.value)} />
               </FieldWrap>
-              <FieldWrap label="¿Cuáles son los beneficios que ofreces?">
+              )}
+              {isFieldActive('beneficios') && (
+              <FieldWrap label={getLabel('beneficios', '¿Cuáles son los beneficios que ofreces?')}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="Resultados concretos, transformaciones, ventajas que obtiene tu cliente..." value={form.beneficios} onChange={e => setField('beneficios', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s5').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 06 — Experiencia emocional */}
+            {isSecActive('s6') && (
             <SectionBlock num="06" title="Experiencia Emocional">
-              <FieldWrap label="¿Qué experiencia emocional le brindas a tus clientes?" style={{ marginBottom: '16px' }}>
+              {isFieldActive('experiencia_emocional') && (
+              <FieldWrap label={getLabel('experiencia_emocional', '¿Qué experiencia emocional le brindas a tus clientes?')} style={{ marginBottom: '16px' }}>
                 <textarea style={{ ...ta, minHeight: '90px' }} placeholder="¿Cómo se siente una persona después de usar tu producto o servicio?" value={form.experiencia_emocional} onChange={e => setField('experiencia_emocional', e.target.value)} />
               </FieldWrap>
-              <FieldWrap label="¿Qué emociones quisieras transmitir?">
+              )}
+              {isFieldActive('emociones') && (
+              <FieldWrap label={getLabel('emociones', '¿Qué emociones quisieras transmitir?')}>
                 <PillToggle items={EMOCIONES_OPTS} selected={form.emociones} onToggle={v => toggleArr('emociones', v)} />
                 <textarea style={{ ...ta, minHeight: '80px', marginTop: '10px' }} placeholder="Amplía o agrega otras emociones que quieras transmitir..." value={form.emociones_descripcion} onChange={e => setField('emociones_descripcion', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s6').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 07 — Competencia y referencias */}
+            {isSecActive('s7') && (
             <SectionBlock num="07" title="Competencia y Referencias">
-              <FieldWrap label="¿Cuáles son tus competidores? (adjunta links)" style={{ marginBottom: '16px' }}>
+              {isFieldActive('competidores') && (
+              <FieldWrap label={getLabel('competidores', '¿Cuáles son tus competidores? (adjunta links)')} style={{ marginBottom: '16px' }}>
                 <textarea style={{ ...ta, minHeight: '100px' }} placeholder={'Nombra tus principales competidores\nEj: Marca X — https://instagram.com/marcax'} value={form.competidores} onChange={e => setField('competidores', e.target.value)} />
               </FieldWrap>
-              <FieldWrap label="¿Cuáles son tus referencias? (adjunta links)">
+              )}
+              {isFieldActive('referencias') && (
+              <FieldWrap label={getLabel('referencias', '¿Cuáles son tus referencias? (adjunta links)')}>
                 <textarea style={{ ...ta, minHeight: '100px' }} placeholder={'Marcas, cuentas o estilos que admiras\nEj: @referencia1 — https://instagram.com/referencia1'} value={form.referencias} onChange={e => setField('referencias', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s7').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 08 — Inicio del servicio */}
+            {isSecActive('s8') && (
             <SectionBlock num="08" title="Inicio del Servicio">
+              {isFieldActive('fecha_inicio') && (
               <div style={{ maxWidth: '360px' }}>
-                <FieldWrap label="Fecha de inicio del servicio">
+                <FieldWrap label={getLabel('fecha_inicio', 'Fecha de inicio del servicio')}>
                   <input style={inp} type="date" value={form.fecha_inicio} onChange={e => setField('fecha_inicio', e.target.value)} />
                 </FieldWrap>
               </div>
+              )}
+              {customFieldsFor('s8').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 09 — Archivos de referencia */}
+            {isSecActive('s9') && (
             <SectionBlock num="09" title="Archivos de Referencia">
-              <div
+              {isFieldActive('archivos') && <div
                 role="button"
                 tabIndex={0}
                 style={{
@@ -723,19 +815,36 @@ export default function BriefPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </div>}
 
-              <FieldWrap label="Enlace a archivos externos (Drive, Dropbox, WeTransfer...)" style={{ marginTop: '16px' }}>
+              {isFieldActive('link_archivos') && (
+              <FieldWrap label={getLabel('link_archivos', 'Enlace a archivos externos (Drive, Dropbox, WeTransfer...)')} style={{ marginTop: '16px' }}>
                 <input style={inp} type="url" placeholder="https://drive.google.com/..." value={form.link_archivos} onChange={e => setField('link_archivos', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s9').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
             {/* 10 — Para nosotros */}
+            {isSecActive('s10') && (
             <SectionBlock num="10" title="Para Nosotros">
-              <FieldWrap label="¿Algo que quieras agregar? Cuéntanos tus sentimientos y expectativas">
+              {isFieldActive('notas_adicionales') && (
+              <FieldWrap label={getLabel('notas_adicionales', '¿Algo que quieras agregar? Cuéntanos tus sentimientos y expectativas')}>
                 <textarea style={{ ...ta, minHeight: '140px' }} placeholder="Es importante para nosotros conocer cómo te sientes, qué esperas de esta alianza, qué sueños tienes para tu marca... Escribe con libertad." value={form.notas_adicionales} onChange={e => setField('notas_adicionales', e.target.value)} />
               </FieldWrap>
+              )}
+              {customFieldsFor('s10').map(cf => (
+                <FieldWrap key={cf.key} label={cf.label} style={{ marginTop: '16px' }}>
+                  {cf.type === 'textarea' ? <textarea style={ta} value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} /> : <input style={inp} type="text" value={customVals[cf.key] ?? ''} onChange={e => setCustomVals(p => ({ ...p, [cf.key]: e.target.value }))} />}
+                </FieldWrap>
+              ))}
             </SectionBlock>
+            )}
 
           </div>
 
