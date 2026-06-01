@@ -6,6 +6,7 @@ import { P } from '../../tokens'
 
 const NAV = [
   { label: '📊 Dashboard',      to: '/admin' },
+  { label: '🎯 Leads',          to: '/admin/leads' },
   { label: '✍️ Blog',           to: '/admin/blog' },
   { label: '🖼️ Portafolio',     to: '/admin/portafolio' },
   { label: '💰 Precios',        to: '/admin/precios' },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
-import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, getPasos, getEquipo, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
+import { getArticulos, getProyectos, getPlanes, getExtras, getTestimonios, getFaqs, getPasos, getEquipo, getLeads, seedArticulos, seedPortafolio, seedPrecios, seedConfig } from '../../lib/db'
 import { P, Y } from '../../tokens'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
@@ -14,6 +14,8 @@ export default function AdminDashboard() {
   const [nFaqs,       setNFaqs]       = useState<number | null>(null)
   const [nPasos,      setNPasos]      = useState<number | null>(null)
   const [nEquipo,     setNEquipo]     = useState<number | null>(null)
+  const [nLeads,      setNLeads]      = useState<number | null>(null)
+  const [nLeadsNuevos,setNLeadsNuevos]= useState<number | null>(null)
   const [seeding,     setSeeding]     = useState(false)
   const [seeded,      setSeeded]      = useState(false)
 
@@ -26,6 +28,10 @@ export default function AdminDashboard() {
     getFaqs().then(f => setNFaqs(f.length))
     getPasos().then(p => setNPasos(p.length))
     getEquipo().then(e => setNEquipo(e.length))
+    getLeads().then(leads => {
+      setNLeads(leads.length)
+      setNLeadsNuevos(leads.filter(l => l.estado === 'nuevo').length)
+    })
   }, [seeded])
 
   const handleSeed = async () => {
@@ -46,6 +52,15 @@ export default function AdminDashboard() {
   }
 
   const cards = [
+    {
+      label:  nLeadsNuevos ? `${nLeadsNuevos} nuevo${nLeadsNuevos !== 1 ? 's' : ''} · Kit Gratuito` : 'Kit Gratuito · Leads',
+      value:  nLeads ?? '…',
+      icon:   '🎯',
+      color:  '#6B21A8',
+      to:     '/admin/leads',
+      action: 'Ver leads',
+      highlight: (nLeadsNuevos ?? 0) > 0,
+    },
     {
       label:  'Artículos del blog',
       value:  nArticulos ?? '…',
@@ -109,8 +124,9 @@ export default function AdminDashboard() {
           {cards.map(c => (
             <div key={c.label} style={{
               background: '#fff', borderRadius: '16px',
-              padding: isMobile ? '16px 14px' : '24px', border: '1px solid #E5E7EB',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              padding: isMobile ? '16px 14px' : '24px',
+              border: (c as { highlight?: boolean }).highlight ? `2px solid ${c.color}` : '1px solid #E5E7EB',
+              boxShadow: (c as { highlight?: boolean }).highlight ? `0 4px 20px ${c.color}22` : '0 2px 8px rgba(0,0,0,0.04)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '10px' : '16px' }}>
                 <span style={{ fontSize: isMobile ? '20px' : '28px' }}>{c.icon}</span>

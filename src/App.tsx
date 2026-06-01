@@ -45,6 +45,7 @@ const PortafolioEditor = lazy(() => import('./pages/admin/PortafolioEditor'))
 const PreciosAdmin    = lazy(() => import('./pages/admin/PreciosAdmin'))
 const ConfigAdmin     = lazy(() => import('./pages/admin/ConfigAdmin'))
 const ContenidoAdmin  = lazy(() => import('./pages/admin/ContenidoAdmin'))
+const LeadsAdmin      = lazy(() => import('./pages/admin/LeadsAdmin'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -577,6 +578,7 @@ export default function App() {
         <Route path="/admin/precios"   element={<RequireAuth><PreciosAdmin /></RequireAuth>} />
         <Route path="/admin/contenido" element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
         <Route path="/admin/config"    element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
+        <Route path="/admin/leads"     element={<RequireAuth><LeadsAdmin /></RequireAuth>} />
       </Routes>
     </Suspense>
   )

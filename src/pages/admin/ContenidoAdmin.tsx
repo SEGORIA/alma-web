@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from './AdminLayout'
 import ImageUploader from '../../components/ImageUploader'
+import FileUploader from '../../components/FileUploader'
 import {
   getConfig, updateConfig,
   getPasos, createPaso, updatePaso, deletePaso, cleanDuplicatePasos,
   getEquipo, createEquipoMember, updateEquipoMember, deleteEquipoMember, cleanDuplicateEquipo,
   getPrincipios, updatePrincipios,
   getLeadMagnetConfig, updateLeadMagnetConfig,
+  getKitArchivos, createKitArchivo, deleteKitArchivo,
   seedConfig,
 } from '../../lib/db'
 import {
@@ -18,6 +20,8 @@ import {
 } from '../../data/config'
 import type { PasoItem, EquipoMember } from '../../data/contenido'
 import type { ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../../data/config'
+import type { KitArchivo } from '../../data/leads'
+import { tipoIcono, formatTamano } from '../../data/leads'
 import { P, Y } from '../../tokens'
 
 /* ── helpers de estilo ──────────────────────────────────────── */
@@ -579,24 +583,26 @@ function TabManifiesto() {
 
 /* ══ Tab — Lead Magnet ═══════════════════════════════════════ */
 function TabLeadMagnet() {
-  const [form,    setForm]    = useState<LeadMagnetConfig>(leadMagnetDefault)
-  const [saving,  setSaving]  = useState(false)
-  const [savedOk, setSavedOk] = useState(false)
+  const [form,      setForm]      = useState<LeadMagnetConfig>(leadMagnetDefault)
+  const [archivos,  setArchivos]  = useState<KitArchivo[]>([])
+  const [saving,    setSaving]    = useState(false)
+  const [savedOk,   setSavedOk]   = useState(false)
+  const [newNombre, setNewNombre] = useState('')
+  const [newDesc,   setNewDesc]   = useState('')
 
   useEffect(() => {
     getLeadMagnetConfig().then(setForm).catch(() => setForm(leadMagnetDefault))
+    getKitArchivos().then(setArchivos).catch(() => setArchivos([]))
   }, [])
 
+  /* ── Texto del kit ─────────────────────────────────── */
   const setRecurso = (i: number, val: string) =>
     setForm(f => ({ ...f, recursos: f.recursos.map((r, idx) => idx === i ? val : r) }))
-
-  const addRecurso = () =>
-    setForm(f => ({ ...f, recursos: [...f.recursos, ''] }))
-
+  const addRecurso    = () => setForm(f => ({ ...f, recursos: [...f.recursos, ''] }))
   const removeRecurso = (i: number) =>
     setForm(f => ({ ...f, recursos: f.recursos.filter((_, idx) => idx !== i) }))
 
-  async function save() {
+  async function saveTexto() {
     setSaving(true); setSavedOk(false)
     try {
       await updateLeadMagnetConfig(form)
@@ -605,52 +611,138 @@ function TabLeadMagnet() {
     setSaving(false)
   }
 
+  /* ── Archivos del kit ──────────────────────────────── */
+  async function handleUploaded(url: string, nombre: string, tipo: string, tamano: number) {
+    const displayName = newNombre.trim() || nombre
+    try {
+      await createKitArchivo({ nombre: displayName, descripcion: newDesc.trim() || undefined, url, tipo, tamano })
+      setNewNombre('')
+      setNewDesc('')
+      setArchivos(await getKitArchivos())
+    } catch (err) { alert('Error al guardar el archivo: ' + err) }
+  }
+
+  async function handleDeleteArchivo(id: string, nombre: string) {
+    if (!confirm(`¿Eliminar "${nombre}" del kit?`)) return
+    try {
+      await deleteKitArchivo(id)
+      setArchivos(prev => prev.filter(a => a._id !== id))
+    } catch (err) { alert('Error: ' + err) }
+  }
+
   return (
     <div>
       <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
         El kit gratuito que aparece en la sección de captura de leads.
       </p>
-      {savedOk && saved_banner}
 
-      <div style={{ marginBottom: '16px' }}>
-        <label style={lbl}>Título del kit</label>
-        <input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} style={inp}
-          placeholder="Descarga el kit que necesita tu marca digital" />
-      </div>
-
-      <div style={{ marginBottom: '20px' }}>
-        <label style={lbl}>Subtítulo / descripción</label>
-        <textarea value={form.subtitulo} onChange={e => setForm(f => ({ ...f, subtitulo: e.target.value }))} rows={3}
-          style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
-          placeholder="Herramientas prácticas con IA..." />
-      </div>
-
-      <label style={lbl}>Recursos incluidos en el kit</label>
-      <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px' }}>
-        Los íconos se asignan automáticamente (📱, 🎨, 📊) según el orden.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-        {form.recursos.map((r, i) => (
-          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#9CA3AF', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
-            <input value={r} onChange={e => setRecurso(i, e.target.value)} style={{ ...inp, flex: 1 }}
-              placeholder="Nombre del recurso..." />
-            <button onClick={() => removeRecurso(i)}
-              style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>
-              🗑
-            </button>
+      {/* ── Sección 1: Archivos descargables ── */}
+      <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '20px', border: '1px solid #E5E7EB', marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>
+              📁 Archivos del Kit
+            </h3>
+            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
+              {archivos.length} archivo{archivos.length !== 1 ? 's' : ''} — los usuarios los descargan al pedir el kit
+            </p>
           </div>
-        ))}
+          <span style={{ background: `${P}15`, color: P, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>
+            DESCARGABLES
+          </span>
+        </div>
+
+        {/* Lista archivos actuales */}
+        {archivos.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            {archivos.map(a => (
+              <div key={a._id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', border: '1px solid #E5E7EB' }}>
+                <span style={{ fontSize: '20px', flexShrink: 0 }}>{tipoIcono(a.tipo)}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nombre}</p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
+                    {a.descripcion && <span style={{ fontSize: '11px', color: '#6B7280' }}>{a.descripcion}</span>}
+                    {a.tamano && <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{formatTamano(a.tamano)}</span>}
+                    <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: P, fontWeight: 600, textDecoration: 'none' }}>Ver →</a>
+                  </div>
+                </div>
+                <button onClick={() => handleDeleteArchivo(a._id!, a.nombre)}
+                  style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>
+                  🗑
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Formulario para nuevo archivo */}
+        <div style={{ borderTop: archivos.length > 0 ? '1px solid #E5E7EB' : 'none', paddingTop: archivos.length > 0 ? '16px' : 0 }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            + Subir nuevo archivo
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+            <div>
+              <label style={lbl}>Nombre visible (opcional)</label>
+              <input value={newNombre} onChange={e => setNewNombre(e.target.value)} style={inp}
+                placeholder="Ej: Guía de Métricas.pdf" />
+            </div>
+            <div>
+              <label style={lbl}>Descripción corta (opcional)</label>
+              <input value={newDesc} onChange={e => setNewDesc(e.target.value)} style={inp}
+                placeholder="Ej: Para medir tus resultados" />
+            </div>
+          </div>
+          <FileUploader onUploaded={handleUploaded} />
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={addRecurso}
-          style={{ background: `${P}15`, color: P, border: `1px solid ${P}30`, padding: '9px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
-          + Agregar recurso
-        </button>
-      </div>
+      {/* ── Sección 2: Texto de la sección ── */}
+      <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '20px', border: '1px solid #E5E7EB' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>
+          ✏️ Texto de la Sección
+        </h3>
+        {savedOk && saved_banner}
 
-      {saveBtn('💾 Guardar Kit Gratuito', save, saving)}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={lbl}>Título</label>
+          <input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} style={inp}
+            placeholder="Descarga el kit que necesita tu marca digital" />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={lbl}>Subtítulo / descripción</label>
+          <textarea value={form.subtitulo} onChange={e => setForm(f => ({ ...f, subtitulo: e.target.value }))} rows={3}
+            style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.6 }}
+            placeholder="Herramientas prácticas con IA..." />
+        </div>
+
+        <label style={lbl}>Beneficios listados en la tarjeta visual</label>
+        <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px' }}>
+          Se muestran en la tarjeta animada a la izquierda de la sección.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+          {form.recursos.map((r, i) => (
+            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#9CA3AF', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
+              <input value={r} onChange={e => setRecurso(i, e.target.value)} style={{ ...inp, flex: 1 }}
+                placeholder="Nombre del beneficio..." />
+              <button onClick={() => removeRecurso(i)}
+                style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '7px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>
+                🗑
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button onClick={addRecurso}
+            style={{ background: `${P}15`, color: P, border: `1px solid ${P}30`, padding: '9px 16px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
+            + Agregar beneficio
+          </button>
+        </div>
+
+        {saveBtn('💾 Guardar Texto', saveTexto, saving)}
+      </div>
     </div>
   )
 }

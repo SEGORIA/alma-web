@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { P, Y } from '../tokens'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { getContactoInfo, getLeadMagnetConfig } from '../lib/db'
+import { getContactoInfo, getLeadMagnetConfig, getKitArchivos, saveLead } from '../lib/db'
 import { contactoDefault, leadMagnetDefault } from '../data/config'
 import type { LeadMagnetConfig } from '../data/config'
+import type { KitArchivo } from '../data/leads'
+import { tipoIcono } from '../data/leads'
 
 /* ── Icons ─────────────────────────────────────────────────── */
 const PhoneIcon = () => (
@@ -105,7 +107,8 @@ export default function LeadMagnet() {
   const [sent, setSent]       = useState(false)
   const [phone, setPhone]     = useState(contactoDefault.whatsapp)
   const [btnHov, setBtnHov]   = useState(false)
-  const [lmConfig, setLmConfig] = useState<LeadMagnetConfig>(leadMagnetDefault)
+  const [lmConfig,      setLmConfig]      = useState<LeadMagnetConfig>(leadMagnetDefault)
+  const [kitArchivos,   setKitArchivos]   = useState<KitArchivo[]>([])
 
   /* 3D card state */
   const cardWrapRef                 = useRef<HTMLDivElement>(null)
@@ -119,6 +122,7 @@ export default function LeadMagnet() {
   useEffect(() => {
     getContactoInfo().then(c => setPhone(c.whatsapp))
     getLeadMagnetConfig().then(setLmConfig).catch(() => setLmConfig(leadMagnetDefault))
+    getKitArchivos().then(setKitArchivos).catch(() => setKitArchivos([]))
     /* Count up to 500 after a brief delay */
     const t = setTimeout(() => {
       let n = 0
@@ -140,12 +144,17 @@ export default function LeadMagnet() {
     setSheen({ x: nx * 100, y: ny * 100 })
   }
 
-  const handle = (e: React.FormEvent) => {
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
-    const texto = `Hola, quiero recibir el kit gratuito de Alma. Mi correo es: ${email.trim()}`
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
+    // Guardar lead en Firestore (en background, no bloquea)
+    saveLead(email)
     setSent(true)
+  }
+
+  const openWhatsApp = () => {
+    const texto = `Hola, acabo de descargar el kit gratuito de Alma. Mi correo es: ${email.trim()}`
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
   }
 
   return (
@@ -413,31 +422,109 @@ export default function LeadMagnet() {
                 style={{
                   background: 'linear-gradient(135deg, #F5F3FF, #EDE9FE)',
                   border: '1.5px solid #A78BFA', borderRadius: '18px',
-                  padding: '28px 24px',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+                  padding: '24px',
+                  display: 'flex', flexDirection: 'column', gap: '16px',
                 }}
               >
-                <motion.div
-                  initial={{ scale: 0.5, rotate: -20 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <motion.div
+                    initial={{ scale: 0.5, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
+                    style={{
+                      width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0,
+                      background: 'linear-gradient(135deg, #6B21A8, #9333EA)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 8px 28px rgba(107,33,168,0.35)',
+                    }}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </motion.div>
+                  <div>
+                    <p style={{ color: '#3B0764', fontWeight: 800, fontSize: '15px', marginBottom: '2px' }}>
+                      ¡Tu kit está listo!
+                    </p>
+                    <p style={{ color: '#6B21A8', fontSize: '12px' }}>
+                      Haz clic en cada archivo para descargarlo
+                    </p>
+                  </div>
+                </div>
+
+                {/* Archivos del kit */}
+                {kitArchivos.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {kitArchivos.map((archivo, i) => (
+                      <motion.a
+                        key={archivo._id ?? i}
+                        href={archivo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.15 + i * 0.08 }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '12px',
+                          padding: '11px 14px', borderRadius: '12px',
+                          background: '#fff', border: '1.5px solid rgba(107,33,168,0.15)',
+                          textDecoration: 'none', color: '#111827',
+                          boxShadow: '0 2px 8px rgba(107,33,168,0.06)',
+                          transition: 'all 0.2s ease',
+                          cursor: 'pointer',
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = `rgba(107,33,168,0.04)`
+                          e.currentTarget.style.borderColor = `rgba(107,33,168,0.35)`
+                          e.currentTarget.style.transform = 'translateY(-1px)'
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = '#fff'
+                          e.currentTarget.style.borderColor = 'rgba(107,33,168,0.15)'
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }}
+                      >
+                        <span style={{ fontSize: '22px', flexShrink: 0 }}>{tipoIcono(archivo.tipo)}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {archivo.nombre}
+                          </p>
+                          {archivo.descripcion && (
+                            <p style={{ fontSize: '11px', color: '#6B7280', margin: '2px 0 0' }}>
+                              {archivo.descripcion}
+                            </p>
+                          )}
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: P }}>
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </motion.a>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ background: '#fff', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
+                      Los archivos del kit se están preparando. <br />Contáctanos por WhatsApp para recibirlos.
+                    </p>
+                  </div>
+                )}
+
+                {/* WhatsApp secundario */}
+                <button
+                  onClick={openWhatsApp}
                   style={{
-                    width: '60px', height: '60px', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #6B21A8, #9333EA)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 8px 28px rgba(107,33,168,0.35)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    padding: '11px', borderRadius: '12px',
+                    background: 'rgba(37,211,102,0.1)', border: '1.5px solid rgba(37,211,102,0.3)',
+                    color: '#15803D', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
                   }}
                 >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#15803D">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
-                </motion.div>
-                <p style={{ color: '#3B0764', fontWeight: 800, fontSize: '16px', textAlign: 'center' }}>
-                  ¡Te lo enviamos por WhatsApp ahora mismo!
-                </p>
-                <p style={{ color: '#6B21A8', fontSize: '13px', textAlign: 'center' }}>
-                  Revisa tus mensajes — llegará en segundos.
-                </p>
+                  Hablar con el equipo de Alma
+                </button>
               </motion.div>
             ) : (
               <motion.form

@@ -17,6 +17,7 @@ import type { Proyecto } from '../data/portafolio'
 import type { Plan, Extra, ServicioCategoria } from '../data/precios'
 import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
+import type { KitArchivo, Lead } from '../data/leads'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -29,6 +30,8 @@ function faqsCol()        { return collection(db!, 'faqs') }
 function categoriasCol()  { return collection(db!, 'categorias') }
 function pasosCol()       { return collection(db!, 'proceso') }
 function equipoCol()      { return collection(db!, 'equipo') }
+function kitCol()         { return collection(db!, 'kit_archivos') }
+function leadsCol()       { return collection(db!, 'leads') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -435,6 +438,64 @@ export async function updateEquipoMember(id: string, data: Partial<EquipoMember>
 
 export async function deleteEquipoMember(id: string) {
   await deleteDoc(doc(db!, 'equipo', id))
+}
+
+/* ══ KIT ARCHIVOS ═══════════════════════════════════════════ */
+
+export async function getKitArchivos(): Promise<KitArchivo[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(kitCol(), orderBy('orden', 'asc')))
+    return snap.docs.map(d => ({ ...(d.data() as KitArchivo), _id: d.id }))
+  } catch {
+    return []
+  }
+}
+
+export async function createKitArchivo(data: Omit<KitArchivo, '_id'>): Promise<string> {
+  const snap = await getDocs(kitCol())
+  const ref  = await addDoc(kitCol(), { ...data, orden: snap.size, createdAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function deleteKitArchivo(id: string) {
+  await deleteDoc(doc(db!, 'kit_archivos', id))
+}
+
+export async function updateKitArchivoOrden(id: string, orden: number) {
+  await updateDoc(doc(db!, 'kit_archivos', id), { orden })
+}
+
+/* ══ LEADS ══════════════════════════════════════════════════ */
+
+export async function saveLead(email: string): Promise<void> {
+  if (!firebaseReady || !db) return
+  try {
+    await addDoc(leadsCol(), {
+      email:     email.trim().toLowerCase(),
+      fuente:    'kit',
+      estado:    'nuevo',
+      createdAt: serverTimestamp(),
+    })
+  } catch { /* silencioso — no bloquear al usuario */ }
+}
+
+export async function getLeads(): Promise<Lead[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(leadsCol(), orderBy('createdAt', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Lead), _id: d.id }))
+  } catch {
+    return []
+  }
+}
+
+export async function updateLeadEstado(id: string, estado: Lead['estado']) {
+  await updateDoc(doc(db!, 'leads', id), { estado, updatedAt: serverTimestamp() })
+}
+
+export async function deleteLead(id: string) {
+  await deleteDoc(doc(db!, 'leads', id))
 }
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
