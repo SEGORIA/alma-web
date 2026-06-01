@@ -108,8 +108,9 @@ export default function LeadMagnet() {
   const [sent,      setSent]      = useState(false)
   const [sending,   setSending]   = useState(false)
   const [phone,     setPhone]     = useState(contactoDefault.whatsapp)
-  const [btnHov,    setBtnHov]    = useState(false)
-  const [emailSent, setEmailSent] = useState<boolean | null>(null)   // null=sin info, true=ok, false=falló
+  const [btnHov,     setBtnHov]     = useState(false)
+  const [emailSent,  setEmailSent]  = useState<boolean | null>(null)   // null=sin info, true=ok, false=falló
+  const [leadSent,   setLeadSent]   = useState(false)   // true = el lead recibió email
   const [emailError, setEmailError] = useState<string | null>(null)
   const [lmConfig,      setLmConfig]      = useState<LeadMagnetConfig>(leadMagnetDefault)
   const [kitArchivos,   setKitArchivos]   = useState<KitArchivo[]>([])
@@ -171,11 +172,9 @@ export default function LeadMagnet() {
         }),
       })
       const data = await resp.json().catch(() => ({}))
-      // ok=true → admin notificado (lead ve archivos en pantalla)
-      // skipped → sin API key configurada
       const notified = data?.ok === true && data?.skipped !== true
       setEmailSent(notified)
-      // Solo mostramos error al usuario si el admin tampoco fue notificado
+      setLeadSent(data?.lead === 'sent')
       if (!notified && data?.adminError) setEmailError(data.adminError)
     } catch (err) {
       setEmailSent(false)
@@ -492,7 +491,10 @@ export default function LeadMagnet() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)' }}>
                     <span style={{ fontSize: '15px' }}>✅</span>
                     <p style={{ margin: 0, fontSize: '12px', color: '#065F46', fontWeight: 600 }}>
-                      ¡Listo! Descarga tus archivos aquí abajo. También te contactaremos pronto.
+                      {leadSent
+                        ? <>¡Kit enviado a <strong>{email}</strong>! Revisa también la carpeta de spam.</>
+                        : '¡Listo! Descarga tus archivos aquí abajo. También te contactaremos pronto.'
+                      }
                     </p>
                   </div>
                 )}

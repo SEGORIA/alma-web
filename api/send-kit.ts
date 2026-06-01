@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 interface KitArchivoLean {
   nombre:       string
@@ -196,34 +197,57 @@ export default async function handler(req: any, res: any) {
     if (adminErr) console.error('[send-kit] Error admin email:', adminErr)
     else          console.log('[send-kit] Admin notificado ✓')
 
-    // ── 2. Email al lead — requiere dominio verificado en resend.com/domains ──
-    // TODO: cambiar from a 'noreply@tudominio.com' tras verificar el dominio en Resend
-    // Por ahora se omite porque onboarding@resend.dev solo puede enviar al correo de la cuenta.
-    // El lead recibe el kit directamente en la pantalla de éxito (botones de descarga).
+    // ── 2. Email al lead ──────────────────────────────────────────────────────
+    // Se envía vía Gmail SMTP (alma.directivo@gmail.com) si GMAIL_APP_PASSWORD está configurado.
+    // Alternativa: via Resend si RESEND_FROM_DOMAIN apunta a un dominio verificado.
     let leadOk  = false
-    let leadErr: string | undefined = 'domain_not_verified'
+    let leadErr: string | undefined
 
-    if (process.env.RESEND_FROM_DOMAIN) {
-      // Si ya configuraste RESEND_FROM_DOMAIN (ej: 'noreply@almaagenciacreativa.com')
-      // activamos el envío automático al lead
+    const gmailPass   = process.env.GMAIL_APP_PASSWORD
+    const resendDomain = process.env.RESEND_FROM_DOMAIN
+
+    if (gmailPass) {
+      // ── Gmail SMTP — funciona sin verificar dominio ──
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: { user: 'alma.directivo@gmail.com', pass: gmailPass },
+        })
+        await transporter.sendMail({
+          from:    '"Alma Agencia Creativa" <alma.directivo@gmail.com>',
+          to:      email,
+          subject: '🎁 Tu kit gratuito de Alma está listo para descargar',
+          html:    buildLeadEmail(email, archivos),
+        })
+        leadOk = true
+        console.log(`[send-kit] Email Gmail enviado al lead ${email} ✓`)
+      } catch (gmailErr) {
+        leadErr = String(gmailErr)
+        console.error('[send-kit] Error Gmail:', leadErr)
+      }
+
+    } else if (resendDomain) {
+      // ── Resend con dominio verificado ──
       const leadResult = await resendClient.emails.send({
-        from:    `Alma Agencia Creativa <${process.env.RESEND_FROM_DOMAIN}>`,
+        from:    `Alma Agencia Creativa <${resendDomain}>`,
         to:      email,
         subject: '🎁 Tu kit gratuito de Alma está listo para descargar',
         html:    buildLeadEmail(email, archivos),
       })
       leadErr = leadResult.error ? JSON.stringify(leadResult.error) : undefined
       leadOk  = !leadErr
-      if (leadErr) console.error('[send-kit] Error lead email:', leadErr)
-      else         console.log(`[send-kit] Email enviado al lead ${email} ✓`)
+      if (leadErr) console.error('[send-kit] Error Resend lead:', leadErr)
+      else         console.log(`[send-kit] Email Resend enviado al lead ${email} ✓`)
+
     } else {
-      console.log('[send-kit] Email al lead omitido — configura RESEND_FROM_DOMAIN para activarlo')
+      leadErr = 'no_sender_configured'
+      console.log('[send-kit] Email al lead omitido — configura GMAIL_APP_PASSWORD o RESEND_FROM_DOMAIN')
     }
 
     return res.status(200).json({
-      // ok=true si el admin fue notificado (el lead tiene los archivos en pantalla)
+      // ok=true si el admin fue notificado (el lead ve archivos en pantalla)
       ok:         adminOk,
-      lead:       leadOk  ? 'sent' : 'pending_domain',
+      lead:       leadOk  ? 'sent' : 'pending',
       admin:      adminOk ? 'sent' : 'failed',
       adminError: adminErr,
       leadError:  leadOk  ? undefined : leadErr,
