@@ -109,6 +109,7 @@ export default function LeadMagnet() {
   const [sending,   setSending]   = useState(false)
   const [phone,     setPhone]     = useState(contactoDefault.whatsapp)
   const [btnHov,    setBtnHov]    = useState(false)
+  const [emailSent, setEmailSent] = useState<boolean | null>(null)   // null=sin info, true=ok, false=falló
   const [lmConfig,      setLmConfig]      = useState<LeadMagnetConfig>(leadMagnetDefault)
   const [kitArchivos,   setKitArchivos]   = useState<KitArchivo[]>([])
 
@@ -154,7 +155,7 @@ export default function LeadMagnet() {
     saveLead(email, telefono || undefined)
     // Llamar API de email
     try {
-      await fetch('/api/send-kit', {
+      const resp = await fetch('/api/send-kit', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
@@ -168,15 +169,20 @@ export default function LeadMagnet() {
           })),
         }),
       })
-    } catch { /* silencioso — igual mostramos la pantalla de éxito */ }
+      const data = await resp.json().catch(() => ({}))
+      // skipped = API key no configurada; ok = enviado exitosamente
+      setEmailSent(data?.ok === true && data?.skipped !== true)
+    } catch {
+      setEmailSent(false)
+    }
     setSending(false)
     setSent(true)
   }
 
   const openWhatsApp = () => {
-    const wa = telefono.replace(/\D/g, '') || phone
+    // Siempre contacta al equipo de Alma, nunca al propio número del lead
     const texto = `Hola, acabo de descargar el kit gratuito de Alma. Mi correo es: ${email.trim()}`
-    window.open(`https://wa.me/${wa}?text=${encodeURIComponent(texto)}`, '_blank')
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(texto)}`, '_blank')
   }
 
   return (
@@ -474,6 +480,24 @@ export default function LeadMagnet() {
                     </p>
                   </div>
                 </div>
+
+                {/* Estado del correo */}
+                {emailSent === true && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(5,150,105,0.08)', border: '1px solid rgba(5,150,105,0.2)' }}>
+                    <span style={{ fontSize: '15px' }}>✅</span>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#065F46', fontWeight: 600 }}>
+                      Te enviamos el kit a <strong>{email}</strong>
+                    </p>
+                  </div>
+                )}
+                {emailSent === false && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 13px', borderRadius: '10px', background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.35)' }}>
+                    <span style={{ fontSize: '15px' }}>⚠️</span>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#92400E', fontWeight: 600 }}>
+                      El correo no pudo enviarse. Descarga los archivos aquí abajo o contáctanos por WhatsApp.
+                    </p>
+                  </div>
+                )}
 
                 {/* Archivos del kit */}
                 {kitArchivos.length > 0 ? (
