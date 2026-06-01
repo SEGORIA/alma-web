@@ -1,6 +1,6 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp,
+  query, orderBy, serverTimestamp, arrayUnion,
 } from 'firebase/firestore'
 import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
@@ -20,6 +20,7 @@ import type { PasoItem, EquipoMember } from '../data/contenido'
 import type { KitArchivo, Lead } from '../data/leads'
 import type { Brief, BriefFormConfig } from '../data/briefs'
 import { DEFAULT_BRIEF_CONFIG } from '../data/briefs'
+import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../data/clientes'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -554,6 +555,130 @@ export async function getBriefFormConfig(): Promise<BriefFormConfig> {
 export async function saveBriefFormConfig(config: BriefFormConfig): Promise<void> {
   if (!firebaseReady || !db) return
   await setDoc(briefConfigDoc(), { ...config, updatedAt: serverTimestamp() })
+}
+
+/* ══ CLIENTES ═══════════════════════════════════════════════ */
+
+function clientesCol() { return collection(db!, 'clientes') }
+
+function genToken(): string {
+  const s = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1)
+  return `${s()}${s()}-${s()}-${s()}-${s()}-${s()}${s()}${s()}`
+}
+
+function portalPayload(c: Partial<Cliente>): {
+  nombre: string; marca: string; email: string; empresa: string | null
+  telefono: string | null; servicios: string[]; estado: string
+  entregables: Entregable[]; parrilla: ParrillaItem[]; solicitudes: Solicitud[]
+  contrato_url: string | null; fecha_inicio: string | null
+} {
+  return {
+    nombre:       c.nombre       ?? '',
+    marca:        c.marca        ?? '',
+    email:        c.email        ?? '',
+    empresa:      c.empresa      ?? null,
+    telefono:     c.telefono     ?? null,
+    servicios:    c.servicios    ?? [],
+    estado:       c.estado       ?? 'activo',
+    entregables:  c.entregables  ?? [],
+    parrilla:     c.parrilla     ?? [],
+    solicitudes:  c.solicitudes  ?? [],
+    contrato_url: c.contrato_url ?? null,
+    fecha_inicio: c.fecha_inicio ?? null,
+  }
+}
+
+export async function getClientes(): Promise<Cliente[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(clientesCol(), orderBy('createdAt', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Cliente), _id: d.id }))
+  } catch { return [] }
+}
+
+export async function getCliente(id: string): Promise<Cliente | null> {
+  if (!firebaseReady || !db) return null
+  try {
+    const snap = await getDoc(doc(db!, 'clientes', id))
+    if (!snap.exists()) return null
+    return { ...(snap.data() as Cliente), _id: snap.id }
+  } catch { return null }
+}
+
+export async function saveCliente(data: Omit<Cliente, '_id'>): Promise<string> {
+  if (!db) throw new Error('DB not ready')
+  const token   = data.access_token || genToken()
+  const payload = { ...data, access_token: token }
+  const ref     = await addDoc(clientesCol(), { ...payload, createdAt: serverTimestamp() })
+  await setDoc(doc(db!, 'portales', token), {
+    ...portalPayload(payload),
+    clienteId:  ref.id,
+    updatedAt:  serverTimestamp(),
+  })
+  return ref.id
+}
+
+export async function updateCliente(id: string, data: Partial<Cliente>): Promise<void> {
+  if (!firebaseReady || !db) return
+  await updateDoc(doc(db!, 'clientes', id), { ...data, updatedAt: serverTimestamp() })
+  const token = data.access_token
+  if (token) {
+    await setDoc(doc(db!, 'portales', token), {
+      ...portalPayload(data),
+      clienteId: id,
+      updatedAt:  serverTimestamp(),
+    }, { merge: true })
+  }
+}
+
+export async function deleteCliente(id: string): Promise<void> {
+  if (!firebaseReady || !db) return
+  const snap = await getDoc(doc(db!, 'clientes', id))
+  if (snap.exists()) {
+    const token = (snap.data() as Cliente).access_token
+    if (token) await deleteDoc(doc(db!, 'portales', token))
+  }
+  await deleteDoc(doc(db!, 'clientes', id))
+}
+
+export async function getPortalByToken(
+  token: string
+): Promise<(Partial<Cliente> & { clienteId?: string }) | null> {
+  if (!firebaseReady || !db) return null
+  try {
+    const snap = await getDoc(doc(db!, 'portales', token))
+    if (!snap.exists()) return null
+    return snap.data() as (Partial<Cliente> & { clienteId?: string })
+  } catch { return null }
+}
+
+export async function addSolicitudToPortal(
+  token: string,
+  clienteId: string,
+  solicitud: Solicitud,
+): Promise<void> {
+  if (!firebaseReady || !db) return
+  await Promise.all([
+    updateDoc(doc(db!, 'portales',  token),     { solicitudes: arrayUnion(solicitud) }),
+    updateDoc(doc(db!, 'clientes',  clienteId), { solicitudes: arrayUnion(solicitud), updatedAt: serverTimestamp() }),
+  ])
+}
+
+export async function updateSolicitudEnCliente(
+  clienteId: string,
+  token: string,
+  solicitudId: string,
+  changes: Partial<Solicitud>,
+): Promise<void> {
+  if (!firebaseReady || !db) return
+  const snap = await getDoc(doc(db!, 'clientes', clienteId))
+  if (!snap.exists()) return
+  const c          = snap.data() as Cliente
+  const solicitudes = (c.solicitudes ?? []).map((s: Solicitud) =>
+    s.id === solicitudId ? { ...s, ...changes } : s
+  )
+  await updateDoc(doc(db!, 'clientes', clienteId), { solicitudes, updatedAt: serverTimestamp() })
+  if (token) await updateDoc(doc(db!, 'portales', token), { solicitudes })
 }
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */

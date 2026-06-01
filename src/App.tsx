@@ -28,7 +28,8 @@ import ArticuloPage    from './pages/ArticuloPage'
 import PortafolioPage  from './pages/PortafolioPage'
 import EquipoPage      from './pages/EquipoPage'
 import NotFoundPage    from './pages/NotFoundPage'
-import BriefPageDirect from './pages/BriefPage'
+import BriefPageDirect   from './pages/BriefPage'
+import ClientePortalPage from './pages/ClientePortal'
 import { getConfig, getContactoInfo } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
@@ -573,7 +574,8 @@ export default function App() {
         <Route path="/blog"          element={<BlogPage />} />
         <Route path="/blog/:slug"    element={<ArticuloPage />} />
         <Route path="/portafolio"    element={<PortafolioPage />} />
-        <Route path="/equipo"        element={<EquipoPage />} />
+        <Route path="/equipo"          element={<EquipoPage />} />
+        <Route path="/cliente/:token" element={<ClientePortalPage />} />
         <Route path="*"              element={<NotFoundPage />} />
 
         {/* Admin — lazy */}
