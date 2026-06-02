@@ -762,6 +762,26 @@ export async function updateSolicitudEnCliente(
   if (token) await updateDoc(doc(db!, 'portales', token), { solicitudes })
 }
 
+/* ══ DOCUMENTOS LEGALES CONFIG ══════════════════════════════ */
+
+const legalDocsDoc = () => doc(db!, 'config', 'legal_docs')
+
+export type LegalDocUrl = { key: string; url: string }
+
+export async function getLegalDocsUrls(): Promise<LegalDocUrl[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDoc(legalDocsDoc())
+    if (!snap.exists()) return []
+    return (snap.data().urls ?? []) as LegalDocUrl[]
+  } catch { return [] }
+}
+
+export async function saveLegalDocsUrls(urls: LegalDocUrl[]): Promise<void> {
+  if (!firebaseReady || !db) return
+  await setDoc(legalDocsDoc(), { urls, updatedAt: serverTimestamp() }, { merge: true })
+}
+
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 
 export async function seedConfig() {
