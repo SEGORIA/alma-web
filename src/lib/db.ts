@@ -561,9 +561,18 @@ export async function saveBriefFormConfig(config: BriefFormConfig): Promise<void
 
 function clientesCol() { return collection(db!, 'clientes') }
 
-function genToken(): string {
-  const s = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1)
-  return `${s()}${s()}-${s()}-${s()}-${s()}-${s()}${s()}${s()}`
+/** Genera un slug legible desde el nombre de la marca.
+ *  Ej: "Studio Álma Co." → "studio-alma-co" */
+export function marcaToSlug(marca: string): string {
+  return (marca ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')  // á→a, é→e, ü→u
+    .replace(/ñ/g, 'n')
+    .replace(/[^a-z0-9]+/g, '-')     // todo lo demás → guion
+    .replace(/^-+|-+$/g, '')          // quitar guiones extremos
+    .slice(0, 50) || 'cliente'
 }
 
 function portalPayload(c: Partial<Cliente>): {
@@ -605,17 +614,29 @@ export async function getCliente(id: string): Promise<Cliente | null> {
   } catch { return null }
 }
 
-export async function saveCliente(data: Omit<Cliente, '_id'>): Promise<string> {
+/** Crea un cliente. Retorna { id, slug } donde slug es el access_token final. */
+export async function saveCliente(
+  data: Omit<Cliente, '_id'>
+): Promise<{ id: string; slug: string }> {
   if (!db) throw new Error('DB not ready')
-  const token   = data.access_token || genToken()
-  const payload = { ...data, access_token: token }
+
+  // Slug legible desde la marca (ej: "Studio Alma" → "studio-alma")
+  let slug = data.access_token || marcaToSlug(data.marca)
+
+  // Si el slug ya existe en portales, añadir sufijo corto para unicidad
+  const existing = await getDoc(doc(db!, 'portales', slug))
+  if (existing.exists()) {
+    slug = `${slug}-${Math.random().toString(36).slice(2, 5)}`
+  }
+
+  const payload = { ...data, access_token: slug }
   const ref     = await addDoc(clientesCol(), { ...payload, createdAt: serverTimestamp() })
-  await setDoc(doc(db!, 'portales', token), {
+  await setDoc(doc(db!, 'portales', slug), {
     ...portalPayload(payload),
     clienteId:  ref.id,
     updatedAt:  serverTimestamp(),
   })
-  return ref.id
+  return { id: ref.id, slug }
 }
 
 export async function updateCliente(id: string, data: Partial<Cliente>): Promise<void> {

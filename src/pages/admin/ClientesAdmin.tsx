@@ -3,7 +3,7 @@ import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import {
   getClientes, saveCliente, updateCliente, deleteCliente,
-  updateSolicitudEnCliente,
+  updateSolicitudEnCliente, marcaToSlug,
 } from '../../lib/db'
 import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../../data/clientes'
 import {
@@ -17,11 +17,6 @@ const C1_BG  = 'rgba(5,150,105,0.10)'
 
 /* ── Helpers ─────────────────────────────────────────────── */
 type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'portal'
-
-function genToken(): string {
-  const s = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).slice(1)
-  return `${s()}${s()}-${s()}-${s()}-${s()}-${s()}${s()}${s()}`
-}
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -85,7 +80,7 @@ export default function ClientesAdmin() {
 
   /* ── handlers ── */
   function handleNew() {
-    setForm({ ...EMPTY_FORM, access_token: genToken() })
+    setForm({ ...EMPTY_FORM })   // sin token; se genera desde la marca al guardar
     setEditId(null); setTab('perfil'); setSaveMsg(''); setShowModal(true)
   }
 
@@ -110,8 +105,9 @@ export default function ClientesAdmin() {
         await updateCliente(editId, form)
         setClientes(prev => prev.map(c => c._id === editId ? { ...form, _id: editId } : c))
       } else {
-        const id = await saveCliente(form)
-        setClientes(prev => [{ ...form, _id: id }, ...prev])
+        // saveCliente genera el slug desde la marca y retorna { id, slug }
+        const { id, slug } = await saveCliente(form)
+        setClientes(prev => [{ ...form, access_token: slug, _id: id }, ...prev])
       }
       setShowModal(false)
     } catch (e) {
@@ -679,48 +675,70 @@ export default function ClientesAdmin() {
               )}
 
               {/* ─ PORTAL ─ */}
-              {tab === 'portal' && (
+              {tab === 'portal' && (() => {
+                const slug        = form.access_token || (form.marca ? marcaToSlug(form.marca) : '')
+                const portalUrl   = slug ? `${PORTAL_BASE}${slug}` : ''
+                const isExistente = !!form.access_token
+                return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* URL */}
                   <div style={{ background: '#F0FDF4', borderRadius: '14px', padding: '20px', border: '1.5px solid #86EFAC' }}>
                     <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🔗 Enlace del portal del cliente</p>
-                    {form.access_token ? (
+                    {slug ? (
                       <>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <code style={{
                             flex: 1, background: '#fff', border: '1px solid #D1FAE5',
-                            borderRadius: '8px', padding: '9px 12px', fontSize: '12.5px',
-                            color: '#065F46', wordBreak: 'break-all',
+                            borderRadius: '8px', padding: '9px 12px', fontSize: '13px',
+                            color: '#065F46', wordBreak: 'break-all', fontWeight: 700,
                           }}>
-                            {PORTAL_BASE}{form.access_token}
+                            {portalUrl}
                           </code>
-                          <button
-                            onClick={() => navigator.clipboard.writeText(`${PORTAL_BASE}${form.access_token}`)}
-                            style={{ padding: '9px 14px', borderRadius: '8px', border: '1.5px solid #059669', background: '#fff', color: C1, cursor: 'pointer', fontWeight: 700, fontSize: '12px', flexShrink: 0 }}
-                          >
-                            📋 Copiar
-                          </button>
+                          {isExistente && (
+                            <button
+                              onClick={() => navigator.clipboard.writeText(portalUrl)}
+                              style={{ padding: '9px 14px', borderRadius: '8px', border: `1.5px solid ${C1}`, background: '#fff', color: C1, cursor: 'pointer', fontWeight: 700, fontSize: '12px', flexShrink: 0 }}
+                            >
+                              📋 Copiar
+                            </button>
+                          )}
                         </div>
                         <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '10px' }}>
-                          Comparte este enlace con tu cliente. Solo quien tenga el enlace puede acceder.
+                          {isExistente
+                            ? 'Comparte este enlace con tu cliente. Solo quien tenga el enlace puede acceder.'
+                            : '⚡ Vista previa — la URL se creará al guardar el cliente.'}
                         </p>
                       </>
                     ) : (
-                      <p style={{ fontSize: '13px', color: '#6B7280' }}>El token se generará automáticamente al guardar el cliente.</p>
+                      <p style={{ fontSize: '13px', color: '#9CA3AF' }}>Llena el nombre de la marca en Perfil para ver la URL del portal.</p>
                     )}
                   </div>
 
-                  {form.access_token && (
+                  {/* Editar slug manualmente */}
+                  <div style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 800, color: '#374151', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      ✏️ {isExistente ? 'URL actual del portal' : 'Personalizar URL (opcional)'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '13px', color: '#9CA3AF', flexShrink: 0 }}>almaagenciacreativa.com/cliente/</span>
+                      <input
+                        value={form.access_token || marcaToSlug(form.marca)}
+                        onChange={e => setForm(f => ({ ...f, access_token: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-') }))}
+                        placeholder={marcaToSlug(form.marca) || 'slug-del-cliente'}
+                        style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: '13px' }}
+                      />
+                    </div>
+                    <p style={{ fontSize: '11.5px', color: '#9CA3AF', margin: '8px 0 0' }}>
+                      Solo letras minúsculas, números y guiones. Se genera automáticamente de la marca.
+                    </p>
+                  </div>
+
+                  {isExistente && (
                     <div style={{ background: '#FFF7ED', borderRadius: '14px', padding: '18px', border: '1.5px solid #FED7AA' }}>
-                      <p style={{ fontSize: '12px', fontWeight: 800, color: '#92400E', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>⚠️ Regenerar token</p>
-                      <p style={{ fontSize: '12.5px', color: '#B45309', margin: '0 0 12px' }}>
-                        Si regeneras el token, el enlace anterior dejará de funcionar. Tendrás que enviarle el nuevo enlace al cliente.
+                      <p style={{ fontSize: '12px', fontWeight: 800, color: '#92400E', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>⚠️ Cambiar URL</p>
+                      <p style={{ fontSize: '12.5px', color: '#B45309', margin: 0 }}>
+                        Si cambias la URL, el enlace anterior dejará de funcionar. El cliente necesitará el nuevo enlace.
                       </p>
-                      <button
-                        onClick={() => setForm(f => ({ ...f, access_token: genToken() }))}
-                        style={{ padding: '8px 18px', borderRadius: '8px', border: '1.5px solid #FCD34D', background: '#FEFCE8', color: '#92400E', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}
-                      >
-                        Generar nuevo token
-                      </button>
                     </div>
                   )}
 
@@ -744,7 +762,7 @@ export default function ClientesAdmin() {
                     ))}
                   </div>
                 </div>
-              )}
+              )})()}
             </div>
 
             {/* Modal footer */}
