@@ -1,20 +1,33 @@
 import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
+/* ── Paleta ─────────────────────────────────────────────── */
+const BK   = '#08080B'
+const DIM  = '#18181E'
+const BDR  = '#2A2A33'
+const BDR2 = '#3A3A44'
+const MUT  = '#606080'
+const WHT  = '#F1E8DA'
+const ACC2 = '#A855F7'
+const C1   = '#8A3FFC'
+const AMB  = '#FFB865'
+const ROSE = '#FF4D8D'
+const TEAL = '#2DD4BF'
+
 const FEATURES = [
-  { icon: '🎬', title: 'Cursos en video', desc: 'Sube módulos con videos, textos y recursos descargables organizados por curso.' },
-  { icon: '👩‍🎓', title: 'Estudiantes y accesos', desc: 'Gestiona quién tiene acceso a cada curso: libre, de pago o por invitación.' },
-  { icon: '📊', title: 'Progreso del estudiante', desc: 'Ve cuánto ha avanzado cada estudiante en tiempo real desde el admin.' },
-  { icon: '🏆', title: 'Certificados', desc: 'Emite certificados de finalización con el logo de Alma al completar el curso.' },
-  { icon: '💳', title: 'Cursos de pago', desc: 'Integra pagos para cursos premium con PSE, tarjeta o nequi.' },
-  { icon: '📱', title: 'Optimizado para móvil', desc: 'Los estudiantes pueden tomar los cursos desde cualquier dispositivo.' },
+  { icon: '🎬', title: 'Cursos en video',          color: ROSE, desc: 'Sube módulos con videos, textos y recursos descargables organizados por curso.' },
+  { icon: '👩‍🎓', title: 'Estudiantes y accesos',    color: ACC2, desc: 'Gestiona quién tiene acceso a cada curso: libre, de pago o por invitación.' },
+  { icon: '📊', title: 'Progreso del estudiante',   color: TEAL, desc: 'Ve cuánto ha avanzado cada estudiante en tiempo real desde el admin.' },
+  { icon: '🏆', title: 'Certificados',              color: AMB,  desc: 'Emite certificados de finalización con el logo de Alma al completar el curso.' },
+  { icon: '💳', title: 'Cursos de pago',            color: '#4ADE80', desc: 'Integra pagos para cursos premium con PSE, tarjeta o Nequi.' },
+  { icon: '📱', title: 'Optimizado para móvil',     color: '#60A5FA', desc: 'Los estudiantes pueden tomar los cursos desde cualquier dispositivo.' },
 ]
 
 const COURSE_CATEGORIES = [
-  { icon: '🎨', name: 'Diseño & Branding', courses: 0 },
-  { icon: '📲', name: 'Marketing Digital', courses: 0 },
-  { icon: '💼', name: 'Emprendimiento', courses: 0 },
-  { icon: '📸', name: 'Fotografía & Video', courses: 0 },
+  { icon: '🎨', name: 'Diseño & Branding',    color: ROSE,  courses: 0 },
+  { icon: '📲', name: 'Marketing Digital',     color: AMB,   courses: 0 },
+  { icon: '💼', name: 'Emprendimiento',        color: ACC2,  courses: 0 },
+  { icon: '📸', name: 'Fotografía & Video',    color: TEAL,  courses: 0 },
 ]
 
 export default function AcademiaAdmin() {
@@ -22,167 +35,93 @@ export default function AcademiaAdmin() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: isMobile ? '24px 16px' : '40px 32px' }}>
+      <div style={{ background: BK, minHeight: '100vh', padding: isMobile ? '20px 16px' : '32px 36px' }}>
 
-        {/* ── Banner ── */}
-        <div style={{
-          background: 'linear-gradient(135deg, #831843 0%, #DB2777 60%, #F472B6 100%)',
-          borderRadius: '20px',
-          padding: isMobile ? '24px 20px' : '36px 40px',
-          marginBottom: '32px',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{
-            position: 'absolute', top: '-20px', right: '-10px',
-            fontSize: '130px', opacity: 0.08, lineHeight: 1,
-            userSelect: 'none', pointerEvents: 'none',
-          }}>🎓</div>
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)',
-              borderRadius: '20px', padding: '4px 14px', marginBottom: '16px',
-            }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#FBBF24', display: 'inline-block' }} />
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                Preparando plataforma
-              </span>
-            </div>
-
-            <h1 style={{ fontSize: isMobile ? '22px' : '30px', fontWeight: 900, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.5px' }}>
-              🎓 Academia Alma
-            </h1>
-            <p style={{ fontSize: isMobile ? '13px' : '15px', color: 'rgba(255,255,255,0.85)', margin: '0 0 20px', maxWidth: '560px', lineHeight: 1.6 }}>
-              Plataforma de cursos y formación en diseño, branding y marketing digital. Disponible en <strong>edu.almaagenciacreativa.com</strong> para tu comunidad.
-            </p>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <a
-                href="https://edu.almaagenciacreativa.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '7px',
-                  background: '#fff', color: '#BE185D',
-                  padding: '10px 20px', borderRadius: '10px',
-                  fontSize: '13px', fontWeight: 800, textDecoration: 'none',
-                  transition: 'transform 0.15s, box-shadow 0.15s',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-1px)'
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.18)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'
-                }}
-              >
-                🌐 edu.almaagenciacreativa.com
-              </a>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: 'rgba(255,255,255,0.2)', color: '#fff',
-                padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-              }}>
-                🎓 Cursos publicados: 0
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Lista de categorías (preparación) ── */}
-        <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* ── Header premium ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '20px', borderBottom: `0.5px solid ${BDR}`, marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: '0 0 3px' }}>
-              Categorías de cursos
-            </h2>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
-              Las categorías en las que organizarás tu contenido educativo.
-            </p>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: WHT, letterSpacing: '-0.5px' }}>Academia</h1>
           </div>
-          <button
-            disabled
-            style={{
-              background: '#F3F4F6', color: '#9CA3AF',
-              border: '1px solid #E5E7EB', padding: '8px 16px',
-              borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-              cursor: 'not-allowed',
-            }}
-          >
-            + Nuevo curso (pronto)
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `${AMB}15`, border: `0.5px solid ${AMB}40`, color: AMB, borderRadius: '4px', padding: '5px 12px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: AMB, display: 'inline-block' }} />
+              En preparación
+            </span>
+            <a
+              href="https://edu.almaagenciacreativa.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', padding: '9px 18px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}
+            >
+              🌐 edu.almaagenciacreativa.com
+            </a>
+          </div>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-          gap: '12px', marginBottom: '28px',
-        }}>
-          {COURSE_CATEGORIES.map(cat => (
-            <div key={cat.name} style={{
-              background: '#fff', borderRadius: '14px', padding: '20px 18px',
-              border: '1px solid #E5E7EB', textAlign: 'center',
-            }}>
-              <span style={{ fontSize: '28px', display: 'block', marginBottom: '10px' }}>{cat.icon}</span>
-              <p style={{ fontSize: '12px', fontWeight: 800, color: '#374151', margin: '0 0 4px' }}>{cat.name}</p>
-              <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0 }}>
-                {cat.courses === 0 ? 'Sin cursos aún' : `${cat.courses} cursos`}
-              </p>
+        {/* ── Stats vacíos ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '14px', marginBottom: '32px' }}>
+          {([
+            { lbl: 'Cursos',       val: 0, sub: 'publicados',  col: ACC2, ico: '🎬' },
+            { lbl: 'Estudiantes',  val: 0, sub: 'inscritos',   col: TEAL, ico: '👩‍🎓' },
+            { lbl: 'Certificados', val: 0, sub: 'emitidos',    col: AMB,  ico: '🏆' },
+            { lbl: 'Ingresos',     val: '$0', sub: 'este mes', col: '#4ADE80', ico: '💳' },
+          ] as { lbl: string; val: number | string; sub: string; col: string; ico: string }[]).map(m => (
+            <div key={m.lbl} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '18px 18px 14px', position: 'relative', overflow: 'hidden' }}>
+              <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{m.lbl}</p>
+              <p style={{ fontSize: typeof m.val === 'string' ? '20px' : '28px', fontWeight: 300, color: m.col, margin: '0 0 5px', lineHeight: 1 }}>{m.val}</p>
+              <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
+              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '40px', color: '#1A1A22', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
             </div>
           ))}
         </div>
 
-        {/* ── En preparación ── */}
-        <div style={{
-          background: 'linear-gradient(135deg, #FDF2F8, #FCE7F3)',
-          border: '1.5px solid #FBCFE8',
-          borderRadius: '16px', padding: isMobile ? '20px 18px' : '24px 28px',
-          marginBottom: '28px',
-          display: 'flex', alignItems: 'flex-start', gap: '16px',
-        }}>
-          <span style={{ fontSize: '28px', flexShrink: 0, marginTop: '2px' }}>🚀</span>
+        {/* ── Aviso en preparación ── */}
+        <div style={{ background: `${AMB}0E`, border: `0.5px solid ${AMB}35`, borderRadius: '6px', padding: '16px 20px', marginBottom: '32px', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+          <span style={{ fontSize: '22px', flexShrink: 0, marginTop: '1px' }}>🚀</span>
           <div>
-            <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#BE185D', margin: '0 0 6px' }}>
-              Plataforma en preparación
-            </h2>
-            <p style={{ fontSize: '13px', color: '#DB2777', margin: 0, lineHeight: 1.6 }}>
-              La Academia Alma está siendo construida. Cuando esté lista, desde aquí podrás crear cursos, organizar módulos, gestionar estudiantes y ver el progreso. El subdominio <strong>edu.almaagenciacreativa.com</strong> se configurará en Vercel apuntando a esta plataforma.
+            <p style={{ margin: '0 0 4px', fontSize: '12px', fontWeight: 700, color: AMB }}>Plataforma educativa en preparación</p>
+            <p style={{ margin: 0, fontSize: '12px', color: MUT, lineHeight: 1.6 }}>
+              Desde aquí podrás crear cursos, organizar módulos, gestionar estudiantes y ver el progreso. El subdominio{' '}
+              <span style={{ color: TEAL, fontWeight: 600 }}>edu.almaagenciacreativa.com</span> se configurará en Vercel apuntando a esta plataforma.
             </p>
           </div>
         </div>
 
-        {/* ── Features ── */}
-        <div style={{ marginBottom: '12px' }}>
-          <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Funcionalidades de la academia
-          </h2>
-          <p style={{ fontSize: '13px', color: '#9CA3AF', marginBottom: '20px' }}>
-            Todo lo que tendrá la plataforma educativa de Alma.
-          </p>
+        {/* ── Categorías ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUT, margin: '0 0 3px' }}>Categorías de cursos</p>
+            <p style={{ fontSize: '12px', color: `${MUT}CC`, margin: 0 }}>El contenido educativo estará organizado en estas categorías.</p>
+          </div>
+          <button disabled style={{ padding: '8px 16px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontSize: '11px', fontWeight: 700, cursor: 'not-allowed', letterSpacing: '0.08em' }}>
+            + Nuevo curso (pronto)
+          </button>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '12px',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '10px', marginBottom: '32px' }}>
+          {COURSE_CATEGORIES.map(cat => (
+            <div key={cat.name} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px 18px', textAlign: 'center' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: `${cat.color}18`, border: `0.5px solid ${cat.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', margin: '0 auto 12px' }}>
+                {cat.icon}
+              </div>
+              <p style={{ fontSize: '12px', fontWeight: 700, color: WHT, margin: '0 0 4px' }}>{cat.name}</p>
+              <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>Sin cursos aún</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Features ── */}
+        <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUT, margin: '0 0 14px' }}>Funcionalidades previstas</p>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: '10px' }}>
           {FEATURES.map(f => (
-            <div key={f.title} style={{
-              background: '#fff', borderRadius: '14px', padding: '18px 20px',
-              border: '1px solid #E5E7EB', display: 'flex', gap: '14px', alignItems: 'flex-start',
-            }}>
-              <span style={{
-                fontSize: '22px', flexShrink: 0, width: '40px', height: '40px',
-                background: '#FDF2F8', borderRadius: '10px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+            <div key={f.title} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '16px 18px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '6px', background: `${f.color}18`, border: `0.5px solid ${f.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                 {f.icon}
-              </span>
+              </div>
               <div>
-                <p style={{ fontSize: '13px', fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>{f.title}</p>
-                <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: 1.5 }}>{f.desc}</p>
+                <p style={{ fontSize: '12px', fontWeight: 700, color: WHT, margin: '0 0 4px' }}>{f.title}</p>
+                <p style={{ fontSize: '11px', color: MUT, margin: 0, lineHeight: 1.5 }}>{f.desc}</p>
               </div>
             </div>
           ))}

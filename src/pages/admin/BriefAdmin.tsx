@@ -8,6 +8,20 @@ import {
 import type { Brief, BriefFormConfig, BriefFieldDef, BriefSectionDef } from '../../data/briefs'
 import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG } from '../../data/briefs'
 
+/* ── Paleta oscura ─────────────────────────────────────────── */
+const BK   = '#08080B'
+const DIM  = '#18181E'
+const BDR  = '#2A2A33'
+const BDR2 = '#3A3A44'
+const MUT  = '#606080'
+const WHT  = '#F1E8DA'
+const ACC2 = '#A855F7'
+const C1   = '#8A3FFC'
+const AMB  = '#FFB865'
+const TEAL = '#2DD4BF'
+const GRN  = '#4ADE80'
+const BLUE = '#60A5FA'
+
 /* ── helpers ───────────────────────────────────────────────── */
 function fmtDate(ts: unknown): string {
   if (!ts) return '—'
@@ -604,87 +618,51 @@ export default function BriefAdmin() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: isMobile ? '20px 16px' : '28px 32px' }}>
+      <div style={{ background: BK, minHeight: '100vh', padding: isMobile ? '20px 16px' : '32px 36px' }}>
 
-        {/* ── Header compacto ── */}
-        <div style={{
-          display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
-          justifyContent: 'space-between', gap: '12px',
-          flexDirection: isMobile ? 'column' : 'row',
-          marginBottom: '20px',
-        }}>
-          {/* Título + estado */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 900, color: '#111827', margin: 0 }}>
-              📋 Briefings
-            </h1>
-            {/* Contadores inline */}
-            <span style={{ background: '#EFF6FF', color: '#0369A1', border: '1px solid #BFDBFE', borderRadius: '20px', padding: '3px 12px', fontSize: '12px', fontWeight: 700 }}>
-              {briefs.length} total
-            </span>
+        {/* ── Header premium ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '20px', borderBottom: `0.5px solid ${BDR}`, marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: WHT, letterSpacing: '-0.5px' }}>Brief</h1>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {thisWeek > 0 && (
-              <span style={{ background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0', borderRadius: '20px', padding: '3px 12px', fontSize: '12px', fontWeight: 700 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: `${GRN}15`, border: `0.5px solid ${GRN}40`, color: GRN, borderRadius: '4px', padding: '5px 10px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' }}>
                 🆕 {thisWeek} esta semana
               </span>
             )}
-            {/* Dot online */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#6B7280' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 0 2px rgba(34,197,94,0.25)' }} />
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: GRN, background: `${GRN}10`, border: `0.5px solid ${GRN}30`, padding: '5px 10px', borderRadius: '4px', fontWeight: 700 }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: GRN, display: 'inline-block', boxShadow: `0 0 0 2px ${GRN}30` }} />
               Formulario activo
             </span>
-          </div>
-
-          {/* Link al formulario — siempre visible */}
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              background: '#F9FAFB', border: '1px solid #E5E7EB',
-              borderRadius: '10px', padding: '8px 14px',
-            }}>
-              <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 600 }}>🔗</span>
-              <code style={{ fontSize: '12px', color: '#374151', fontWeight: 600, userSelect: 'all' }}>
-                {window.location.origin}/brief
-              </code>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', background: DIM, border: `0.5px solid ${BDR2}`, borderRadius: '4px', padding: '7px 12px' }}>
+              <span style={{ fontSize: '10px', color: MUT }}>🔗</span>
+              <code style={{ fontSize: '11px', color: TEAL, fontWeight: 600, userSelect: 'all' }}>{window.location.origin}/brief</code>
             </div>
-            <a
-              href="/brief"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: '#0EA5E9', color: '#fff',
-                padding: '9px 16px', borderRadius: '10px',
-                fontSize: '12px', fontWeight: 800, textDecoration: 'none',
-                whiteSpace: 'nowrap', flexShrink: 0,
-              }}
-            >
-              🌐 Abrir
+            <a href="/brief" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', padding: '9px 18px', borderRadius: '4px', fontSize: '11px', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              🌐 Abrir formulario
             </a>
           </div>
         </div>
 
         {/* ── Tabs ── */}
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '24px', background: '#F3F4F6', borderRadius: '12px', padding: '5px' }}>
+        <div style={{ display: 'flex', borderBottom: `0.5px solid ${BDR}`, marginBottom: '28px', gap: '0', overflowX: 'auto' }}>
           {([
-            { key: 'inbox',      label: '📥 Inbox',      count: briefs.length },
-            { key: 'formulario', label: '⚙️ Formulario'  },
+            { key: 'inbox',      label: '📥 Inbox',       count: briefs.length },
+            { key: 'formulario', label: '⚙️ Formulario' },
           ] as const).map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              style={{
-                flex: 1, padding: '10px 16px', borderRadius: '9px', border: 'none',
-                background: tab === t.key ? '#fff' : 'transparent',
-                color: tab === t.key ? '#111827' : '#6B7280',
-                fontSize: '13px', fontWeight: tab === t.key ? 800 : 600,
-                cursor: 'pointer', transition: 'all 0.15s',
-                boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-              }}
-            >
+            <button key={t.key} onClick={() => setTab(t.key)} style={{
+              padding: '11px 20px', border: 'none', background: 'none', cursor: 'pointer',
+              fontSize: '11px', fontWeight: tab === t.key ? 700 : 500,
+              color: tab === t.key ? ACC2 : MUT,
+              borderBottom: tab === t.key ? `1.5px solid ${ACC2}` : '1.5px solid transparent',
+              whiteSpace: 'nowrap', letterSpacing: '0.05em', marginBottom: '-0.5px',
+              display: 'inline-flex', alignItems: 'center', gap: '6px', transition: 'color 0.15s',
+            }}>
               {t.label}
               {'count' in t && t.count > 0 && (
-                <span style={{ background: '#0EA5E9', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '1px 7px', borderRadius: '10px' }}>
+                <span style={{ background: ACC2, color: '#fff', fontSize: '9px', fontWeight: 800, padding: '1px 6px', borderRadius: '10px' }}>
                   {t.count}
                 </span>
               )}
@@ -702,91 +680,97 @@ export default function BriefAdmin() {
                   key={e.value}
                   onClick={() => setFilter(f => f === e.value ? 'todos' : e.value)}
                   style={{
-                    background: filter === e.value ? e.bg : '#fff',
-                    borderRadius: '14px', padding: '16px',
-                    border: `1.5px solid ${filter === e.value ? e.color : '#E5E7EB'}`,
+                    background: filter === e.value ? `${e.color}18` : DIM,
+                    borderRadius: '6px', padding: '18px 18px 14px',
+                    border: `0.5px solid ${filter === e.value ? e.color : BDR}`,
                     cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                    position: 'relative', overflow: 'hidden',
                   }}
                 >
-                  <p style={{ fontSize: '22px', fontWeight: 900, color: e.color, margin: '0 0 3px' }}>{counts[e.value] ?? 0}</p>
-                  <p style={{ fontSize: '11px', color: '#6B7280', margin: 0, fontWeight: 600 }}>{e.label}</p>
+                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{e.label}</p>
+                  <p style={{ fontSize: '28px', fontWeight: 300, color: e.color, margin: '0 0 2px', lineHeight: 1 }}>{counts[e.value] ?? 0}</p>
+                  <span style={{ position: 'absolute', bottom: 0, right: '8px', fontSize: '42px', color: '#1A1A22', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>◈</span>
                 </button>
               ))}
             </div>
 
             {/* Lista */}
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '48px', color: '#9CA3AF' }}>Cargando briefings…</div>
+              <p style={{ textAlign: 'center', padding: '60px 0', color: MUT, fontSize: '13px' }}>Cargando briefings…</p>
             ) : displayed.length === 0 ? (
-              <div style={{ background: '#fff', borderRadius: '16px', padding: '48px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
+              <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '48px', textAlign: 'center' }}>
                 <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>📭</span>
-                <p style={{ fontSize: '14px', fontWeight: 700, color: '#374151', margin: '0 0 6px' }}>
-                  {filter === 'todos' ? 'Aún no hay briefings' : `No hay briefings con estado "${BRIEF_ESTADOS.find(e => e.value === filter)?.label}"`}
+                <p style={{ fontSize: '13px', fontWeight: 700, color: WHT, margin: '0 0 6px' }}>
+                  {filter === 'todos' ? 'Aún no hay briefings' : `Sin briefings con estado "${BRIEF_ESTADOS.find(e => e.value === filter)?.label}"`}
                 </p>
-                <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
-                  Comparte <strong>brief.almaagenciacreativa.com</strong> con tus clientes.
+                <p style={{ fontSize: '11px', color: MUT, margin: 0 }}>
+                  Comparte <span style={{ color: TEAL }}>{window.location.origin}/brief</span> con tus clientes.
                 </p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {displayed.map(b => (
-                  <div
-                    key={b._id}
-                    style={{
-                      background: '#fff', borderRadius: '14px', padding: '16px 20px',
-                      border: '1px solid #E5E7EB',
-                      display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
-                      gap: '16px', flexWrap: 'wrap',
-                      cursor: 'pointer', transition: 'box-shadow 0.15s',
-                    }}
-                    onClick={() => setSelected(b)}
-                    onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)')}
-                    onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
-                  >
-                    {/* Avatar */}
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #0EA5E9, #0369A1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '16px', flexShrink: 0 }}>
-                      {b.nombre?.charAt(0).toUpperCase() ?? '?'}
-                    </div>
-
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <p style={{ fontSize: '14px', fontWeight: 700, color: '#111827', margin: 0 }}>{b.nombre}</p>
-                        <span style={{ fontSize: '12px', color: '#6B7280' }}>·</span>
-                        <p style={{ fontSize: '12px', fontWeight: 600, color: '#0EA5E9', margin: 0 }}>{b.marca}</p>
-                        {b.notas_admin && (
-                          <span title="Tiene notas del admin" style={{ fontSize: '11px', color: '#D97706', background: '#FEF3C7', padding: '1px 7px', borderRadius: '6px', fontWeight: 600 }}>📝 Nota</span>
-                        )}
-                      </div>
-                      <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {b.email_direccion}
-                        {b.propuesta_valor && b.propuesta_valor !== '—' ? ` · ${truncate(b.propuesta_valor)}` : ''}
-                      </p>
-                    </div>
-
-                    {/* Fecha */}
-                    {!isMobile && (
-                      <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtDate(b.createdAt)}</p>
-                    )}
-
-                    {/* Estado */}
-                    <div onClick={e => e.stopPropagation()}>
-                      <EstadoBadge estado={b.estado} onChange={newEstado => handleEstado(b._id!, newEstado)} />
-                    </div>
-
-                    {/* Eliminar */}
-                    <button
-                      onClick={e => { e.stopPropagation(); handleDelete(b._id!) }}
-                      disabled={deleting === b._id}
-                      title="Eliminar briefing"
-                      style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '18px', padding: '4px', borderRadius: '6px', flexShrink: 0, transition: 'color 0.15s' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = '#EF4444')}
-                      onMouseLeave={e => (e.currentTarget.style.color = '#9CA3AF')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {displayed.map(b => {
+                  const estado = BRIEF_ESTADOS.find(e => e.value === b.estado)
+                  return (
+                    <div
+                      key={b._id}
+                      style={{
+                        background: DIM, borderRadius: '6px', padding: '14px 18px',
+                        border: `0.5px solid ${BDR}`,
+                        borderLeft: `2.5px solid ${estado?.color ?? MUT}`,
+                        display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+                        gap: '14px', flexWrap: 'wrap',
+                        cursor: 'pointer', transition: 'border-color 0.15s',
+                      }}
+                      onClick={() => setSelected(b)}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = ACC2)}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = BDR)}
                     >
-                      {deleting === b._id ? '…' : '🗑️'}
-                    </button>
-                  </div>
-                ))}
+                      {/* Avatar */}
+                      <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: `linear-gradient(135deg,${C1},${ACC2})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '15px', flexShrink: 0 }}>
+                        {b.nombre?.charAt(0).toUpperCase() ?? '?'}
+                      </div>
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                          <p style={{ fontSize: '13px', fontWeight: 700, color: WHT, margin: 0 }}>{b.nombre}</p>
+                          <span style={{ fontSize: '11px', color: MUT }}>·</span>
+                          <p style={{ fontSize: '11px', fontWeight: 600, color: BLUE, margin: 0 }}>{b.marca}</p>
+                          {b.notas_admin && (
+                            <span title="Tiene notas del admin" style={{ fontSize: '9px', color: AMB, background: `${AMB}18`, padding: '1px 6px', borderRadius: '3px', fontWeight: 700, letterSpacing: '0.05em' }}>NOTA</span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: '11px', color: MUT, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {b.email_direccion}
+                          {b.propuesta_valor && b.propuesta_valor !== '—' ? ` · ${truncate(b.propuesta_valor)}` : ''}
+                        </p>
+                      </div>
+
+                      {/* Fecha */}
+                      {!isMobile && (
+                        <p style={{ fontSize: '10px', color: MUT, margin: 0, whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtDate(b.createdAt)}</p>
+                      )}
+
+                      {/* Estado */}
+                      <div onClick={e => e.stopPropagation()}>
+                        <EstadoBadge estado={b.estado} onChange={newEstado => handleEstado(b._id!, newEstado)} />
+                      </div>
+
+                      {/* Eliminar */}
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDelete(b._id!) }}
+                        disabled={deleting === b._id}
+                        title="Eliminar briefing"
+                        style={{ background: 'none', border: 'none', color: MUT, cursor: 'pointer', fontSize: '16px', padding: '4px', borderRadius: '4px', flexShrink: 0, transition: 'color 0.15s', lineHeight: 1 }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#EF4444')}
+                        onMouseLeave={e => (e.currentTarget.style.color = MUT)}
+                      >
+                        {deleting === b._id ? '…' : '×'}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </>
