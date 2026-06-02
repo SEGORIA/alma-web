@@ -604,39 +604,62 @@ export default function BriefAdmin() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: isMobile ? '24px 16px' : '40px 32px' }}>
+      <div style={{ padding: isMobile ? '20px 16px' : '28px 32px' }}>
 
-        {/* ── Banner ── */}
+        {/* ── Header compacto ── */}
         <div style={{
-          background: 'linear-gradient(135deg, #0369A1 0%, #0EA5E9 60%, #38BDF8 100%)',
-          borderRadius: '20px', padding: isMobile ? '24px 20px' : '32px 36px',
-          marginBottom: '24px', position: 'relative', overflow: 'hidden',
+          display: 'flex', alignItems: isMobile ? 'flex-start' : 'center',
+          justifyContent: 'space-between', gap: '12px',
+          flexDirection: isMobile ? 'column' : 'row',
+          marginBottom: '20px',
         }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-10px', fontSize: '130px', opacity: 0.08, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>📋</div>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 14px', marginBottom: '12px' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase' }}>En línea</span>
-            </div>
-            <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 900, color: '#fff', margin: '0 0 8px', letterSpacing: '-0.5px' }}>
-              📋 Briefings de Clientes
+          {/* Título + estado */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: 900, color: '#111827', margin: 0 }}>
+              📋 Briefings
             </h1>
-            <p style={{ fontSize: isMobile ? '13px' : '14px', color: 'rgba(255,255,255,0.85)', margin: '0 0 16px', maxWidth: '540px', lineHeight: 1.5 }}>
-              Fichas enviadas desde <strong>brief.almaagenciacreativa.com</strong> · Guardadas en Firestore y Google Sheets.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <a href="/brief" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', background: '#fff', color: '#0369A1', padding: '8px 18px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, textDecoration: 'none' }}>
-                🌐 Ver formulario
-              </a>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.2)', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 700 }}>
-                📋 {briefs.length} {briefs.length === 1 ? 'briefing' : 'briefings'}
+            {/* Contadores inline */}
+            <span style={{ background: '#EFF6FF', color: '#0369A1', border: '1px solid #BFDBFE', borderRadius: '20px', padding: '3px 12px', fontSize: '12px', fontWeight: 700 }}>
+              {briefs.length} total
+            </span>
+            {thisWeek > 0 && (
+              <span style={{ background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0', borderRadius: '20px', padding: '3px 12px', fontSize: '12px', fontWeight: 700 }}>
+                🆕 {thisWeek} esta semana
               </span>
-              {thisWeek > 0 && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(74,222,128,0.25)', color: '#fff', padding: '8px 14px', borderRadius: '10px', fontSize: '12px', fontWeight: 700 }}>
-                  🆕 {thisWeek} esta semana
-                </span>
-              )}
+            )}
+            {/* Dot online */}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#6B7280' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 0 2px rgba(34,197,94,0.25)' }} />
+              Formulario activo
+            </span>
+          </div>
+
+          {/* Link al formulario — siempre visible */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: '#F9FAFB', border: '1px solid #E5E7EB',
+              borderRadius: '10px', padding: '8px 14px',
+            }}>
+              <span style={{ fontSize: '11px', color: '#9CA3AF', fontWeight: 600 }}>🔗</span>
+              <code style={{ fontSize: '12px', color: '#374151', fontWeight: 600, userSelect: 'all' }}>
+                {window.location.origin}/brief
+              </code>
             </div>
+            <a
+              href="/brief"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: '#0EA5E9', color: '#fff',
+                padding: '9px 16px', borderRadius: '10px',
+                fontSize: '12px', fontWeight: 800, textDecoration: 'none',
+                whiteSpace: 'nowrap', flexShrink: 0,
+              }}
+            >
+              🌐 Abrir
+            </a>
           </div>
         </div>
 
