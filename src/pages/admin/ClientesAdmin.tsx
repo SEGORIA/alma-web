@@ -654,7 +654,7 @@ export default function ClientesAdmin() {
                                 {SOLICITUD_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
                               </select>
                             </div>
-                            {s.createdAt && <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{String(s.createdAt).slice(0, 10)}</span>}
+                            {!!s.createdAt && <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{String(s.createdAt).slice(0, 10)}</span>}
                           </div>
                           <p style={{ fontSize: '13px', color: '#374151', margin: '0 0 8px' }}>{s.descripcion}</p>
                           {s.material_ref && <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 10px' }}>Ref: {s.material_ref}</p>}
