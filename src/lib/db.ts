@@ -2,8 +2,7 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, arrayUnion,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage, firebaseReady } from './firebase'
+import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
 import { proyectosEstaticos } from '../data/portafolio'
 import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/precios'
@@ -560,20 +559,29 @@ export async function saveBriefFormConfig(config: BriefFormConfig): Promise<void
   await setDoc(briefConfigDoc(), { ...config, updatedAt: serverTimestamp() })
 }
 
-/* ══ STORAGE — LOGOS ════════════════════════════════════════ */
+/* ══ CLOUDINARY — LOGOS ═════════════════════════════════════ */
 
 /**
- * Sube el logo de un cliente a Firebase Storage y devuelve la URL pública.
- * Ruta: logos/{slug}/{timestamp}.{ext}
- * Si Storage no está disponible lanza un error descriptivo.
+ * Sube el logo de un cliente a Cloudinary (unsigned upload) y devuelve la URL segura.
+ * Requiere VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en .env.
+ * El preset debe ser "unsigned" en Cloudinary Dashboard → Settings → Upload.
  */
-export async function uploadClienteLogo(file: File, slug: string): Promise<string> {
-  if (!storage) throw new Error('Firebase Storage no está configurado (VITE_FIREBASE_STORAGE_BUCKET vacío)')
-  const ext  = file.name.split('.').pop() ?? 'png'
-  const path = `logos/${slug}/${Date.now()}.${ext}`
-  const storageRef = ref(storage, path)
-  await uploadBytes(storageRef, file)
-  return getDownloadURL(storageRef)
+export async function uploadClienteLogo(file: File, _slug: string): Promise<string> {
+  const cloud  = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+  const preset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+  if (!cloud || !preset) {
+    throw new Error('Configura VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en tus variables de entorno.')
+  }
+  const body = new FormData()
+  body.append('file', file)
+  body.append('upload_preset', preset)
+  body.append('folder', 'alma/logos')
+  const res  = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: 'POST', body })
+  const data = await res.json() as { secure_url?: string; error?: { message: string } }
+  if (!res.ok || !data.secure_url) {
+    throw new Error(data.error?.message ?? 'Error subiendo imagen a Cloudinary')
+  }
+  return data.secure_url
 }
 
 /* ══ CLIENTES ═══════════════════════════════════════════════ */
