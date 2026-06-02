@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal } from '../lib/db'
-import type { Cliente, Solicitud } from '../data/clientes'
+import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
 import {
-  ENTREGABLE_CATEGORIAS, PARRILLA_ESTADOS,
+  ENTREGABLE_CATEGORIAS, PARRILLA_ESTADOS, PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
 } from '../data/clientes'
 
@@ -57,6 +57,10 @@ export default function ClientePortal() {
   const [solRef,      setSolRef]      = useState('')
   const [sending,     setSending]     = useState(false)
   const [sent,        setSent]        = useState(false)
+  // Parrilla
+  const [expandedId,   setExpandedId]   = useState<string | null>(null)
+  const [activeMes,    setActiveMes]    = useState<string>('all')
+  const [copiedId,     setCopiedId]     = useState<string | null>(null)
 
   useEffect(() => {
     if (!token) { setLoading(false); return }
@@ -176,65 +180,174 @@ export default function ClientePortal() {
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '28px 20px' }}>
 
         {/* ── INICIO ── */}
-        {tab === 'inicio' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {tab === 'inicio' && (() => {
+          const parrilla    = data.parrilla ?? []
+          const publicados  = parrilla.filter(p => p.estado === 'publicado')
+          const conMetricas = publicados.filter(p => p.metricas && Object.values(p.metricas).some(v => v != null && v > 0))
+          const totalAlcance    = conMetricas.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
+          const totalLikes      = conMetricas.reduce((s, p) => s + (p.metricas?.likes ?? 0), 0)
+          const totalGuardados  = conMetricas.reduce((s, p) => s + (p.metricas?.guardados ?? 0), 0)
+          const avgEngagement   = conMetricas.length > 0
+            ? conMetricas.reduce((s, p) => s + (p.metricas?.engagement ?? 0), 0) / conMetricas.length
+            : 0
 
-            {/* Quick stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
-              {[
-                { label: 'Materiales', value: (data.entregables ?? []).length, icon: '📦' },
-                { label: 'En parrilla', value: (data.parrilla ?? []).length, icon: '📅' },
-                { label: 'Solicitudes', value: (data.solicitudes ?? []).length, icon: '💬' },
-              ].map(m => (
-                <div key={m.label} style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  <p style={{ fontSize: '28px', margin: '0 0 6px' }}>{m.icon}</p>
-                  <p style={{ fontSize: '26px', fontWeight: 900, color: P, margin: '0 0 3px' }}>{m.value}</p>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, fontWeight: 600 }}>{m.label}</p>
-                </div>
-              ))}
-            </div>
+          // Posts con mejor alcance (top 3)
+          const topPosts = [...conMetricas].sort((a, b) => (b.metricas?.alcance ?? 0) - (a.metricas?.alcance ?? 0)).slice(0, 3)
 
-            {/* Inicio fecha */}
-            {data.fecha_inicio && (
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: '12px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inicio del proyecto</p>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#374151', margin: 0 }}>{data.fecha_inicio}</p>
+          // Meses con publicaciones
+          const mesesPublicados = [...new Set(publicados.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort().reverse()
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+
+              {/* Resumen del proyecto */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                {[
+                  { label: 'Materiales',   value: (data.entregables ?? []).length, icon: '📦', color: '#6B21A8' },
+                  { label: 'En parrilla',  value: parrilla.length,                 icon: '📅', color: '#0EA5E9' },
+                  { label: 'Publicados',   value: publicados.length,               icon: '✅', color: '#059669' },
+                  { label: 'Solicitudes',  value: (data.solicitudes ?? []).length, icon: '💬', color: '#D97706' },
+                ].map(m => (
+                  <div key={m.label} style={{ background: '#fff', borderRadius: '14px', padding: '18px 14px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+                    <p style={{ fontSize: '26px', margin: '0 0 5px' }}>{m.icon}</p>
+                    <p style={{ fontSize: '24px', fontWeight: 900, color: m.color, margin: '0 0 3px' }}>{m.value}</p>
+                    <p style={{ fontSize: '11.5px', color: '#6B7280', margin: 0, fontWeight: 600 }}>{m.label}</p>
+                  </div>
+                ))}
               </div>
-            )}
 
-            {/* Contrato */}
-            {data.contrato_url && (
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              {/* Dashboard de métricas */}
+              {conMetricas.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+                  <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📊 Métricas acumuladas</p>
+                    <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#9CA3AF' }}>{conMetricas.length} posts con datos registrados</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0', padding: '0' }}>
+                    {[
+                      { label: 'Alcance total',   value: totalAlcance.toLocaleString(),   icon: '👁️',  color: P },
+                      { label: 'Likes totales',    value: totalLikes.toLocaleString(),     icon: '❤️',  color: '#EF4444' },
+                      { label: 'Guardados',        value: totalGuardados.toLocaleString(), icon: '🔖',  color: '#F59E0B' },
+                      { label: 'Eng. promedio',    value: `${avgEngagement.toFixed(1)}%`,  icon: '📈',  color: '#059669' },
+                    ].map((m, i) => (
+                      <div key={m.label} style={{
+                        padding: '18px 16px', textAlign: 'center',
+                        borderRight: i < 3 ? '1px solid #F3F4F6' : 'none',
+                        borderBottom: '0',
+                      }}>
+                        <p style={{ fontSize: '22px', margin: '0 0 4px' }}>{m.icon}</p>
+                        <p style={{ fontSize: '20px', fontWeight: 900, color: m.color, margin: '0 0 3px' }}>{m.value}</p>
+                        <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0, fontWeight: 600 }}>{m.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Top posts */}
+              {topPosts.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #F3F4F6' }}>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🏆 Mejores posts por alcance</p>
+                  </div>
+                  {topPosts.map((p, i) => {
+                    const maxAlc = topPosts[0].metricas?.alcance ?? 1
+                    const pct    = Math.round(((p.metricas?.alcance ?? 0) / maxAlc) * 100)
+                    const pilarI = PILARES_CONTENIDO.find(x => x.value === p.pilar)
+                    return (
+                      <div key={p.id} style={{ padding: '14px 20px', borderBottom: i < topPosts.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                          <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: ['#F59E0B', '#9CA3AF', '#CD7C2F'][i] + '22', color: ['#F59E0B', '#9CA3AF', '#CD7C2F'][i], fontSize: '12px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {i + 1}
+                          </span>
+                          <p style={{ flex: 1, margin: 0, fontSize: '13px', fontWeight: 700, color: '#111', lineClamp: 1 }}>{p.descripcion}</p>
+                          {pilarI && <span style={{ padding: '2px 8px', borderRadius: '6px', background: pilarI.bg, color: pilarI.color, fontSize: '11px', fontWeight: 700 }}>{pilarI.label}</span>}
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: P }}>{(p.metricas?.alcance ?? 0).toLocaleString()} alcance</span>
+                        </div>
+                        {/* Barra de alcance */}
+                        <div style={{ height: '4px', background: '#F3F4F6', borderRadius: '2px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${P}, #9333EA)`, borderRadius: '2px', transition: 'width 0.5s ease' }} />
+                        </div>
+                        {/* Sub-métricas */}
+                        <div style={{ display: 'flex', gap: '14px', marginTop: '6px' }}>
+                          {p.metricas?.likes      ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>❤️ {p.metricas.likes.toLocaleString()}</span> : null}
+                          {p.metricas?.guardados  ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>🔖 {p.metricas.guardados.toLocaleString()}</span> : null}
+                          {p.metricas?.comentarios ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>💬 {p.metricas.comentarios.toLocaleString()}</span> : null}
+                          {p.metricas?.engagement ? <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>📈 {p.metricas.engagement}%</span> : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Histórico por meses */}
+              {mesesPublicados.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+                  <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #F3F4F6' }}>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🗂️ Historial por mes</p>
+                  </div>
+                  {mesesPublicados.map(mes => {
+                    const posts = publicados.filter(p => p.fecha?.startsWith(mes))
+                    const [y, m] = mes.split('-')
+                    const mesLabel = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+                    const alcMes  = posts.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
+                    return (
+                      <div key={mes} style={{ padding: '14px 20px', borderBottom: '1px solid #F9FAFB', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '120px' }}>
+                          <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 700, color: '#111', textTransform: 'capitalize' }}>{mesLabel}</p>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>{posts.length} post{posts.length !== 1 ? 's' : ''} publicados</p>
+                        </div>
+                        {alcMes > 0 && <span style={{ fontSize: '13px', fontWeight: 700, color: P }}>👁️ {alcMes.toLocaleString()}</span>}
+                        <button
+                          onClick={() => { setTab('parrilla'); setActiveMes(mes) }}
+                          style={{ padding: '6px 14px', borderRadius: '8px', background: 'rgba(107,33,168,0.08)', color: P, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}
+                        >
+                          Ver parrilla →
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Inicio fecha */}
+              {data.fecha_inicio && (
+                <div style={{ background: '#fff', borderRadius: '14px', padding: '16px 20px', border: '1px solid #E5E7EB', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '28px' }}>📆</span>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inicio del proyecto</p>
+                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#374151', margin: 0 }}>{data.fecha_inicio}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Contrato */}
+              {data.contrato_url && (
+                <div style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <p style={{ fontSize: '12px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📑 Contrato de servicios</p>
+                    <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Tu contrato está disponible para descargar.</p>
+                  </div>
+                  <a href={data.contrato_url} target="_blank" rel="noopener noreferrer" style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
+                    Descargar contrato
+                  </a>
+                </div>
+              )}
+
+              {/* Solicitud rápida */}
+              <div style={{ background: `linear-gradient(135deg, #F5F3FF, #EDE9FE)`, borderRadius: '14px', padding: '20px', border: `1.5px solid #DDD6FE`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
                 <div>
-                  <p style={{ fontSize: '12px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📑 Contrato de servicios</p>
-                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Tu contrato está disponible para descargar.</p>
+                  <p style={{ fontSize: '14px', fontWeight: 800, color: P, margin: '0 0 4px' }}>¿Tienes una solicitud?</p>
+                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Pide cambios, mejoras o consulta algo sobre tus materiales.</p>
                 </div>
-                <a
-                  href={data.contrato_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}
-                >
-                  Descargar contrato
-                </a>
+                <button onClick={() => setShowSolForm(true)} style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
+                  + Nueva solicitud
+                </button>
               </div>
-            )}
-
-            {/* Solicitud rápida */}
-            <div style={{ background: `linear-gradient(135deg, #F5F3FF, #EDE9FE)`, borderRadius: '14px', padding: '20px', border: `1.5px solid #DDD6FE`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: 800, color: P, margin: '0 0 4px' }}>¿Tienes una solicitud?</p>
-                <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Pide cambios, mejoras o consulta algo sobre tus materiales.</p>
-              </div>
-              <button
-                onClick={() => setShowSolForm(true)}
-                style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}
-              >
-                + Nueva solicitud
-              </button>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* ── ENTREGABLES ── */}
         {tab === 'entregables' && (
@@ -282,50 +395,261 @@ export default function ClientePortal() {
         )}
 
         {/* ── PARRILLA ── */}
-        {tab === 'parrilla' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {(data.parrilla ?? []).length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📅</p>
-                <p style={{ color: '#6B7280', fontSize: '15px' }}>La parrilla de contenido de este mes estará disponible aquí.<br />El equipo de Alma la completará pronto.</p>
+        {tab === 'parrilla' && (() => {
+          const allItems = [...(data.parrilla ?? [])].sort((a, b) => {
+            if (a.dia_num && b.dia_num) return a.dia_num - b.dia_num
+            return (a.fecha ?? '').localeCompare(b.fecha ?? '')
+          })
+
+          // Meses disponibles
+          const meses = [...new Set(allItems.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort()
+          const currentMes = activeMes === 'all' ? null : activeMes
+          const items = currentMes ? allItems.filter(p => p.fecha?.startsWith(currentMes)) : allItems
+
+          // Agrupar por semanas
+          const semanas = [...new Set(items.map(p => p.semana ?? 0))]
+
+          function copyCaption(p: ParrillaItem) {
+            const text = [p.caption, p.hashtags].filter(Boolean).join('\n\n')
+            if (text) {
+              navigator.clipboard.writeText(text)
+              setCopiedId(p.id)
+              setTimeout(() => setCopiedId(null), 2000)
+            }
+          }
+
+          if (allItems.length === 0) return (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📅</p>
+              <p style={{ color: '#6B7280', fontSize: '15px' }}>La parrilla de contenido estará disponible aquí.<br />El equipo de Alma la completará pronto.</p>
+            </div>
+          )
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+
+              {/* ── Encabezado editorial ── */}
+              <div style={{ marginBottom: '24px' }}>
+                <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Plan editorial · {allItems.length} días
+                </p>
+                <h2 style={{ margin: '0 0 2px', fontSize: '28px', fontWeight: 900, color: '#111', lineHeight: 1.15 }}>
+                  El Calendario <em style={{ color: '#D97706', fontStyle: 'italic', fontWeight: 800 }}>Exacto</em>
+                </h2>
+                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: '#111', lineHeight: 1.15 }}>Día por Día</h2>
               </div>
-            ) : (
-              <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#F9FAFB' }}>
-                        {['Fecha', 'Red', 'Tipo', 'Descripción', 'Estado'].map(h => (
-                          <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: '11.5px', fontWeight: 800, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(data.parrilla ?? []).map(p => {
-                        const est = PARRILLA_ESTADOS.find(x => x.value === p.estado)
+
+              {/* ── Filtro por mes ── */}
+              {meses.length > 1 && (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                  <button onClick={() => setActiveMes('all')} style={{ padding: '6px 14px', borderRadius: '20px', border: `1.5px solid ${activeMes === 'all' ? P : '#E5E7EB'}`, background: activeMes === 'all' ? P : '#fff', color: activeMes === 'all' ? '#fff' : '#6B7280', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    Todos
+                  </button>
+                  {meses.map(mes => {
+                    const [y, m] = mes.split('-')
+                    const label = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
+                    return (
+                      <button key={mes} onClick={() => setActiveMes(mes)} style={{ padding: '6px 14px', borderRadius: '20px', border: `1.5px solid ${activeMes === mes ? P : '#E5E7EB'}`, background: activeMes === mes ? P : '#fff', color: activeMes === mes ? '#fff' : '#6B7280', fontSize: '12px', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize' }}>
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* ── Tabla de headers ── */}
+              <div style={{ background: '#111', borderRadius: '12px 12px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '52px 1fr 120px 160px', gap: '0', alignItems: 'center' }}>
+                {['DÍA', 'CONTENIDO', 'PILAR', 'CTA / KEYWORD'].map(h => (
+                  <span key={h} style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.55)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</span>
+                ))}
+              </div>
+
+              {/* ── Ítems por semana ── */}
+              <div style={{ border: '1px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+                {semanas.map((sem, si) => {
+                  const semItems = sem === 0 ? items.filter(p => !p.semana) : items.filter(p => p.semana === sem)
+                  if (semItems.length === 0) return null
+                  const diasRange = semItems.filter(p => p.dia_num).map(p => p.dia_num!)
+                  const dMin = diasRange.length ? Math.min(...diasRange) : null
+                  const dMax = diasRange.length ? Math.max(...diasRange) : null
+
+                  return (
+                    <div key={`sem-${sem}-${si}`}>
+                      {/* Separador de semana */}
+                      {sem > 0 && (
+                        <div style={{ background: '#111', padding: '12px 16px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                          <span style={{ background: '#fff', color: '#111', borderRadius: '4px', padding: '1px 7px', fontSize: '11px', fontWeight: 900 }}>S{sem}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>SEMANA {sem}</span>
+                          {dMin && dMax && (
+                            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginLeft: '4px' }}>· DÍAS {dMin}–{dMax}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Posts de la semana */}
+                      {semItems.map((p, idx) => {
+                        const isExpanded = expandedId === p.id
+                        const pilarI = PILARES_CONTENIDO.find(x => x.value === p.pilar)
+                        const est    = PARRILLA_ESTADOS.find(x => x.value === p.estado)
+                        const instrLines = (p.instrucciones ?? '').split('\n').filter(Boolean)
+                        const hasCopy = !!(p.caption || p.hashtags)
+
                         return (
-                          <tr key={p.id} style={{ borderTop: '1px solid #F3F4F6' }}>
-                            <td style={{ padding: '12px 16px', fontSize: '13px', color: '#374151', whiteSpace: 'nowrap' }}>{p.fecha}</td>
-                            <td style={{ padding: '12px 16px', fontSize: '13px', color: '#374151' }}>{p.red}</td>
-                            <td style={{ padding: '12px 16px', fontSize: '13px', color: '#374151' }}>{p.tipo}</td>
-                            <td style={{ padding: '12px 16px', fontSize: '13px', color: '#374151', maxWidth: '240px' }}>
-                              {p.link ? <a href={p.link} target="_blank" rel="noopener noreferrer" style={{ color: P, textDecoration: 'none', fontWeight: 600 }}>{p.descripcion}</a> : p.descripcion}
-                            </td>
-                            <td style={{ padding: '12px 16px' }}>
-                              <span style={{ padding: '3px 10px', borderRadius: '20px', background: est?.bg ?? '#F3F4F6', color: est?.color ?? '#6B7280', fontSize: '11.5px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                {est?.label ?? p.estado}
-                              </span>
-                            </td>
-                          </tr>
+                          <div key={p.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                            {/* ── Fila principal ── */}
+                            <div
+                              onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                              style={{
+                                display: 'grid', gridTemplateColumns: '52px 1fr 120px 160px',
+                                gap: '0', alignItems: 'center',
+                                padding: '14px 16px',
+                                background: isExpanded ? '#F9FAFB' : idx % 2 === 0 ? '#fff' : '#FAFAFA',
+                                cursor: 'pointer',
+                                transition: 'background 0.1s',
+                              }}
+                            >
+                              {/* Día # */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                                <span style={{ fontSize: '18px', fontWeight: 900, color: '#111', lineHeight: 1 }}>
+                                  {p.dia_num ? String(p.dia_num).padStart(2, '0') : '—'}
+                                </span>
+                                {est && (
+                                  <span style={{ padding: '1px 5px', borderRadius: '4px', background: est.bg, color: est.color, fontSize: '9px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    {est.label}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Contenido */}
+                              <div style={{ paddingRight: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                  <span style={{ padding: '2px 7px', borderRadius: '4px', background: '#111', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
+                                    {p.tipo.toUpperCase()}{p.duracion ? ` · ${p.duracion.toUpperCase()}` : ''}
+                                  </span>
+                                  <span style={{ fontSize: '10px', color: '#9CA3AF' }}>{p.red}</span>
+                                  {p.link && (
+                                    <a href={p.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize: '10px', color: P, fontWeight: 700, textDecoration: 'none' }}>🔗 Ver post</a>
+                                  )}
+                                </div>
+                                <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 800, color: '#111', lineHeight: 1.3 }}>{p.descripcion}</p>
+                                {p.subtitulo && <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>{p.subtitulo}</p>}
+                              </div>
+
+                              {/* Pilar */}
+                              <div>
+                                {pilarI ? (
+                                  <span style={{ padding: '3px 9px', borderRadius: '6px', background: pilarI.bg, color: pilarI.color, fontSize: '11px', fontWeight: 800, whiteSpace: 'nowrap' }}>
+                                    {pilarI.label.toUpperCase()}
+                                  </span>
+                                ) : <span style={{ fontSize: '11px', color: '#E5E7EB' }}>—</span>}
+                              </div>
+
+                              {/* CTA */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {p.cta ? (
+                                  <span style={{ padding: '5px 12px', borderRadius: '8px', background: '#D97706', color: '#fff', fontSize: '11.5px', fontWeight: 800, whiteSpace: 'nowrap' }}>
+                                    {p.cta} ▶
+                                  </span>
+                                ) : <span style={{ fontSize: '11px', color: '#E5E7EB' }}>—</span>}
+                                <span style={{ marginLeft: 'auto', fontSize: '14px', color: '#9CA3AF', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+                              </div>
+                            </div>
+
+                            {/* ── Panel expandido ── */}
+                            {isExpanded && (
+                              <div style={{ background: '#FAFAFA', borderTop: '1px solid #F0F0F0', borderBottom: '1px solid #E5E7EB' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0' }}>
+
+                                  {/* Concepto visual */}
+                                  <div style={{ padding: '20px', borderRight: '1px solid #E5E7EB' }}>
+                                    <p style={{ margin: '0 0 12px', fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Concepto visual</p>
+                                    {p.concepto_visual ? (
+                                      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{p.concepto_visual}</p>
+                                    ) : (
+                                      <p style={{ margin: 0, fontSize: '12px', color: '#D1D5DB' }}>Sin concepto visual aún.</p>
+                                    )}
+                                  </div>
+
+                                  {/* Caption */}
+                                  <div style={{ padding: '20px', borderRight: '1px solid #E5E7EB' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                      <p style={{ margin: 0, fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Caption completo</p>
+                                      {hasCopy && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); copyCaption(p) }}
+                                          style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #E5E7EB', background: copiedId === p.id ? '#059669' : '#fff', color: copiedId === p.id ? '#fff' : '#374151', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
+                                        >
+                                          {copiedId === p.id ? '✓ Copiado' : '📋 Copiar'}
+                                        </button>
+                                      )}
+                                    </div>
+                                    {p.caption ? (
+                                      <div style={{ background: '#111', borderRadius: '10px', padding: '14px 16px' }}>
+                                        <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#E5E7EB', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{p.caption}</p>
+                                        {p.hashtags && (
+                                          <p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: 1.6 }}>{p.hashtags}</p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p style={{ margin: 0, fontSize: '12px', color: '#D1D5DB' }}>Caption pendiente.</p>
+                                    )}
+                                  </div>
+
+                                  {/* Instrucciones */}
+                                  <div style={{ padding: '20px' }}>
+                                    <p style={{ margin: '0 0 12px', fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Instrucciones de publicación</p>
+                                    {instrLines.length > 0 ? (
+                                      <ul style={{ margin: '0 0 12px', paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        {instrLines.map((line, i) => (
+                                          <li key={i} style={{ fontSize: '12.5px', color: '#374151', lineHeight: 1.5 }}>{line}</li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#D1D5DB' }}>Sin instrucciones aún.</p>
+                                    )}
+                                    {p.story_del_dia && (
+                                      <div style={{ background: '#FEF9C3', borderRadius: '8px', padding: '10px 12px', marginTop: '8px' }}>
+                                        <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📱 Story del día</p>
+                                        <p style={{ margin: 0, fontSize: '12px', color: '#78350F', lineHeight: 1.5 }}>{p.story_del_dia}</p>
+                                      </div>
+                                    )}
+                                    {/* Métricas inline si están publicado */}
+                                    {p.estado === 'publicado' && p.metricas && Object.values(p.metricas).some(v => v != null && v > 0) && (
+                                      <div style={{ background: 'rgba(107,33,168,0.06)', borderRadius: '8px', padding: '10px 12px', marginTop: '10px' }}>
+                                        <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 800, color: P, textTransform: 'uppercase', letterSpacing: '0.5px' }}>📊 Métricas</p>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                          {p.metricas.alcance    ? <span style={{ fontSize: '12px' }}>👁️ {p.metricas.alcance.toLocaleString()}</span> : null}
+                                          {p.metricas.likes      ? <span style={{ fontSize: '12px' }}>❤️ {p.metricas.likes.toLocaleString()}</span> : null}
+                                          {p.metricas.comentarios ? <span style={{ fontSize: '12px' }}>💬 {p.metricas.comentarios.toLocaleString()}</span> : null}
+                                          {p.metricas.guardados  ? <span style={{ fontSize: '12px' }}>🔖 {p.metricas.guardados.toLocaleString()}</span> : null}
+                                          {p.metricas.engagement ? <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>📈 {p.metricas.engagement}%</span> : null}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Story del día como fila separada si no hay instrucciones */}
+                              </div>
+                            )}
+
+                            {/* ── Story del día (fila separada) ── */}
+                            {p.story_del_dia && !isExpanded && (
+                              <div style={{ background: '#FFFBEB', borderTop: '1px dashed #FDE68A', padding: '9px 16px 9px 68px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>📱 Story del día {p.dia_num ?? ''}:</span>
+                                <span style={{ fontSize: '12px', color: '#78350F', fontStyle: 'italic' }}>{p.story_del_dia}</span>
+                              </div>
+                            )}
+                          </div>
                         )
                       })}
-                    </tbody>
-                  </table>
-                </div>
+                    </div>
+                  )
+                })}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )
+        })()}
 
         {/* ── SOLICITUDES ── */}
         {tab === 'solicitudes' && (

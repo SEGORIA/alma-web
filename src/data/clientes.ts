@@ -12,14 +12,43 @@ export type Entregable = {
 
 export type ParrillaEstado = 'borrador' | 'pendiente_aprobacion' | 'aprobado' | 'publicado'
 
+export type ParrillaMetricas = {
+  alcance?:     number
+  impresiones?: number
+  likes?:       number
+  comentarios?: number
+  guardados?:   number
+  compartidos?: number
+  clics?:       number
+  engagement?:  number   // porcentaje ej: 4.5
+}
+
 export type ParrillaItem = {
   id:          string
-  fecha:       string
-  red:         string
-  tipo:        string
-  descripcion: string
+  // Calendario
+  dia_num?:    number        // 1, 2, 3… (dentro del plan)
+  semana?:     number        // 1, 2, 3…
+  fecha:       string        // YYYY-MM-DD
+  // Formato
+  red:         string        // Instagram, TikTok, etc.
+  tipo:        string        // Reel, Carrusel, Post, Story, Video
+  duracion?:   string        // "20 seg", "7 slides", "30 seg"
+  // Contenido principal
+  descripcion: string        // hook / título principal (backward compat)
+  subtitulo?:  string        // subtítulo en gris bajo el hook
+  pilar?:      string        // pilar de contenido
+  cta?:        string        // CTA / keyword para el CTA badge
+  // Contenido detallado (expandido en portal)
+  concepto_visual?: string   // concepto visual + guión
+  caption?:    string        // caption completo listo para copiar
+  instrucciones?: string     // instrucciones de publicación (una por línea)
+  story_del_dia?: string     // contenido de la story de ese día
+  hashtags?:   string        // hashtags como string libre
+  // Estado
   estado:      ParrillaEstado
-  link?:       string
+  link?:       string        // link del post publicado
+  // Métricas post-publicación
+  metricas?:   ParrillaMetricas
 }
 
 export type SolicitudEstado = 'pendiente' | 'en_revision' | 'resuelto'
@@ -117,6 +146,17 @@ export const PARRILLA_ESTADOS: {
   { value: 'pendiente_aprobacion',label: 'Pendiente aprobación',color: '#D97706', bg: '#FEF3C7' },
   { value: 'aprobado',            label: 'Aprobado',            color: '#059669', bg: '#D1FAE5' },
   { value: 'publicado',           label: 'Publicado',           color: '#2563EB', bg: '#DBEAFE' },
+]
+
+export const PILARES_CONTENIDO: { value: string; label: string; color: string; bg: string }[] = [
+  { value: 'marca',       label: 'Marca',        color: '#059669', bg: '#D1FAE5' },
+  { value: 'educacion',   label: 'Educación',     color: '#2563EB', bg: '#DBEAFE' },
+  { value: 'lifestyle',   label: 'Lifestyle',     color: '#92400E', bg: '#FEF3C7' },
+  { value: 'market_intel',label: 'Market Intel',  color: '#6B21A8', bg: '#F3E8FF' },
+  { value: 'social',      label: 'Social',        color: '#BE185D', bg: '#FCE7F3' },
+  { value: 'producto',    label: 'Producto',      color: '#0284C7', bg: '#E0F2FE' },
+  { value: 'testimonio',  label: 'Testimonio',    color: '#D97706', bg: '#FEF3C7' },
+  { value: 'otro',        label: 'Otro',          color: '#6B7280', bg: '#F3F4F6' },
 ]
 
 export const SOLICITUD_TIPOS: { value: SolicitudTipo; label: string; color: string }[] = [

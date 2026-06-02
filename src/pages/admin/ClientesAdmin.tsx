@@ -8,7 +8,7 @@ import {
 import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
-  PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS,
+  PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
 } from '../../data/clientes'
 
 /* ── Colores del módulo ──────────────────────────────────── */
@@ -29,7 +29,8 @@ const EMPTY_FORM: Omit<Cliente, '_id'> = {
 }
 
 const REDES_OPCIONES = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn', 'Twitter/X', 'Pinterest', 'Otro']
-const TIPO_POST_OPCIONES = ['Post', 'Reel', 'Story', 'Carrusel', 'Video', 'Blog', 'Email', 'Otro']
+const TIPO_POST_OPCIONES = ['Reel', 'Carrusel', 'Post', 'Story', 'Video', 'Blog', 'Email', 'Otro']
+const DURACION_OPCIONES  = ['', '15 seg', '20 seg', '30 seg', '45 seg', '1 min', '2 min', '3 slides', '5 slides', '7 slides', '10 slides']
 
 /* ── Sub-componentes ─────────────────────────────────────── */
 function EstadoBadge({ estado }: { estado: string }) {
@@ -67,7 +68,9 @@ export default function ClientesAdmin() {
 
   /* sub-forms */
   const [newE, setNewE] = useState<Partial<Entregable>>({ categoria: 'branding', nombre: '', url: '' })
-  const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', tipo: 'Post', descripcion: '', estado: 'borrador' })
+  const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
+  const [editingParrillaId, setEditingParrillaId] = useState<string | null>(null)
+  const [editingParrillaData, setEditingParrillaData] = useState<Partial<ParrillaItem>>({})
   const [respuestas, setRespuestas] = useState<Record<string, string>>({})
 
   /* confirm delete */
@@ -143,20 +146,27 @@ export default function ClientesAdmin() {
   function addParrillaItem() {
     if (!newP.fecha?.trim() || !newP.descripcion?.trim()) return
     const item: ParrillaItem = {
-      id: newId(),
-      fecha: newP.fecha,
-      red: newP.red ?? 'Instagram',
-      tipo: newP.tipo ?? 'Post',
+      id:          newId(),
+      dia_num:     newP.dia_num,
+      semana:      newP.semana,
+      fecha:       newP.fecha,
+      red:         newP.red ?? 'Instagram',
+      tipo:        newP.tipo ?? 'Reel',
+      duracion:    newP.duracion || undefined,
       descripcion: newP.descripcion.trim(),
-      estado: newP.estado ?? 'borrador',
-      link: newP.link?.trim() || undefined,
+      subtitulo:   newP.subtitulo?.trim() || undefined,
+      pilar:       newP.pilar || undefined,
+      cta:         newP.cta?.trim() || undefined,
+      estado:      newP.estado ?? 'borrador',
+      link:        newP.link?.trim() || undefined,
     }
     setForm(f => ({ ...f, parrilla: [...f.parrilla, item] }))
-    setNewP({ fecha: '', red: 'Instagram', tipo: 'Post', descripcion: '', estado: 'borrador' })
+    setNewP({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
   }
 
   function removeParrillaItem(id: string) {
     setForm(f => ({ ...f, parrilla: f.parrilla.filter(p => p.id !== id) }))
+    if (editingParrillaId === id) setEditingParrillaId(null)
   }
 
   function updateParrillaEstado(id: string, estado: ParrillaItem['estado']) {
@@ -164,6 +174,22 @@ export default function ClientesAdmin() {
       ...f,
       parrilla: f.parrilla.map(p => p.id === id ? { ...p, estado } : p),
     }))
+    if (editingParrillaId === id) setEditingParrillaData(d => ({ ...d, estado }))
+  }
+
+  function openEditParrilla(item: ParrillaItem) {
+    setEditingParrillaId(item.id)
+    setEditingParrillaData({ ...item })
+  }
+
+  function saveEditParrilla() {
+    if (!editingParrillaId) return
+    setForm(f => ({
+      ...f,
+      parrilla: f.parrilla.map(p => p.id === editingParrillaId ? { ...p, ...editingParrillaData } : p),
+    }))
+    setEditingParrillaId(null)
+    setEditingParrillaData({})
   }
 
   async function saveSolicitudRespuesta(s: Solicitud) {
@@ -531,89 +557,271 @@ export default function ClientesAdmin() {
               {/* ─ PARRILLA ─ */}
               {tab === 'parrilla' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+                  {/* ── Editor de ítem activo ── */}
+                  {editingParrillaId && (() => {
+                    const ep = editingParrillaData
+                    const pilarInfo = PILARES_CONTENIDO.find(x => x.value === ep.pilar)
+                    return (
+                      <div style={{ background: '#fff', border: `2px solid ${C1}`, borderRadius: '16px', padding: '20px', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <p style={{ margin: 0, fontWeight: 900, fontSize: '14px', color: C1 }}>
+                            ✏️ Editando ítem {ep.dia_num ? `#${ep.dia_num}` : ''}
+                          </p>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={saveEditParrilla} style={{ padding: '7px 18px', borderRadius: '8px', background: C1, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Guardar cambios</button>
+                            <button onClick={() => setEditingParrillaId(null)} style={{ padding: '7px 14px', borderRadius: '8px', background: '#F3F4F6', color: '#6B7280', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>Cancelar</button>
+                          </div>
+                        </div>
+
+                        {/* Fila 1: Día, Semana, Fecha, Red, Tipo, Duración */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px', marginBottom: '12px' }}>
+                          <label style={labelStyle}>
+                            Día #
+                            <input type="number" value={ep.dia_num ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, dia_num: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
+                          </label>
+                          <label style={labelStyle}>
+                            Semana
+                            <input type="number" value={ep.semana ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, semana: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
+                          </label>
+                          <label style={labelStyle}>
+                            Fecha *
+                            <input type="date" value={ep.fecha ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, fecha: e.target.value }))} style={inputStyle} />
+                          </label>
+                          <label style={labelStyle}>
+                            Red
+                            <select value={ep.red ?? 'Instagram'} onChange={e => setEditingParrillaData(d => ({ ...d, red: e.target.value }))} style={inputStyle}>
+                              {REDES_OPCIONES.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                          </label>
+                          <label style={labelStyle}>
+                            Tipo
+                            <select value={ep.tipo ?? 'Reel'} onChange={e => setEditingParrillaData(d => ({ ...d, tipo: e.target.value }))} style={inputStyle}>
+                              {TIPO_POST_OPCIONES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </label>
+                          <label style={labelStyle}>
+                            Duración
+                            <select value={ep.duracion ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, duracion: e.target.value || undefined }))} style={inputStyle}>
+                              {DURACION_OPCIONES.map(o => <option key={o} value={o}>{o || '—'}</option>)}
+                            </select>
+                          </label>
+                        </div>
+
+                        {/* Fila 2: Hook, Subtítulo, Pilar, CTA */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          <label style={labelStyle}>
+                            Hook / Título *
+                            <input value={ep.descripcion ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, descripcion: e.target.value }))} style={inputStyle} placeholder="El gancho principal del post" />
+                          </label>
+                          <label style={labelStyle}>
+                            Subtítulo
+                            <input value={ep.subtitulo ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, subtitulo: e.target.value }))} style={inputStyle} placeholder="Descripción adicional…" />
+                          </label>
+                          <label style={labelStyle}>
+                            Pilar
+                            <select value={ep.pilar ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, pilar: e.target.value || undefined }))} style={{ ...inputStyle, borderColor: pilarInfo?.color ?? '#E5E7EB', background: pilarInfo?.bg ?? '#fff' }}>
+                              <option value="">Sin pilar</option>
+                              {PILARES_CONTENIDO.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                            </select>
+                          </label>
+                          <label style={labelStyle}>
+                            CTA
+                            <input value={ep.cta ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, cta: e.target.value }))} style={inputStyle} placeholder='DM "HOLA"' />
+                          </label>
+                        </div>
+
+                        {/* Fila 3: Estado, Link */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', marginBottom: '16px' }}>
+                          <label style={labelStyle}>
+                            Estado
+                            <select value={ep.estado ?? 'borrador'} onChange={e => setEditingParrillaData(d => ({ ...d, estado: e.target.value as ParrillaItem['estado'] }))} style={inputStyle}>
+                              {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+                            </select>
+                          </label>
+                          <label style={labelStyle}>
+                            Link publicado
+                            <input value={ep.link ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, link: e.target.value }))} style={inputStyle} placeholder="https://instagram.com/p/…" />
+                          </label>
+                        </div>
+
+                        {/* Contenido detallado */}
+                        <p style={{ fontSize: '11px', fontWeight: 800, color: '#9CA3AF', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contenido detallado para el portal</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                          <label style={labelStyle}>
+                            Concepto visual + guión
+                            <textarea value={ep.concepto_visual ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, concepto_visual: e.target.value }))} rows={6} style={{ ...inputStyle, resize: 'vertical' }} placeholder={'Describe el concepto visual y el guión del video…\n\n"Hola, soy Sandra Poli…"'} />
+                          </label>
+                          <label style={labelStyle}>
+                            Caption completo
+                            <textarea value={ep.caption ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, caption: e.target.value }))} rows={6} style={{ ...inputStyle, resize: 'vertical' }} placeholder={'Caption listo para copiar y pegar…\n\n#hashtag1 #hashtag2'} />
+                          </label>
+                          <label style={labelStyle}>
+                            Instrucciones de publicación
+                            <textarea value={ep.instrucciones ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, instrucciones: e.target.value }))} rows={6} style={{ ...inputStyle, resize: 'vertical' }} placeholder={'Una instrucción por línea:\nPublicar: Martes, 10–11am\nPinear en el perfil\nLocation tag: Bogotá'} />
+                          </label>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                          <label style={labelStyle}>
+                            Story del día
+                            <textarea value={ep.story_del_dia ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, story_del_dia: e.target.value }))} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder={'Contenido de la story de hoy…\nEncuesta: "¿Has pensado en…?"'} />
+                          </label>
+                          <label style={labelStyle}>
+                            Hashtags
+                            <textarea value={ep.hashtags ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, hashtags: e.target.value }))} rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} placeholder="#hashtag1 #hashtag2 #hashtag3" />
+                          </label>
+                        </div>
+
+                        {/* Métricas */}
+                        <p style={{ fontSize: '11px', fontWeight: 800, color: '#9CA3AF', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Métricas post-publicación</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' }}>
+                          {([
+                            { key: 'alcance',     label: 'Alcance' },
+                            { key: 'impresiones', label: 'Impresiones' },
+                            { key: 'likes',       label: 'Likes' },
+                            { key: 'comentarios', label: 'Comentarios' },
+                            { key: 'guardados',   label: 'Guardados' },
+                            { key: 'compartidos', label: 'Compartidos' },
+                            { key: 'clics',       label: 'Clics' },
+                            { key: 'engagement',  label: 'Engagement %' },
+                          ] as { key: keyof NonNullable<ParrillaItem['metricas']>; label: string }[]).map(m => (
+                            <label key={m.key} style={labelStyle}>
+                              {m.label}
+                              <input
+                                type="number" min={0} step={m.key === 'engagement' ? 0.1 : 1}
+                                value={ep.metricas?.[m.key] ?? ''}
+                                onChange={e => setEditingParrillaData(d => ({
+                                  ...d,
+                                  metricas: { ...(d.metricas ?? {}), [m.key]: e.target.value ? +e.target.value : undefined },
+                                }))}
+                                style={inputStyle}
+                                placeholder="0"
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* ── Lista de ítems ── */}
                   {form.parrilla.length === 0 ? (
                     <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '24px 0' }}>Sin ítems en la parrilla. Agrega el primero abajo.</p>
                   ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                        <thead>
-                          <tr style={{ background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
-                            {['Fecha', 'Red', 'Tipo', 'Descripción', 'Estado', ''].map(h => (
-                              <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#6B7280', whiteSpace: 'nowrap' }}>{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {form.parrilla.map(p => {
-                            const est = PARRILLA_ESTADOS.find(x => x.value === p.estado)
-                            return (
-                              <tr key={p.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                                <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: '#374151' }}>{p.fecha}</td>
-                                <td style={{ padding: '8px 12px', color: '#374151' }}>{p.red}</td>
-                                <td style={{ padding: '8px 12px', color: '#374151' }}>{p.tipo}</td>
-                                <td style={{ padding: '8px 12px', color: '#374151', maxWidth: '180px' }}>{p.descripcion}</td>
-                                <td style={{ padding: '8px 12px' }}>
-                                  <select
-                                    value={p.estado}
-                                    onChange={e => updateParrillaEstado(p.id, e.target.value as ParrillaItem['estado'])}
-                                    style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '8px', border: `1.5px solid ${est?.color ?? '#E5E7EB'}`, background: est?.bg ?? '#F9FAFB', color: est?.color ?? '#374151', cursor: 'pointer' }}
-                                  >
-                                    {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
-                                  </select>
-                                </td>
-                                <td style={{ padding: '8px 12px' }}>
-                                  <button onClick={() => removeParrillaItem(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: '16px' }}>×</button>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {[...form.parrilla].sort((a, b) => {
+                        if (a.dia_num && b.dia_num) return a.dia_num - b.dia_num
+                        return (a.fecha ?? '').localeCompare(b.fecha ?? '')
+                      }).map(p => {
+                        const est      = PARRILLA_ESTADOS.find(x => x.value === p.estado)
+                        const pilarInf = PILARES_CONTENIDO.find(x => x.value === p.pilar)
+                        const isEdit   = editingParrillaId === p.id
+                        return (
+                          <div key={p.id} style={{
+                            background: isEdit ? '#F0FDF4' : '#fff',
+                            borderRadius: '12px', padding: '12px 14px',
+                            border: `1.5px solid ${isEdit ? C1 : '#E5E7EB'}`,
+                            display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+                          }}>
+                            {/* Día # */}
+                            {p.dia_num && (
+                              <span style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#111', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 900, flexShrink: 0 }}>
+                                {String(p.dia_num).padStart(2, '0')}
+                              </span>
+                            )}
+                            {/* Formato */}
+                            <span style={{ padding: '3px 8px', borderRadius: '6px', background: '#F3F4F6', color: '#374151', fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                              {p.tipo}{p.duracion ? ` · ${p.duracion}` : ''}
+                            </span>
+                            {/* Hook */}
+                            <p style={{ flex: 1, margin: 0, fontSize: '13px', fontWeight: 700, color: '#111', minWidth: '120px' }}>{p.descripcion}</p>
+                            {/* Pilar */}
+                            {pilarInf && (
+                              <span style={{ padding: '2px 8px', borderRadius: '6px', background: pilarInf.bg, color: pilarInf.color, fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                {pilarInf.label}
+                              </span>
+                            )}
+                            {/* Estado */}
+                            <select
+                              value={p.estado}
+                              onChange={e => updateParrillaEstado(p.id, e.target.value as ParrillaItem['estado'])}
+                              style={{ fontSize: '11px', padding: '3px 7px', borderRadius: '7px', border: `1.5px solid ${est?.color ?? '#E5E7EB'}`, background: est?.bg ?? '#F9FAFB', color: est?.color ?? '#374151', cursor: 'pointer', flexShrink: 0 }}
+                            >
+                              {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+                            </select>
+                            {/* Acciones */}
+                            <button onClick={() => isEdit ? setEditingParrillaId(null) : openEditParrilla(p)} style={{ padding: '5px 12px', borderRadius: '7px', border: `1.5px solid ${C1}`, background: isEdit ? C1 : '#fff', color: isEdit ? '#fff' : C1, cursor: 'pointer', fontWeight: 700, fontSize: '11px', flexShrink: 0 }}>
+                              {isEdit ? '✓ Editando' : '✏️ Editar'}
+                            </button>
+                            <button onClick={() => removeParrillaItem(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: '18px', flexShrink: 0, lineHeight: 1 }}>×</button>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
 
-                  {/* Add form */}
+                  {/* ── Formulario agregar nuevo ── */}
                   <div style={{ background: '#F0FDF4', border: '1.5px dashed #86EFAC', borderRadius: '14px', padding: '18px' }}>
                     <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Agregar a la parrilla</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px', marginBottom: '10px' }}>
+                      <label style={labelStyle}>
+                        Día #
+                        <input type="number" value={newP.dia_num ?? ''} onChange={e => setNewP(n => ({ ...n, dia_num: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
+                      </label>
+                      <label style={labelStyle}>
+                        Semana
+                        <input type="number" value={newP.semana ?? ''} onChange={e => setNewP(n => ({ ...n, semana: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
+                      </label>
                       <label style={labelStyle}>
                         Fecha *
                         <input type="date" value={newP.fecha ?? ''} onChange={e => setNewP(n => ({ ...n, fecha: e.target.value }))} style={inputStyle} />
                       </label>
                       <label style={labelStyle}>
-                        Red social
+                        Red
                         <select value={newP.red ?? 'Instagram'} onChange={e => setNewP(n => ({ ...n, red: e.target.value }))} style={inputStyle}>
                           {REDES_OPCIONES.map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                       </label>
                       <label style={labelStyle}>
                         Tipo
-                        <select value={newP.tipo ?? 'Post'} onChange={e => setNewP(n => ({ ...n, tipo: e.target.value }))} style={inputStyle}>
+                        <select value={newP.tipo ?? 'Reel'} onChange={e => setNewP(n => ({ ...n, tipo: e.target.value }))} style={inputStyle}>
                           {TIPO_POST_OPCIONES.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
                       </label>
-                    </div>
-                    <label style={{ ...labelStyle, marginBottom: '10px' }}>
-                      Descripción *
-                      <input value={newP.descripcion ?? ''} onChange={e => setNewP(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="De qué trata el contenido" />
-                    </label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
                       <label style={labelStyle}>
-                        Estado inicial
+                        Duración
+                        <select value={newP.duracion ?? ''} onChange={e => setNewP(n => ({ ...n, duracion: e.target.value || undefined }))} style={inputStyle}>
+                          {DURACION_OPCIONES.map(o => <option key={o} value={o}>{o || '—'}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <label style={labelStyle}>
+                        Hook / Título *
+                        <input value={newP.descripcion ?? ''} onChange={e => setNewP(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="El gancho principal del post" />
+                      </label>
+                      <label style={labelStyle}>
+                        Pilar
+                        <select value={newP.pilar ?? ''} onChange={e => setNewP(n => ({ ...n, pilar: e.target.value || undefined }))} style={inputStyle}>
+                          <option value="">Sin pilar</option>
+                          {PILARES_CONTENIDO.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                        </select>
+                      </label>
+                      <label style={labelStyle}>
+                        Estado
                         <select value={newP.estado ?? 'borrador'} onChange={e => setNewP(n => ({ ...n, estado: e.target.value as ParrillaItem['estado'] }))} style={inputStyle}>
                           {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
                         </select>
                       </label>
-                      <label style={labelStyle}>
-                        Link del post (opcional)
-                        <input value={newP.link ?? ''} onChange={e => setNewP(n => ({ ...n, link: e.target.value }))} style={inputStyle} placeholder="https://instagram.com/p/…" />
-                      </label>
                     </div>
+                    <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 10px' }}>
+                      💡 Después de agregar, haz clic en <strong>✏️ Editar</strong> para rellenar el caption, concepto visual, instrucciones y métricas.
+                    </p>
                     <button onClick={addParrillaItem} style={{
                       background: C1, color: '#fff', border: 'none', cursor: 'pointer',
                       padding: '9px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
                     }}>
-                      Agregar
+                      Agregar ítem
                     </button>
                   </div>
                 </div>
