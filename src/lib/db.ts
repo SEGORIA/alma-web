@@ -583,6 +583,7 @@ function portalPayload(c: Partial<Cliente>): {
   entregables: Entregable[]; parrilla: ParrillaItem[]; solicitudes: Solicitud[]
   contrato_url: string | null; fecha_inicio: string | null
   logo_url: string | null; metricas_historico: import('../data/clientes').MetricaMes[]
+  acomp_eventos: boolean; grabaciones_mes: number
 } {
   return {
     nombre:              c.nombre              ?? '',
@@ -599,6 +600,8 @@ function portalPayload(c: Partial<Cliente>): {
     fecha_inicio:        c.fecha_inicio        ?? null,
     logo_url:            c.logo_url            ?? null,
     metricas_historico:  c.metricas_historico  ?? [],
+    acomp_eventos:       c.acomp_eventos       ?? false,
+    grabaciones_mes:     c.grabaciones_mes     ?? 0,
   }
 }
 

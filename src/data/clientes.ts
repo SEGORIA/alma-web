@@ -128,6 +128,9 @@ export type Cliente = {
   parrilla:      ParrillaItem[]
   solicitudes:   Solicitud[]
   metricas_historico?: MetricaMes[]  // métricas mensuales manuales
+  // Servicios adicionales
+  acomp_eventos?: boolean             // acompañamiento a eventos incluido
+  grabaciones_mes?: number            // grabaciones programadas por mes
   // Admin interno
   notas?:        string
   // Meta

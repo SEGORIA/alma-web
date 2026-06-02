@@ -440,6 +440,14 @@ input[type="date"]:focus{border-color:var(--gold)!important}
           <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Piezas/mes</div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--white)" id="cid-piezas">0</div>
         </div>
+        <div style="background:var(--mid);border:.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;flex:1;min-width:80px;">
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">🎬 Grab./mes</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--accent)" id="cid-grabaciones">0</div>
+        </div>
+        <div style="background:var(--mid);border:.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;flex:1;min-width:80px;">
+          <div style="font-family:'Syne',sans-serif;font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">🎪 c/ Eventos</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#A855F7" id="cid-acomp">0</div>
+        </div>
       </div>
     </div>
     <div class="cid-card" style="overflow:auto;">
@@ -485,6 +493,23 @@ input[type="date"]:focus{border-color:var(--gold)!important}
           <div class="form-group"><label>Posts simples</label><input type="number" id="cl-posts" placeholder="0" min="0"></div>
           <div class="form-group"><label>Portafolios</label><input type="number" id="cl-portafolios" placeholder="0" min="0"></div>
           <div class="form-group"><label>Diseños extra</label><input type="number" id="cl-disenos" placeholder="0" min="0"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.15em;color:var(--accent);text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:.5px solid var(--border);">Servicios adicionales</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:.5px solid var(--border);border-radius:4px;background:var(--black);transition:border-color .2s;" onclick="toggleAcompEvento(this)">
+            <div id="cl-acomp-check" style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;"></div>
+            <div>
+              <div style="font-size:12px;color:var(--white);font-weight:600;">🎪 Acomp. a eventos</div>
+              <div style="font-size:10px;color:var(--muted);">Incluido en el plan</div>
+            </div>
+            <input type="checkbox" id="cl-acomp-evento" style="display:none">
+          </label>
+          <div class="form-group" style="margin:0;">
+            <label style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block;">🎬 Grabaciones / mes</label>
+            <input type="number" id="cl-grabaciones" placeholder="0" min="0" style="width:80px;text-align:center;">
+          </div>
         </div>
       </div>
       <div class="form-actions"><button class="btn btn-primary" onclick="addClient()">Agregar cliente</button></div>
@@ -552,6 +577,23 @@ input[type="date"]:focus{border-color:var(--gold)!important}
       <div class="modal-section">
         <div class="modal-section-title">Redes sociales gestionadas</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;" id="modal-networks-editor"></div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Servicios adicionales</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;">
+          <label id="modal-acomp-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border:.5px solid var(--border);border-radius:4px;background:var(--black);transition:border-color .2s;" onclick="toggleModalAcomp(this)">
+            <div id="modal-acomp-check" style="width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;"></div>
+            <div>
+              <div style="font-size:12px;color:var(--white);font-weight:600;">🎪 Acomp. a eventos</div>
+              <div style="font-size:10px;color:var(--muted);">Incluido en el plan</div>
+            </div>
+            <input type="checkbox" id="modal-acomp-evento" style="display:none">
+          </label>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">🎬 Grabaciones / mes</div>
+            <input type="number" id="modal-grabaciones" min="0" placeholder="0" style="width:80px;text-align:center;color-scheme:dark;background:var(--mid);border:.5px solid var(--border-light);color:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;padding:9px 11px;border-radius:var(--radius);outline:none;">
+          </div>
+        </div>
       </div>
       <div class="modal-section">
         <div class="modal-section-title">Notas internas</div>
@@ -941,16 +983,29 @@ function switchPage(pageId,btn){
 const AV=[{bg:'#1a0d36',c:'#A855F7'},{bg:'#0d0d28',c:'#6E2DFF'},{bg:'#2a0d1a',c:'#FF4D8D'},{bg:'#1a0d2a',c:'#8A3FFC'},{bg:'#2a1a0d',c:'#FFB865'},{bg:'#12082a',c:'#D7D7DB'}];
 function avC(i){return AV[i%AV.length]}
 
+function toggleAcompEvento(lbl){
+  const cb=document.getElementById('cl-acomp-evento');
+  cb.checked=!cb.checked;
+  const box=document.getElementById('cl-acomp-check');
+  if(cb.checked){box.style.background='#8A3FFC';box.style.borderColor='#8A3FFC';box.innerHTML='<span style="color:#fff;font-size:10px;line-height:1;">✓</span>';lbl.style.borderColor='#8A3FFC'}
+  else{box.style.background='';box.style.borderColor='var(--border)';box.innerHTML='';lbl.style.borderColor='var(--border)'}
+}
 function addClient(){
   const nombre=document.getElementById('cl-nombre').value.trim();
   if(!nombre){showToast('Ingresa el nombre del cliente');return}
   const networks=[...document.querySelectorAll('.cl-network:checked')].map(cb=>cb.value);
   const fechaIngreso=document.getElementById('cl-fecha-ingreso').value||new Date().toISOString().split('T')[0];
   const fechaSalida=document.getElementById('cl-fecha-salida').value||null;
-  clients.push({id:Date.now(),nombre,plan:document.getElementById('cl-plan').value,valor:parseFloat(document.getElementById('cl-valor').value)||0,status:document.getElementById('cl-status').value,networks,fechaIngreso,fechaSalida,content:{reels:parseInt(document.getElementById('cl-reels').value)||0,carruseles:parseInt(document.getElementById('cl-carruseles').value)||0,posts:parseInt(document.getElementById('cl-posts').value)||0,portafolios:parseInt(document.getElementById('cl-portafolios').value)||0,disenos:parseInt(document.getElementById('cl-disenos').value)||0},executed:{reels:0,carruseles:0,posts:0,portafolios:0,disenos:0},notes:''});
+  const acompEvento=document.getElementById('cl-acomp-evento').checked;
+  const grabacionesMes=parseInt(document.getElementById('cl-grabaciones').value)||0;
+  clients.push({id:Date.now(),nombre,plan:document.getElementById('cl-plan').value,valor:parseFloat(document.getElementById('cl-valor').value)||0,status:document.getElementById('cl-status').value,networks,fechaIngreso,fechaSalida,acompEvento,grabacionesMes,content:{reels:parseInt(document.getElementById('cl-reels').value)||0,carruseles:parseInt(document.getElementById('cl-carruseles').value)||0,posts:parseInt(document.getElementById('cl-posts').value)||0,portafolios:parseInt(document.getElementById('cl-portafolios').value)||0,disenos:parseInt(document.getElementById('cl-disenos').value)||0},executed:{reels:0,carruseles:0,posts:0,portafolios:0,disenos:0},notes:''});
   saveClients();
-  ['cl-nombre','cl-valor','cl-reels','cl-carruseles','cl-posts','cl-portafolios','cl-disenos','cl-fecha-ingreso','cl-fecha-salida'].forEach(id=>document.getElementById(id).value='');
+  ['cl-nombre','cl-valor','cl-reels','cl-carruseles','cl-posts','cl-portafolios','cl-disenos','cl-grabaciones','cl-fecha-ingreso','cl-fecha-salida'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('.cl-network').forEach(cb=>cb.checked=false);
+  // Reset acomp checkbox
+  const acompCb=document.getElementById('cl-acomp-evento');acompCb.checked=false;
+  const acompBox=document.getElementById('cl-acomp-check');acompBox.style.background='';acompBox.style.borderColor='var(--border)';acompBox.innerHTML='';
+  const acompLbl=acompBox.closest('label');if(acompLbl)acompLbl.style.borderColor='var(--border)';
   showToast('Cliente agregado');renderClientGrid();renderCIDashboard();updateCGMetrics();
 }
 
@@ -1087,6 +1142,7 @@ function renderClientGrid(){
         <div class="client-stat-row"><span class="client-stat-lbl">Ejecutado</span><span class="client-stat-val">${te} <span style="font-size:10px;color:var(--muted)">(${pct}%)</span></span></div>
         ${c.fechaIngreso?`<div class="client-stat-row"><span class="client-stat-lbl">En ALMA desde</span><span style="font-size:10px;color:#A855F7;font-family:'Syne',sans-serif;">${new Date(c.fechaIngreso).toLocaleDateString('es-CO',{year:'numeric',month:'short',day:'numeric'})}</span></div>`:''}
         ${c.fechaIngreso?`<div style="font-size:9px;color:#5060A0;padding:3px 0;font-family:'Syne',sans-serif;letter-spacing:.06em;">⏱ ${calcDuracion(c.fechaIngreso,c.fechaSalida||null)||'recién ingresado'}</div>`:''}
+        ${c.acompEvento||c.grabacionesMes>0?`<div style="display:flex;gap:6px;padding:4px 0;flex-wrap:wrap;">${c.acompEvento?'<span style="font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(138,63,252,.15);border:.5px solid #4a2a8a;color:#A855F7;font-family:\'Syne\',sans-serif;letter-spacing:.07em;">🎪 Eventos</span>':''}${c.grabacionesMes>0?`<span style="font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(255,184,101,.1);border:.5px solid #6a4520;color:#FFB865;font-family:'Syne',sans-serif;letter-spacing:.07em;">🎬 ${c.grabacionesMes}/mes</span>`:''}</div>`:'' }
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pct>=80?'#7ec8a0':pct>=40?'#c4a46a':'#e07070'}"></div></div>
       </div>
       <div class="client-footer">${tags.join('')||'<span class="content-tag">Sin contenido</span>'}</div>
@@ -1119,10 +1175,14 @@ function renderCIDashboard(){
   const tF=active.reduce((a,c)=>a+c.valor,0);
   const ticket=active.length>0?tF/active.length:0;
   const piezas=active.reduce((a,c)=>a+c.content.reels+c.content.carruseles+c.content.posts+c.content.portafolios+c.content.disenos,0);
+  const totalGrab=active.reduce((a,c)=>a+(c.grabacionesMes||0),0);
+  const conAcomp=active.filter(c=>c.acompEvento).length;
   document.getElementById('cid-facturacion').textContent=fmt(tF);
   document.getElementById('cid-facturacion-sub').textContent=`${active.length} clientes activos`;
   document.getElementById('cid-ticket').textContent=fmt(ticket);
   document.getElementById('cid-piezas').textContent=piezas;
+  const grabEl=document.getElementById('cid-grabaciones');if(grabEl)grabEl.textContent=totalGrab;
+  const acompEl=document.getElementById('cid-acomp');if(acompEl)acompEl.textContent=conAcomp;
   const tbody=document.querySelector('#cid-client-table tbody');
   if(!active.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px;font-size:12px;">Sin clientes activos</td></tr>';return}
   tbody.innerHTML=active.map(c=>{
@@ -1193,6 +1253,17 @@ function openClientModal(id){
       </label>`;
     }).join('');
   }
+  // Acomp / grabaciones
+  const acompCb=document.getElementById('modal-acomp-evento');
+  const acompBox=document.getElementById('modal-acomp-check');
+  const acompLbl=document.getElementById('modal-acomp-label');
+  if(acompCb&&acompBox&&acompLbl){
+    acompCb.checked=!!c.acompEvento;
+    if(c.acompEvento){acompBox.style.background='#8A3FFC';acompBox.style.borderColor='#8A3FFC';acompBox.innerHTML='<span style="color:#fff;font-size:10px;line-height:1;">✓</span>';acompLbl.style.borderColor='#8A3FFC'}
+    else{acompBox.style.background='';acompBox.style.borderColor='var(--border)';acompBox.innerHTML='';acompLbl.style.borderColor='var(--border)'}
+  }
+  const grabEl=document.getElementById('modal-grabaciones');
+  if(grabEl)grabEl.value=c.grabacionesMes||0;
   refreshModalToggleBtn(c);
   const types=[{key:'reels',label:'Reels',cls:'reel'},{key:'carruseles',label:'Carruseles',cls:'carousel'},{key:'posts',label:'Posts',cls:'post'},{key:'portafolios',label:'Portafolios',cls:'portfolio'},{key:'disenos',label:'Diseños',cls:'design'}];
   document.getElementById('modal-counters').innerHTML=types.map(t=>`
@@ -1225,12 +1296,21 @@ function saveNetworksFromModal(){
   });
   saveClients();
 }
+function toggleModalAcomp(lbl){
+  const cb=document.getElementById('modal-acomp-evento');
+  cb.checked=!cb.checked;
+  const box=document.getElementById('modal-acomp-check');
+  if(cb.checked){box.style.background='#8A3FFC';box.style.borderColor='#8A3FFC';box.innerHTML='<span style="color:#fff;font-size:10px;line-height:1;">✓</span>';lbl.style.borderColor='#8A3FFC'}
+  else{box.style.background='';box.style.borderColor='var(--border)';box.innerHTML='';lbl.style.borderColor='var(--border)'}
+}
 function saveModalData(){
   const c=clients.find(x=>x.id===currentClientId);if(!c)return;
   c.notes=document.getElementById('modal-notes').value;
   c.networks=[...document.querySelectorAll('.modal-network-cb:checked')].map(cb=>cb.value);
   c.fechaIngreso=document.getElementById('modal-fecha-ingreso')?.value||c.fechaIngreso||null;
   c.fechaSalida=document.getElementById('modal-fecha-salida')?.value||null;
+  c.acompEvento=document.getElementById('modal-acomp-evento')?.checked||false;
+  c.grabacionesMes=parseInt(document.getElementById('modal-grabaciones')?.value)||0;
   renameClientModal();saveClients();renderClientGrid();renderCIDashboard();showToast('Datos guardados');closeModal();
 }
 function closeModal(){document.getElementById('client-modal').classList.remove('open');currentClientId=null}

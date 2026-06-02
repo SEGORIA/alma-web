@@ -569,6 +569,45 @@ export default function ClientesAdmin() {
                     </div>
                   </div>
 
+                  {/* Servicios adicionales */}
+                  <div style={{ background: '#12121A', border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '16px' }}>
+                    <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: AMB, margin: '0 0 14px' }}>
+                      Servicios adicionales
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                      {/* Acompañamiento a eventos */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: DIM, border: `0.5px solid ${BDR2}`, borderRadius: '4px', cursor: 'pointer' }}
+                        onClick={() => setForm(f => ({ ...f, acomp_eventos: !f.acomp_eventos }))}>
+                        <div style={{
+                          width: '18px', height: '18px', borderRadius: '3px', flexShrink: 0,
+                          background: form.acomp_eventos ? C1 : 'transparent',
+                          border: `1.5px solid ${form.acomp_eventos ? C1 : BDR2}`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s',
+                        }}>
+                          {form.acomp_eventos && <span style={{ color: '#fff', fontSize: '11px', lineHeight: 1 }}>✓</span>}
+                        </div>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '12px', color: WHT, fontWeight: 600 }}>🎪 Acomp. a eventos</p>
+                          <p style={{ margin: 0, fontSize: '10px', color: MUT }}>Incluido en el plan</p>
+                        </div>
+                      </div>
+                      {/* Grabaciones programadas */}
+                      <label style={labelStyle}>
+                        🎬 Grabaciones / mes
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <input
+                            type="number" min={0}
+                            value={form.grabaciones_mes ?? 0}
+                            onChange={e => setForm(f => ({ ...f, grabaciones_mes: parseInt(e.target.value) || 0 }))}
+                            style={{ ...inputStyle, width: '80px', textAlign: 'center' }}
+                          />
+                          <span style={{ fontSize: '11px', color: MUT }}>sesiones programadas</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Notas internas */}
                   <div>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: '#92400E', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📝 Notas internas</p>
@@ -1293,6 +1332,8 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           { label: 'Contenido', val: `${cliente.entregables.length} piezas` },
           { label: 'Parrilla',  val: `${cliente.parrilla.length} posts` },
           ...(cliente.valor_contrato ? [{ label: 'Contrato', val: `${cliente.valor_contrato}${cliente.moneda ? ` ${cliente.moneda}` : ''}` }] : []),
+          ...(cliente.acomp_eventos ? [{ label: '🎪 Eventos', val: 'Incluido' }] : []),
+          ...((cliente.grabaciones_mes ?? 0) > 0 ? [{ label: '🎬 Grabaciones', val: `${cliente.grabaciones_mes}/mes` }] : []),
           ...(pendSol > 0 ? [{ label: 'Pendientes', val: `${pendSol} solicitud${pendSol > 1 ? 'es' : ''}`, danger: true }] : []),
         ] as { label: string; val: string; danger?: boolean }[]).map(({ label, val, danger }) => (
           <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '0.5px solid #1A1A22' }}>
