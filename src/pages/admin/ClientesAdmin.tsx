@@ -12,9 +12,18 @@ import {
   ENTREGABLE_REVISION_ESTADOS,
 } from '../../data/clientes'
 
-/* ── Colores del módulo ──────────────────────────────────── */
-const C1     = '#059669'
-const C1_BG  = 'rgba(5,150,105,0.10)'
+/* ── Paleta oscura — estilo Finanzas ─────────────────────── */
+const C1    = '#8A3FFC'                   // accent principal
+const C1_BG = 'rgba(138,63,252,0.12)'
+const BK    = '#08080B'                   // obsidian bg
+const DIM   = '#18181E'                   // card bg
+const BDR   = '#2A2A33'                   // border normal
+const BDR2  = '#3A3A44'                   // border hover / light
+const MUT   = '#606080'                   // texto apagado
+const WHT   = '#F1E8DA'                   // texto principal
+const ACC2  = '#A855F7'                   // violeta suave
+const ROSE  = '#FF4D8D'                   // danger
+const AMB   = '#FFB865'                   // amber / pausado
 
 /* ── Helpers ─────────────────────────────────────────────── */
 type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal'
@@ -33,21 +42,19 @@ const REDES_OPCIONES = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn'
 const TIPO_POST_OPCIONES = ['Reel', 'Carrusel', 'Post', 'Story', 'Video', 'Blog', 'Email', 'Otro']
 const DURACION_OPCIONES  = ['', '15 seg', '20 seg', '30 seg', '45 seg', '1 min', '2 min', '3 slides', '5 slides', '7 slides', '10 slides']
 
-/* ── Sub-componentes ─────────────────────────────────────── */
-function EstadoBadge({ estado }: { estado: string }) {
-  const e = CLIENTE_ESTADOS.find(x => x.value === estado)
-  if (!e) return null
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '5px',
-      padding: '3px 10px', borderRadius: '20px',
-      background: e.bg, color: e.color,
-      fontSize: '11.5px', fontWeight: 700,
-    }}>
-      {e.icon} {e.label}
-    </span>
-  )
+/* ── Helpers financieros ──────────────────────────────────── */
+function parseValorCOP(v?: string): number {
+  if (!v) return 0
+  const n = parseFloat(v.replace(/[^0-9]/g, ''))
+  return isNaN(n) ? 0 : n
 }
+function fmtCOP(n: number): string {
+  if (n === 0) return '$0'
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1).replace('.0', '')}M`
+  if (n >= 1_000)     return `$${Math.round(n / 1_000)}K`
+  return `$${n}`
+}
+
 
 /* ── Main component ──────────────────────────────────────── */
 export default function ClientesAdmin() {
@@ -245,10 +252,16 @@ export default function ClientesAdmin() {
   })
 
   /* ── stats ── */
-  const total    = clientes.length
-  const activos  = clientes.filter(c => c.estado === 'activo').length
-  const pendSol  = clientes.reduce((n, c) => n + c.solicitudes.filter(s => s.estado === 'pendiente').length, 0)
-  const conPortal= clientes.filter(c => c.access_token).length
+  const total     = clientes.length
+  const activos   = clientes.filter(c => c.estado === 'activo').length
+  const pausados  = clientes.filter(c => c.estado === 'pausado').length
+  const prospectos= clientes.filter(c => c.estado === 'prospecto').length
+  const pendSol   = clientes.reduce((n, c) => n + c.solicitudes.filter(s => s.estado === 'pendiente').length, 0)
+  const conPortal = clientes.filter(c => c.access_token).length
+  const facturacionActiva = clientes
+    .filter(c => c.estado === 'activo')
+    .reduce((sum, c) => sum + parseValorCOP(c.valor_contrato), 0)
+  const ticketPromedio = activos > 0 ? Math.round(facturacionActiva / activos) : 0
 
   /* ── Portal URL helper ── */
   const PORTAL_BASE = 'https://almaagenciacreativa.com/cliente/'
@@ -256,49 +269,82 @@ export default function ClientesAdmin() {
   /* ══ RENDER ═══════════════════════════════════════════════ */
   return (
     <AdminLayout>
-      <div style={{ padding: isMobile ? '20px 14px' : '36px 32px', maxWidth: '1400px' }}>
+      <div style={{ background: BK, minHeight: '100vh', padding: isMobile ? '20px 16px' : '32px 36px' }}>
 
-        {/* ── Header ── */}
+        {/* ── Header compacto ── */}
         <div style={{
-          background: `linear-gradient(135deg, #064E3B, ${C1}, #34D399)`,
-          borderRadius: '20px', padding: isMobile ? '22px 18px' : '32px 36px',
-          marginBottom: '28px', position: 'relative', overflow: 'hidden',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          paddingBottom: '20px', borderBottom: `0.5px solid ${BDR}`, marginBottom: '28px',
+          flexWrap: 'wrap', gap: '12px',
         }}>
-          <div style={{ position: 'absolute', top: '-10px', right: '10px', fontSize: '120px', opacity: 0.07, userSelect: 'none' }}>👥</div>
-          <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <p style={{ margin: '0 0 8px', color: 'rgba(255,255,255,0.7)', fontSize: '11px', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase' }}>ALMA AGENCIA CREATIVA</p>
-              <h1 style={{ margin: '0 0 6px', color: '#fff', fontSize: isMobile ? '22px' : '28px', fontWeight: 900 }}>👥 Portal de Clientes</h1>
-              <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '14px' }}>Gestiona fichas, entregables, parrilla y solicitudes</p>
-            </div>
-            <button
-              onClick={handleNew}
-              style={{
-                background: '#fff', color: C1, border: 'none', cursor: 'pointer',
-                padding: '11px 22px', borderRadius: '12px', fontWeight: 800, fontSize: '13px',
-                display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0,
-              }}
-            >
-              + Nuevo cliente
-            </button>
+          <div>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>
+              ALMA · AGENCIA CREATIVA
+            </p>
+            <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: WHT, letterSpacing: '-0.5px' }}>
+              Clientes
+            </h1>
           </div>
+          <button
+            onClick={handleNew}
+            style={{
+              background: 'linear-gradient(135deg, #6E2DFF, #A855F7)', color: WHT,
+              border: 'none', cursor: 'pointer',
+              padding: '10px 22px', borderRadius: '4px', fontWeight: 700, fontSize: '12px',
+              display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0,
+              letterSpacing: '0.08em',
+            }}
+          >
+            + Nuevo cliente
+          </button>
         </div>
 
         {/* ── Stats ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
-          {[
-            { label: 'Total clientes', value: total, icon: '👤', color: '#374151' },
-            { label: 'Activos',        value: activos, icon: '🟢', color: C1 },
-            { label: 'Con portal',     value: conPortal, icon: '🔗', color: '#6B21A8' },
-            { label: 'Solicitudes pendientes', value: pendSol, icon: '🔔', color: pendSol > 0 ? '#EF4444' : '#9CA3AF' },
-          ].map(m => (
-            <div key={m.label} style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB' }}>
-              <span style={{ fontSize: '22px', display: 'block', marginBottom: '8px' }}>{m.icon}</span>
-              <p style={{ fontSize: '24px', fontWeight: 900, color: m.color, margin: '0 0 3px' }}>{m.value}</p>
-              <p style={{ fontSize: '11px', color: '#6B7280', margin: 0, fontWeight: 600 }}>{m.label}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap: '14px', marginBottom: '16px' }}>
+          {([
+            { lbl: 'Activos',     val: String(activos),            sub: `${pausados} paus. · ${prospectos} prosp.`, col: '#7ec8a0', ico: '✦' },
+            { lbl: 'Total',       val: String(total),              sub: 'todos los estados',                         col: WHT,        ico: '◈' },
+            { lbl: 'Con portal',  val: String(conPortal),          sub: `${total - conPortal} sin acceso`,           col: ACC2,       ico: '◎' },
+            { lbl: 'Solicitudes', val: String(pendSol),            sub: 'solicitudes abiertas',                      col: pendSol > 0 ? ROSE : MUT, ico: '!' },
+            { lbl: 'Facturación', val: fmtCOP(facturacionActiva),  sub: `Ticket prom. ${fmtCOP(ticketPromedio)}`,    col: ACC2,       ico: '$' },
+          ] as { lbl: string; val: string; sub: string; col: string; ico: string }[]).map(m => (
+            <div key={m.lbl} style={{
+              background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px',
+              padding: '18px 18px 14px', position: 'relative', overflow: 'hidden',
+            }}>
+              <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>
+                {m.lbl}
+              </p>
+              <p style={{ fontSize: '28px', fontWeight: 300, color: m.col, margin: '0 0 5px', lineHeight: 1 }}>
+                {m.val}
+              </p>
+              <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
+              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#1A1A22', lineHeight: 1, fontWeight: 300, userSelect: 'none', pointerEvents: 'none' }}>
+                {m.ico}
+              </span>
             </div>
           ))}
         </div>
+
+        {/* ── Barra de cartera ── */}
+        {total > 0 && (
+          <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '12px 20px', marginBottom: '24px', display: 'flex', gap: isMobile ? '16px' : '28px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, flexShrink: 0 }}>Cartera</span>
+            {([
+              { label: 'Activos',    val: activos,    col: '#7ec8a0' },
+              { label: 'Pausados',   val: pausados,   col: AMB },
+              { label: 'Prospectos', val: prospectos, col: ACC2 },
+            ] as { label: string; val: number; col: string }[]).map(({ label, val, col }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '120px' }}>
+                <span style={{ fontSize: '9px', color: MUT, minWidth: '62px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+                <div style={{ flex: 1, height: '3px', background: BDR, borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: col, borderRadius: '2px', width: total > 0 ? `${Math.round((val / total) * 100)}%` : '0%' }} />
+                </div>
+                <span style={{ fontSize: '12px', color: col, minWidth: '16px', textAlign: 'right' }}>{val}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── Filtros ── */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -306,13 +352,14 @@ export default function ClientesAdmin() {
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nombre, marca o email…"
             style={{
-              flex: 1, minWidth: '220px', padding: '9px 14px', borderRadius: '10px',
-              border: '1.5px solid #E5E7EB', fontSize: '13px', outline: 'none',
+              flex: 1, minWidth: '220px', padding: '9px 14px', borderRadius: '4px',
+              border: `0.5px solid ${BDR2}`, fontSize: '13px', outline: 'none',
+              background: DIM, color: WHT,
             }}
           />
           <select
             value={filterEstado} onChange={e => setFilterEstado(e.target.value)}
-            style={{ padding: '9px 14px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '13px', background: '#fff' }}
+            style={{ padding: '9px 14px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, fontSize: '13px', background: DIM, color: WHT }}
           >
             <option value="all">Todos los estados</option>
             {CLIENTE_ESTADOS.map(e => <option key={e.value} value={e.value}>{e.icon} {e.label}</option>)}
@@ -321,18 +368,18 @@ export default function ClientesAdmin() {
 
         {/* ── Lista ── */}
         {loading ? (
-          <p style={{ color: '#9CA3AF', fontSize: '14px', textAlign: 'center', padding: '40px 0' }}>Cargando…</p>
+          <p style={{ color: MUT, fontSize: '13px', textAlign: 'center', padding: '60px 0', letterSpacing: '0.05em' }}>Cargando clientes…</p>
         ) : visible.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <p style={{ fontSize: '40px', margin: '0 0 12px' }}>👥</p>
-            <p style={{ color: '#6B7280', fontSize: '15px' }}>
-              {clientes.length === 0 ? 'Aún no tienes clientes. ¡Crea el primero!' : 'Sin resultados para ese filtro.'}
+          <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px', color: BDR }}>✦</div>
+            <p style={{ color: MUT, fontSize: '14px' }}>
+              {clientes.length === 0 ? 'No hay clientes registrados.' : 'Sin resultados para ese filtro.'}
             </p>
           </div>
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(290px, 1fr))',
             gap: '14px',
           }}>
             {visible.map(c => (
@@ -354,13 +401,13 @@ export default function ClientesAdmin() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
           zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '28px 32px', maxWidth: '380px', width: '90%', textAlign: 'center' }}>
-            <p style={{ fontSize: '36px', margin: '0 0 12px' }}>⚠️</p>
-            <p style={{ fontWeight: 800, fontSize: '16px', color: '#111', margin: '0 0 8px' }}>¿Eliminar cliente?</p>
-            <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 24px' }}>Esta acción eliminará también el acceso al portal. No se puede deshacer.</p>
+          <div style={{ background: DIM, border: `0.5px solid ${BDR2}`, borderRadius: '8px', padding: '28px 32px', maxWidth: '380px', width: '90%', textAlign: 'center' }}>
+            <p style={{ fontSize: '32px', margin: '0 0 12px', color: ROSE }}>!</p>
+            <p style={{ fontWeight: 800, fontSize: '16px', color: WHT, margin: '0 0 8px' }}>¿Eliminar cliente?</p>
+            <p style={{ fontSize: '13px', color: MUT, margin: '0 0 24px' }}>Esta acción eliminará también el acceso al portal. No se puede deshacer.</p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button onClick={() => setConfirmId(null)} style={{ padding: '10px 22px', borderRadius: '10px', border: '1.5px solid #E5E7EB', background: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Cancelar</button>
-              <button onClick={() => handleDelete(confirmId)} style={{ padding: '10px 22px', borderRadius: '10px', border: 'none', background: '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Eliminar</button>
+              <button onClick={() => setConfirmId(null)} style={{ padding: '10px 22px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: WHT, cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Cancelar</button>
+              <button onClick={() => handleDelete(confirmId)} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: ROSE, color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Eliminar</button>
             </div>
           </div>
         </div>
@@ -373,28 +420,28 @@ export default function ClientesAdmin() {
           zIndex: 300, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
         }}>
           <div style={{
-            background: '#F9FAFB', width: isMobile ? '100%' : '720px',
+            background: '#12121A', width: isMobile ? '100%' : '720px',
             maxWidth: '100%', display: 'flex', flexDirection: 'column',
-            boxShadow: '-8px 0 40px rgba(0,0,0,0.18)',
+            boxShadow: '-8px 0 40px rgba(0,0,0,0.5)',
             overflowY: 'auto',
           }}>
             {/* Modal header */}
             <div style={{
-              background: '#fff', padding: '18px 24px',
-              borderBottom: '1px solid #E5E7EB',
+              background: DIM, padding: '18px 24px',
+              borderBottom: `0.5px solid ${BDR}`,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               position: 'sticky', top: 0, zIndex: 10, flexShrink: 0,
             }}>
-              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#111' }}>
-                {editId ? `✏️ ${form.marca || 'Cliente'}` : '+ Nuevo cliente'}
+              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: WHT, letterSpacing: '-0.3px' }}>
+                {editId ? `${form.marca || 'Cliente'}` : '+ Nuevo cliente'}
               </h2>
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#9CA3AF', lineHeight: 1 }}>✕</button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: MUT, lineHeight: 1 }}>✕</button>
             </div>
 
             {/* Tabs */}
             <div style={{
-              display: 'flex', background: '#fff',
-              borderBottom: '2px solid #E5E7EB',
+              display: 'flex', background: DIM,
+              borderBottom: `0.5px solid ${BDR}`,
               overflowX: 'auto', flexShrink: 0,
             }}>
               {([
@@ -409,12 +456,13 @@ export default function ClientesAdmin() {
                   key={t.key}
                   onClick={() => setTab(t.key)}
                   style={{
-                    padding: '12px 16px', border: 'none', background: 'none', cursor: 'pointer',
-                    fontSize: '12.5px', fontWeight: tab === t.key ? 800 : 500,
-                    color: tab === t.key ? C1 : '#6B7280',
-                    borderBottom: tab === t.key ? `2.5px solid ${C1}` : '2.5px solid transparent',
+                    padding: '11px 14px', border: 'none', background: 'none', cursor: 'pointer',
+                    fontSize: '11px', fontWeight: tab === t.key ? 700 : 500,
+                    color: tab === t.key ? ACC2 : MUT,
+                    borderBottom: tab === t.key ? `1.5px solid ${ACC2}` : '1.5px solid transparent',
                     whiteSpace: 'nowrap', transition: 'color 0.15s',
-                    marginBottom: '-2px',
+                    letterSpacing: '0.05em',
+                    marginBottom: '-0.5px',
                   }}
                 >
                   {t.label}
@@ -423,7 +471,7 @@ export default function ClientesAdmin() {
             </div>
 
             {/* Tab content */}
-            <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+            <div style={{ flex: 1, padding: '24px', overflowY: 'auto', background: '#12121A' }}>
 
               {/* ─ PERFIL ─ */}
               {tab === 'perfil' && (
@@ -1203,68 +1251,96 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
 }) {
   const pendSol = cliente.solicitudes.filter(s => s.estado === 'pendiente').length
 
+  const statusStyle: React.CSSProperties =
+    cliente.estado === 'activo'     ? { background: '#1a0d36', color: '#A855F7', border: '0.5px solid #6E2DFF' } :
+    cliente.estado === 'pausado'    ? { background: '#2a1a10', color: '#FFB865', border: '0.5px solid #7a5e30' } :
+    cliente.estado === 'prospecto'  ? { background: '#0d1e30', color: '#60c0e0', border: '0.5px solid #2060a0' } :
+    /* finalizado */                  { background: '#2a0d1a', color: '#FF4D8D', border: '0.5px solid #5a1a30' }
+
+  const CLIENTE_ESTADOS_MAP: Record<string, string> = {
+    activo: 'Activo', pausado: 'Pausado', prospecto: 'Prospecto', finalizado: 'Finalizado'
+  }
+
   return (
-    <div style={{
-      background: '#fff', borderRadius: '16px', padding: '18px 20px',
-      border: '1px solid #E5E7EB',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
-      transition: 'box-shadow 0.2s ease',
-    }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)')}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.04)')}
+    <div
+      style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', overflow: 'hidden', transition: 'border-color 0.25s, transform 0.2s, box-shadow 0.2s' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = '#6E2DFF'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(110,45,255,0.15)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = BDR; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-        <div>
-          <p style={{ fontSize: '16px', fontWeight: 900, color: '#111', margin: '0 0 3px' }}>{cliente.marca}</p>
-          <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>{cliente.nombre}</p>
+      {/* Header */}
+      <div style={{ padding: '14px 16px 12px', borderBottom: `0.5px solid ${BDR}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          {cliente.logo_url ? (
+            <img src={cliente.logo_url} alt={cliente.marca} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'contain', background: '#0D0D14', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #6E2DFF, #A855F7)', color: WHT, fontSize: '15px', fontWeight: 600, flexShrink: 0 }}>
+              {cliente.marca.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: '14px', color: WHT, margin: '0 0 2px', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cliente.marca}</p>
+            <p style={{ fontSize: '10px', color: MUT, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.05em' }}>{cliente.nombre}</p>
+          </div>
         </div>
-        <EstadoBadge estado={cliente.estado} />
+        <span style={{ fontSize: '8px', letterSpacing: '0.12em', textTransform: 'uppercase', padding: '2px 6px', borderRadius: '2px', flexShrink: 0, ...statusStyle }}>
+          {CLIENTE_ESTADOS_MAP[cliente.estado] ?? cliente.estado}
+        </span>
       </div>
 
-      <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 10px' }}>{cliente.email}</p>
+      {/* Stats rows */}
+      <div style={{ padding: '8px 16px', cursor: 'pointer' }} onClick={onEdit}>
+        {([
+          { label: 'Contenido', val: `${cliente.entregables.length} piezas` },
+          { label: 'Parrilla',  val: `${cliente.parrilla.length} posts` },
+          ...(cliente.valor_contrato ? [{ label: 'Contrato', val: `${cliente.valor_contrato}${cliente.moneda ? ` ${cliente.moneda}` : ''}` }] : []),
+          ...(pendSol > 0 ? [{ label: 'Pendientes', val: `${pendSol} solicitud${pendSol > 1 ? 'es' : ''}`, danger: true }] : []),
+        ] as { label: string; val: string; danger?: boolean }[]).map(({ label, val, danger }) => (
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '0.5px solid #1A1A22' }}>
+            <span style={{ fontSize: '10px', color: MUT, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+            <span style={{ fontSize: '13px', color: danger ? ROSE : WHT }}>{val}</span>
+          </div>
+        ))}
+      </div>
 
+      {/* Service tags footer */}
       {cliente.servicios.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
+        <div style={{ padding: '8px 16px', background: '#0D0D14', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {cliente.servicios.slice(0, 3).map(s => (
-            <span key={s} style={{ padding: '2px 8px', borderRadius: '10px', background: '#F3F4F6', fontSize: '11px', color: '#374151', fontWeight: 600 }}>{s}</span>
+            <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: '#1A1A22', border: `0.5px solid ${BDR}`, color: MUT }}>
+              {s.length > 14 ? s.slice(0, 12) + '…' : s}
+            </span>
           ))}
           {cliente.servicios.length > 3 && (
-            <span style={{ padding: '2px 8px', borderRadius: '10px', background: '#F3F4F6', fontSize: '11px', color: '#9CA3AF' }}>+{cliente.servicios.length - 3}</span>
+            <span style={{ fontSize: '8px', color: MUT }}>+{cliente.servicios.length - 3}</span>
           )}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '14px', fontSize: '12px', color: '#6B7280' }}>
-        <span>📦 {cliente.entregables.length}</span>
-        <span>📅 {cliente.parrilla.length}</span>
-        {pendSol > 0 && <span style={{ color: '#EF4444', fontWeight: 700 }}>🔔 {pendSol} pendiente{pendSol > 1 ? 's' : ''}</span>}
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button onClick={onEdit} style={{
-          flex: 1, padding: '8px 0', borderRadius: '10px', border: '1.5px solid #E5E7EB',
-          background: '#fff', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, color: '#374151',
-        }}>
-          ✏️ Editar
+      {/* Actions */}
+      <div style={{ padding: '10px 16px', display: 'flex', gap: '6px', borderTop: `0.5px solid ${BDR}` }}>
+        <button
+          onClick={onEdit}
+          style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, letterSpacing: '0.1em', textTransform: 'uppercase', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = ACC2; e.currentTarget.style.background = 'rgba(168,85,247,0.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = BDR2; e.currentTarget.style.background = 'transparent' }}
+        >
+          Editar
         </button>
         {cliente.access_token && (
           <a
             href={`${portalBase}${cliente.access_token}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              flex: 1, padding: '8px 0', borderRadius: '10px', border: `1.5px solid ${C1}`,
-              background: C1_BG, cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, color: C1,
-              textDecoration: 'none', textAlign: 'center', display: 'block',
-            }}
+            target="_blank" rel="noopener noreferrer"
+            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: '#1a0d36', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
-            🔗 Portal
+            Portal
           </a>
         )}
-        <button onClick={onDelete} style={{
-          padding: '8px 10px', borderRadius: '10px', border: '1.5px solid #FEE2E2',
-          background: '#FFF1F2', cursor: 'pointer', fontSize: '14px', color: '#EF4444',
-        }}>
+        <button
+          onClick={onDelete}
+          style={{ padding: '7px 11px', borderRadius: '3px', border: '0.5px solid #4a1a2e', background: 'transparent', cursor: 'pointer', fontSize: '12px', color: ROSE, transition: 'background 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#1e0a14')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
           🗑
         </button>
       </div>
@@ -1275,12 +1351,12 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
 /* ── Shared styles ───────────────────────────────────────── */
 const labelStyle: React.CSSProperties = {
   display: 'flex', flexDirection: 'column', gap: '5px',
-  fontSize: '12px', fontWeight: 700, color: '#374151',
-  textTransform: 'uppercase', letterSpacing: '0.4px',
+  fontSize: '10px', fontWeight: 700, color: MUT,
+  textTransform: 'uppercase', letterSpacing: '0.5px',
 }
 
 const inputStyle: React.CSSProperties = {
-  padding: '9px 12px', borderRadius: '10px', border: '1.5px solid #E5E7EB',
-  fontSize: '13px', color: '#111', background: '#fff', outline: 'none',
+  padding: '9px 12px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
+  fontSize: '13px', color: WHT, background: '#1A1A22', outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }
