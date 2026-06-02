@@ -566,6 +566,15 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 
 /* ── App Router ──────────────────────────────────────────── */
 export default function App() {
+  // Subdominio brief → mostrar solo el formulario, sin landing ni nav
+  if (window.location.hostname === 'brief.almaagenciacreativa.com') {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <BriefPageDirect />
+      </Suspense>
+    )
+  }
+
   return (
     <Suspense fallback={<PageLoader />}>
       <BackToTop />
