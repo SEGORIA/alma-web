@@ -5,7 +5,7 @@ import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug,
 } from '../../lib/db'
-import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../../data/clientes'
+import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
@@ -17,7 +17,7 @@ const C1     = '#059669'
 const C1_BG  = 'rgba(5,150,105,0.10)'
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'portal'
+type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -71,6 +71,8 @@ export default function ClientesAdmin() {
   const [newE, setNewE] = useState<Partial<Entregable>>({ categoria: 'branding', nombre: '', url: '' })
   const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
   const [editingParrillaId, setEditingParrillaId] = useState<string | null>(null)
+  const [newMes, setNewMes] = useState<Partial<MetricaMes>>({ mes: '' })
+  const [editMes, setEditMes] = useState<string | null>(null)
   const [editingParrillaData, setEditingParrillaData] = useState<Partial<ParrillaItem>>({})
   const [respuestas, setRespuestas] = useState<Record<string, string>>({})
 
@@ -191,6 +193,31 @@ export default function ClientesAdmin() {
     }))
     setEditingParrillaId(null)
     setEditingParrillaData({})
+  }
+
+  function upsertMetricaMes() {
+    if (!newMes.mes) return
+    setForm(f => {
+      const hist = f.metricas_historico ?? []
+      const exists = hist.find(m => m.mes === newMes.mes)
+      return {
+        ...f,
+        metricas_historico: exists
+          ? hist.map(m => m.mes === newMes.mes ? { ...m, ...newMes } : m)
+          : [...hist, newMes as MetricaMes].sort((a, b) => a.mes.localeCompare(b.mes)),
+      }
+    })
+    setNewMes({ mes: '' })
+    setEditMes(null)
+  }
+
+  function removeMetricaMes(mes: string) {
+    setForm(f => ({ ...f, metricas_historico: (f.metricas_historico ?? []).filter(m => m.mes !== mes) }))
+  }
+
+  function startEditMes(m: MetricaMes) {
+    setEditMes(m.mes)
+    setNewMes({ ...m })
   }
 
   async function saveSolicitudRespuesta(s: Solicitud) {
@@ -375,6 +402,7 @@ export default function ClientesAdmin() {
                 { key: 'entregables', label: `📋 Contenido (${form.entregables.length})` },
                 { key: 'parrilla',    label: `📅 Parrilla (${form.parrilla.length})` },
                 { key: 'solicitudes', label: `💬 Solicitudes (${form.solicitudes.length})` },
+                { key: 'metricas',    label: `📊 Métricas (${(form.metricas_historico ?? []).length})` },
                 { key: 'portal',      label: '🔗 Portal' },
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
@@ -448,10 +476,25 @@ export default function ClientesAdmin() {
                     </label>
                   </div>
 
-                  <label style={labelStyle}>
-                    URL del contrato
-                    <input value={form.contrato_url ?? ''} onChange={e => setForm(f => ({ ...f, contrato_url: e.target.value }))} style={inputStyle} placeholder="https://drive.google.com/…" />
-                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <label style={labelStyle}>
+                      Logo de la marca (URL)
+                      <input value={form.logo_url ?? ''} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))} style={inputStyle} placeholder="https://i.imgur.com/…logo.png" />
+                    </label>
+                    <label style={labelStyle}>
+                      URL del contrato
+                      <input value={form.contrato_url ?? ''} onChange={e => setForm(f => ({ ...f, contrato_url: e.target.value }))} style={inputStyle} placeholder="https://drive.google.com/…" />
+                    </label>
+                  </div>
+                  {form.logo_url && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#F9FAFB', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
+                      <img src={form.logo_url} alt="Logo" style={{ height: '44px', width: '44px', objectFit: 'contain', borderRadius: '8px', background: '#fff', padding: '4px', border: '1px solid #E5E7EB' }} />
+                      <div>
+                        <p style={{ margin: '0 0 2px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Vista previa del logo</p>
+                        <p style={{ margin: 0, fontSize: '11px', color: '#9CA3AF' }}>Se muestra en el portal del cliente</p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Servicios */}
                   <div>
@@ -928,6 +971,104 @@ export default function ClientesAdmin() {
                   )}
                 </div>
               )}
+
+              {/* ─ MÉTRICAS MENSUALES ─ */}
+              {tab === 'metricas' && (() => {
+                const hist = [...(form.metricas_historico ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
+                const metKeys: { key: keyof MetricaMes; label: string; icon: string }[] = [
+                  { key: 'alcance',          label: 'Alcance',      icon: '👁️' },
+                  { key: 'impresiones',      label: 'Impresiones',  icon: '📡' },
+                  { key: 'likes',            label: 'Likes',        icon: '❤️' },
+                  { key: 'comentarios',      label: 'Comentarios',  icon: '💬' },
+                  { key: 'guardados',        label: 'Guardados',    icon: '🔖' },
+                  { key: 'compartidos',      label: 'Compartidos',  icon: '↗️' },
+                  { key: 'seguidores',       label: 'Nuevos segs.', icon: '👥' },
+                  { key: 'engagement',       label: 'Engagement %', icon: '📈' },
+                  { key: 'posts_publicados', label: 'Posts pub.',   icon: '✅' },
+                ]
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+                    {/* Tabla de meses */}
+                    {hist.length === 0 ? (
+                      <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Sin métricas aún. Agrega el primero abajo.</p>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {hist.map(m => {
+                          const [y, mo] = m.mes.split('-')
+                          const label = new Date(+y, +mo - 1, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+                          const isEditing = editMes === m.mes
+                          return (
+                            <div key={m.mes} style={{ background: '#fff', borderRadius: '12px', border: `1.5px solid ${isEditing ? C1 : '#E5E7EB'}`, overflow: 'hidden' }}>
+                              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#111', textTransform: 'capitalize', minWidth: '130px' }}>{label}</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
+                                  {m.alcance     ? <span style={{ fontSize: '12px', color: '#6B7280' }}>👁️ {m.alcance.toLocaleString()}</span> : null}
+                                  {m.likes       ? <span style={{ fontSize: '12px', color: '#6B7280' }}>❤️ {m.likes.toLocaleString()}</span> : null}
+                                  {m.seguidores  ? <span style={{ fontSize: '12px', color: '#6B7280' }}>👥 +{m.seguidores}</span> : null}
+                                  {m.engagement  ? <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>📈 {m.engagement}%</span> : null}
+                                </div>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <button onClick={() => startEditMes(m)} style={{ padding: '4px 10px', borderRadius: '7px', border: `1.5px solid ${C1}`, background: isEditing ? C1 : '#fff', color: isEditing ? '#fff' : C1, cursor: 'pointer', fontWeight: 700, fontSize: '11px' }}>✏️ Editar</button>
+                                  <button onClick={() => removeMetricaMes(m.mes)} style={{ padding: '4px 8px', borderRadius: '7px', border: '1.5px solid #FEE2E2', background: '#fff', color: '#EF4444', cursor: 'pointer', fontWeight: 700, fontSize: '11px' }}>×</button>
+                                </div>
+                              </div>
+                              {isEditing && (
+                                <div style={{ padding: '14px', borderTop: '1px solid #F3F4F6', background: '#F9FAFB' }}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '10px' }}>
+                                    {metKeys.map(k => (
+                                      <label key={String(k.key)} style={labelStyle}>
+                                        {k.icon} {k.label}
+                                        <input
+                                          type="number" min={0} step={k.key === 'engagement' ? 0.1 : 1}
+                                          value={(newMes[k.key] as number | undefined) ?? ''}
+                                          onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
+                                          style={inputStyle} placeholder="0"
+                                        />
+                                      </label>
+                                    ))}
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button onClick={upsertMetricaMes} style={{ padding: '8px 18px', borderRadius: '9px', background: C1, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>Guardar cambios</button>
+                                    <button onClick={() => { setEditMes(null); setNewMes({ mes: '' }) }} style={{ padding: '8px 14px', borderRadius: '9px', border: '1.5px solid #E5E7EB', background: '#fff', color: '#6B7280', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>Cancelar</button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Formulario agregar nuevo mes */}
+                    {!editMes && (
+                      <div style={{ background: '#F0FDF4', border: '1.5px dashed #86EFAC', borderRadius: '14px', padding: '18px' }}>
+                        <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Agregar mes</p>
+                        <label style={{ ...labelStyle, marginBottom: '12px' }}>
+                          Mes *
+                          <input type="month" value={newMes.mes ?? ''} onChange={e => setNewMes(n => ({ ...n, mes: e.target.value }))} style={inputStyle} />
+                        </label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '12px' }}>
+                          {metKeys.map(k => (
+                            <label key={String(k.key)} style={labelStyle}>
+                              {k.icon} {k.label}
+                              <input
+                                type="number" min={0} step={k.key === 'engagement' ? 0.1 : 1}
+                                value={(newMes[k.key] as number | undefined) ?? ''}
+                                onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
+                                style={inputStyle} placeholder="0"
+                              />
+                            </label>
+                          ))}
+                        </div>
+                        <button onClick={upsertMetricaMes} disabled={!newMes.mes} style={{ background: newMes.mes ? C1 : '#9CA3AF', color: '#fff', border: 'none', cursor: newMes.mes ? 'pointer' : 'default', padding: '9px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px' }}>
+                          Agregar mes
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
 
               {/* ─ PORTAL ─ */}
               {tab === 'portal' && (() => {

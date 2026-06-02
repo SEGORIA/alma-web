@@ -155,162 +155,290 @@ export default function ClientePortal() {
   ] as const
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F5F4FF', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#F2F0FA', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes barGrow { from { width:0 } to { width:var(--bar-w,0%) } }
+        .portal-tab-btn:hover { background: rgba(255,255,255,0.12) !important }
+        .portal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107,33,168,0.15) !important; }
+        .portal-action-btn:hover { opacity:0.88; transform:scale(0.98) }
+      `}</style>
 
-      {/* ── Header ── */}
+      {/* ══ HEADER ══ */}
       <div style={{
-        background: `linear-gradient(135deg, #3B0764, ${P}, #9333EA)`,
-        padding: '0',
+        background: 'linear-gradient(140deg, #0A0118 0%, #1E0547 35%, #3B0C87 65%, #6D28D9 100%)',
+        position: 'relative', overflow: 'hidden',
       }}>
-        {/* Top bar */}
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px', padding: '5px 12px' }}>
-            <img src="/alma-logo.png" alt="Alma" style={{ height: '28px', width: 'auto', display: 'block' }} />
-          </div>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Portal de cliente</span>
-        </div>
+        {/* Decorative blobs */}
+        <div style={{ position:'absolute', top:'-60px', right:'-60px', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:'-30px', left:'5%', width:'200px', height:'200px', borderRadius:'50%', background:'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', top:'40%', left:'50%', width:'300px', height:'300px', borderRadius:'50%', background:'radial-gradient(circle, rgba(109,40,217,0.1) 0%, transparent 70%)', pointerEvents:'none', transform:'translate(-50%,-50%)' }} />
 
-        {/* Brand info */}
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '8px 20px 28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-            <h1 style={{ margin: 0, color: '#fff', fontSize: '26px', fontWeight: 900 }}>{data.marca}</h1>
-            {estadoInfo && (
-              <span style={{ padding: '3px 10px', borderRadius: '20px', background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: '11.5px', fontWeight: 700 }}>
-                {estadoInfo.icon} {estadoInfo.label}
-              </span>
-            )}
-          </div>
-          <p style={{ margin: 0, color: 'rgba(255,255,255,0.75)', fontSize: '14px' }}>Bienvenido/a, {data.nombre}</p>
+        <div style={{ maxWidth:'920px', margin:'0 auto', position:'relative', zIndex:1 }}>
 
-          {/* Services chips */}
-          {(data.servicios ?? []).length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '14px' }}>
-              {(data.servicios ?? []).map(s => (
-                <span key={s} style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: '12px', fontWeight: 600 }}>{s}</span>
-              ))}
+          {/* Top bar */}
+          <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ background:'rgba(255,255,255,0.1)', borderRadius:'8px', padding:'5px 12px', backdropFilter:'blur(8px)' }}>
+              <img src="/alma-logo.png" alt="Alma" style={{ height:'26px', width:'auto', display:'block' }} />
             </div>
-          )}
-        </div>
+            <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>Portal de cliente</span>
+          </div>
 
-        {/* Tabs */}
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', overflowX: 'auto' }}>
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              style={{
-                padding: '12px 18px', border: 'none', cursor: 'pointer',
-                background: tab === t.key ? '#fff' : 'transparent',
-                color: tab === t.key ? P : 'rgba(255,255,255,0.7)',
-                fontSize: '13px', fontWeight: tab === t.key ? 800 : 500,
-                borderRadius: tab === t.key ? '12px 12px 0 0' : '0',
-                whiteSpace: 'nowrap', transition: 'all 0.15s',
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+          {/* Brand hero */}
+          <div style={{ padding:'12px 24px 28px', display:'flex', alignItems:'flex-start', gap:'20px', flexWrap:'wrap' }}>
+            {/* Logo */}
+            {data.logo_url ? (
+              <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.18)', padding:'8px', flexShrink:0, backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <img src={data.logo_url} alt={data.marca} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', borderRadius:'10px' }} />
+              </div>
+            ) : (
+              <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px', fontWeight:900, color:'#fff', flexShrink:0, backdropFilter:'blur(8px)', letterSpacing:'-1px' }}>
+                {(data.marca ?? '?')[0].toUpperCase()}
+              </div>
+            )}
+
+            {/* Nombre + Estado */}
+            <div style={{ flex:1, minWidth:'180px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
+                <h1 style={{ margin:0, color:'#fff', fontSize:'28px', fontWeight:900, letterSpacing:'-0.5px', lineHeight:1.1 }}>{data.marca}</h1>
+                {estadoInfo && (
+                  <span style={{ padding:'4px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.9)', fontSize:'11.5px', fontWeight:700, border:'1px solid rgba(255,255,255,0.15)', backdropFilter:'blur(8px)' }}>
+                    {estadoInfo.icon} {estadoInfo.label}
+                  </span>
+                )}
+              </div>
+              <p style={{ margin:'0 0 14px', color:'rgba(255,255,255,0.6)', fontSize:'14px' }}>Bienvenido/a, <strong style={{ color:'rgba(255,255,255,0.88)', fontWeight:700 }}>{data.nombre}</strong></p>
+              {/* Services */}
+              {(data.servicios ?? []).length > 0 && (
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                  {(data.servicios ?? []).map(s => (
+                    <span key={s} style={{ padding:'4px 11px', borderRadius:'20px', background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.75)', fontSize:'12px', fontWeight:600, border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(4px)' }}>{s}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Navigation tabs */}
+          <div style={{ display:'flex', overflowX:'auto', paddingLeft:'8px' }}>
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className="portal-tab-btn"
+                style={{
+                  padding:'13px 20px', border:'none', cursor:'pointer', flexShrink:0,
+                  background: tab === t.key ? 'rgba(255,255,255,1)' : 'transparent',
+                  color: tab === t.key ? P : 'rgba(255,255,255,0.65)',
+                  fontSize:'13px', fontWeight: tab === t.key ? 800 : 500,
+                  borderRadius: tab === t.key ? '14px 14px 0 0' : '0',
+                  whiteSpace:'nowrap', transition:'all 0.2s',
+                  borderBottom: tab === t.key ? 'none' : '0',
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ── Content ── */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '28px 20px' }}>
+      <div style={{ maxWidth:'920px', margin:'0 auto', padding:'28px 20px' }}>
 
         {/* ── INICIO ── */}
         {tab === 'inicio' && (() => {
-          const parrilla    = data.parrilla ?? []
-          const publicados  = parrilla.filter(p => p.estado === 'publicado')
-          const conMetricas = publicados.filter(p => p.metricas && Object.values(p.metricas).some(v => v != null && v > 0))
-          const totalAlcance    = conMetricas.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
-          const totalLikes      = conMetricas.reduce((s, p) => s + (p.metricas?.likes ?? 0), 0)
-          const totalGuardados  = conMetricas.reduce((s, p) => s + (p.metricas?.guardados ?? 0), 0)
-          const avgEngagement   = conMetricas.length > 0
-            ? conMetricas.reduce((s, p) => s + (p.metricas?.engagement ?? 0), 0) / conMetricas.length
+          const parrilla   = data.parrilla ?? []
+          const publicados = parrilla.filter(p => p.estado === 'publicado')
+          const conMet     = publicados.filter(p => p.metricas && Object.values(p.metricas).some(v => v != null && (v as number) > 0))
+          const contenidos = data.entregables ?? []
+          const aprobados  = contenidos.filter(e => e.estado_revision === 'aprobado').length
+          const pendSol    = (data.solicitudes ?? []).filter(s => s.estado === 'pendiente').length
+
+          // Métricas agregadas desde metricas_historico (admin) o derivadas de parrilla
+          const histAdmin = [...(data.metricas_historico ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
+          const mesActual = histAdmin[0]
+
+          // Derivadas de parrilla
+          const alcanceTotal  = conMet.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
+          const likesTotal    = conMet.reduce((s, p) => s + (p.metricas?.likes ?? 0), 0)
+          const guardadosTotal= conMet.reduce((s, p) => s + (p.metricas?.guardados ?? 0), 0)
+          const avgEng        = conMet.length > 0
+            ? (conMet.reduce((s, p) => s + (p.metricas?.engagement ?? 0), 0) / conMet.length)
             : 0
 
-          // Posts con mejor alcance (top 3)
-          const topPosts = [...conMetricas].sort((a, b) => (b.metricas?.alcance ?? 0) - (a.metricas?.alcance ?? 0)).slice(0, 3)
+          // Top posts
+          const topPosts = [...conMet].sort((a, b) => (b.metricas?.alcance ?? 0) - (a.metricas?.alcance ?? 0)).slice(0, 3)
 
-          // Meses con publicaciones
-          const mesesPublicados = [...new Set(publicados.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort().reverse()
+          // Chart data: preferir histAdmin, fallback a derivado de parrilla
+          const chartData = histAdmin.length >= 2 ? histAdmin.slice(0, 6).reverse() : []
+          const maxAlcChart = chartData.reduce((m, d) => Math.max(m, d.alcance ?? 0), 1)
 
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:'22px', animation:'fadeUp 0.35s ease' }}>
 
-              {/* Resumen del proyecto */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
-                {[
-                  { label: 'Contenidos',   value: (data.entregables ?? []).length, icon: '📋', color: '#6B21A8' },
-                  { label: 'En parrilla',  value: parrilla.length,                 icon: '📅', color: '#0EA5E9' },
-                  { label: 'Publicados',   value: publicados.length,               icon: '✅', color: '#059669' },
-                  { label: 'Solicitudes',  value: (data.solicitudes ?? []).length, icon: '💬', color: '#D97706' },
-                ].map(m => (
-                  <div key={m.label} style={{ background: '#fff', borderRadius: '14px', padding: '18px 14px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                    <p style={{ fontSize: '26px', margin: '0 0 5px' }}>{m.icon}</p>
-                    <p style={{ fontSize: '24px', fontWeight: 900, color: m.color, margin: '0 0 3px' }}>{m.value}</p>
-                    <p style={{ fontSize: '11.5px', color: '#6B7280', margin: 0, fontWeight: 600 }}>{m.label}</p>
+              {/* ══ 4 STAT CARDS GRANDES ══ */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))', gap:'14px' }}>
+                {([
+                  {
+                    label:'Posts publicados', value: String(publicados.length),
+                    sub: `de ${parrilla.length} en parrilla`,
+                    grad:'linear-gradient(135deg, #0F0520, #2D0A5E)',
+                    icon:'📅', accent:'#A78BFA',
+                  },
+                  {
+                    label:'Alcance acumulado',
+                    value: mesActual?.alcance ? mesActual.alcance.toLocaleString() : alcanceTotal > 0 ? alcanceTotal.toLocaleString() : '—',
+                    sub: mesActual ? 'según métricas del mes' : conMet.length > 0 ? `${conMet.length} posts` : 'sin datos aún',
+                    grad:'linear-gradient(135deg, #0C2340, #1E40AF)',
+                    icon:'👁️', accent:'#93C5FD',
+                  },
+                  {
+                    label:'Engagement',
+                    value: mesActual?.engagement ? `${mesActual.engagement}%` : avgEng > 0 ? `${avgEng.toFixed(1)}%` : '—',
+                    sub: 'promedio del período',
+                    grad:'linear-gradient(135deg, #052E16, #065F46)',
+                    icon:'📈', accent:'#6EE7B7',
+                  },
+                  {
+                    label:'Contenido aprobado',
+                    value: `${aprobados}/${contenidos.length}`,
+                    sub: pendSol > 0 ? `${pendSol} solicitud${pendSol > 1 ? 'es' : ''} pendiente` : 'sin pendientes',
+                    grad:'linear-gradient(135deg, #431407, #92400E)',
+                    icon:'✅', accent:'#FCD34D',
+                  },
+                ] as { label:string; value:string; sub:string; grad:string; icon:string; accent:string }[]).map(card => (
+                  <div key={card.label} className="portal-card" style={{
+                    background:card.grad, borderRadius:'18px', padding:'22px 20px',
+                    transition:'transform 0.2s, box-shadow 0.2s',
+                    cursor:'default',
+                  }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'14px' }}>
+                      <p style={{ margin:0, fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.8px' }}>{card.label}</p>
+                      <span style={{ fontSize:'20px', lineHeight:1 }}>{card.icon}</span>
+                    </div>
+                    <p style={{ margin:'0 0 6px', fontSize:'32px', fontWeight:900, color:'#fff', lineHeight:1, letterSpacing:'-1px' }}>{card.value}</p>
+                    <p style={{ margin:0, fontSize:'12px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}>{card.sub}</p>
+                    <div style={{ marginTop:'14px', height:'2px', background:`rgba(255,255,255,0.08)`, borderRadius:'1px' }}>
+                      <div style={{ height:'100%', width:'60%', background:card.accent, borderRadius:'1px', opacity:0.7 }} />
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Dashboard de métricas */}
-              {conMetricas.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-                  <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #F3F4F6' }}>
-                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📊 Métricas acumuladas</p>
-                    <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#9CA3AF' }}>{conMetricas.length} posts con datos registrados</p>
+              {/* ══ GRÁFICO HISTÓRICO ══ */}
+              {chartData.length >= 2 && (
+                <div style={{ background:'#fff', borderRadius:'20px', border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <div style={{ padding:'20px 24px 16px', display:'flex', justifyContent:'space-between', alignItems:'flex-start', borderBottom:'1px solid #F3F4F6' }}>
+                    <div>
+                      <p style={{ margin:'0 0 3px', fontSize:'15px', fontWeight:800, color:'#111' }}>Evolución del alcance</p>
+                      <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>Últimos {chartData.length} meses · datos del admin</p>
+                    </div>
+                    <span style={{ padding:'4px 12px', borderRadius:'20px', background:'rgba(107,33,168,0.08)', color:P, fontSize:'12px', fontWeight:700 }}>
+                      📊 Histórico
+                    </span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0', padding: '0' }}>
-                    {[
-                      { label: 'Alcance total',   value: totalAlcance.toLocaleString(),   icon: '👁️',  color: P },
-                      { label: 'Likes totales',    value: totalLikes.toLocaleString(),     icon: '❤️',  color: '#EF4444' },
-                      { label: 'Guardados',        value: totalGuardados.toLocaleString(), icon: '🔖',  color: '#F59E0B' },
-                      { label: 'Eng. promedio',    value: `${avgEngagement.toFixed(1)}%`,  icon: '📈',  color: '#059669' },
-                    ].map((m, i) => (
-                      <div key={m.label} style={{
-                        padding: '18px 16px', textAlign: 'center',
-                        borderRight: i < 3 ? '1px solid #F3F4F6' : 'none',
-                        borderBottom: '0',
-                      }}>
-                        <p style={{ fontSize: '22px', margin: '0 0 4px' }}>{m.icon}</p>
-                        <p style={{ fontSize: '20px', fontWeight: 900, color: m.color, margin: '0 0 3px' }}>{m.value}</p>
-                        <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0, fontWeight: 600 }}>{m.label}</p>
-                      </div>
-                    ))}
+                  <div style={{ padding:'20px 24px' }}>
+                    {chartData.map((m, i) => {
+                      const [y, mo] = m.mes.split('-')
+                      const label = new Date(+y, +mo - 1, 1).toLocaleDateString('es-CO', { month: 'short', year: '2-digit' })
+                      const pct   = Math.max(4, Math.round(((m.alcance ?? 0) / maxAlcChart) * 100))
+                      const isLast = i === chartData.length - 1
+                      return (
+                        <div key={m.mes} style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom: i < chartData.length - 1 ? '12px' : '0' }}>
+                          <span style={{ fontSize:'12px', color:'#9CA3AF', fontWeight:600, minWidth:'60px', textTransform:'capitalize' }}>{label}</span>
+                          <div style={{ flex:1, height:'28px', background:'#F9FAFB', borderRadius:'6px', overflow:'hidden', position:'relative' }}>
+                            <div style={{
+                              height:'100%',
+                              width:`${pct}%`,
+                              background: isLast
+                                ? `linear-gradient(90deg, ${P}, #9333EA)`
+                                : `linear-gradient(90deg, rgba(107,33,168,0.4), rgba(147,51,234,0.6))`,
+                              borderRadius:'6px',
+                              transition:'width 0.6s ease',
+                              display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:'8px',
+                            }}>
+                              {pct > 20 && <span style={{ fontSize:'10px', fontWeight:800, color:'#fff', opacity:0.9 }}>{(m.alcance ?? 0).toLocaleString()}</span>}
+                            </div>
+                            {pct <= 20 && <span style={{ position:'absolute', left:`${pct}%`, top:'50%', transform:'translateY(-50%)', marginLeft:'6px', fontSize:'11px', fontWeight:700, color:'#374151' }}>{(m.alcance ?? 0).toLocaleString()}</span>}
+                          </div>
+                          {m.engagement ? (
+                            <span style={{ fontSize:'11px', fontWeight:700, color:'#059669', minWidth:'38px', textAlign:'right' }}>{m.engagement}%</span>
+                          ) : null}
+                          {m.seguidores ? (
+                            <span style={{ fontSize:'11px', color:'#9CA3AF', minWidth:'40px', textAlign:'right' }}>+{m.seguidores}</span>
+                          ) : null}
+                        </div>
+                      )
+                    })}
                   </div>
+                  {/* Mini stats del mes más reciente */}
+                  {mesActual && (
+                    <div style={{ padding:'14px 24px 20px', borderTop:'1px solid #F3F4F6', display:'flex', flexWrap:'wrap', gap:'20px' }}>
+                      {[
+                        { v: mesActual.likes,      label:'Likes',      icon:'❤️' },
+                        { v: mesActual.comentarios, label:'Comentarios', icon:'💬' },
+                        { v: mesActual.guardados,   label:'Guardados',   icon:'🔖' },
+                        { v: mesActual.compartidos, label:'Compartidos', icon:'↗️' },
+                        { v: mesActual.seguidores,  label:'Nuevos segs.', icon:'👥' },
+                        { v: mesActual.posts_publicados, label:'Posts', icon:'✅' },
+                      ].filter(x => x.v != null && (x.v as number) > 0).map(x => (
+                        <div key={x.label} style={{ textAlign:'center' }}>
+                          <p style={{ margin:'0 0 2px', fontSize:'16px', fontWeight:900, color:'#111' }}>{(x.v as number).toLocaleString()}</p>
+                          <p style={{ margin:0, fontSize:'11px', color:'#9CA3AF' }}>{x.icon} {x.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Top posts */}
+              {/* ══ MÉTRICAS ACUMULADAS (parrilla) si no hay histAdmin ══ */}
+              {histAdmin.length < 2 && conMet.length > 0 && (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:'12px' }}>
+                  {[
+                    { label:'Alcance total', v:alcanceTotal.toLocaleString(), icon:'👁️', c:'#6B21A8' },
+                    { label:'Likes', v:likesTotal.toLocaleString(), icon:'❤️', c:'#EF4444' },
+                    { label:'Guardados', v:guardadosTotal.toLocaleString(), icon:'🔖', c:'#D97706' },
+                    { label:'Engagement', v:`${avgEng.toFixed(1)}%`, icon:'📈', c:'#059669' },
+                  ].map(m => (
+                    <div key={m.label} style={{ background:'#fff', borderRadius:'14px', padding:'16px', border:'1px solid #E5E7EB', textAlign:'center' }}>
+                      <p style={{ fontSize:'22px', margin:'0 0 4px' }}>{m.icon}</p>
+                      <p style={{ fontSize:'20px', fontWeight:900, color:m.c, margin:'0 0 3px' }}>{m.v}</p>
+                      <p style={{ fontSize:'11px', color:'#9CA3AF', margin:0, fontWeight:600 }}>{m.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ══ TOP POSTS ══ */}
               {topPosts.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #F3F4F6' }}>
-                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🏆 Mejores posts por alcance</p>
+                <div style={{ background:'#fff', borderRadius:'20px', border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <div style={{ padding:'18px 22px 14px', borderBottom:'1px solid #F3F4F6' }}>
+                    <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#111' }}>🏆 Mejores posts</p>
+                    <p style={{ margin:'2px 0 0', fontSize:'12px', color:'#9CA3AF' }}>Por alcance acumulado</p>
                   </div>
                   {topPosts.map((p, i) => {
                     const maxAlc = topPosts[0].metricas?.alcance ?? 1
-                    const pct    = Math.round(((p.metricas?.alcance ?? 0) / maxAlc) * 100)
+                    const pct    = Math.max(8, Math.round(((p.metricas?.alcance ?? 0) / maxAlc) * 100))
                     const pilarI = PILARES_CONTENIDO.find(x => x.value === p.pilar)
+                    const medals = ['🥇','🥈','🥉']
                     return (
-                      <div key={p.id} style={{ padding: '14px 20px', borderBottom: i < topPosts.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                          <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: ['#F59E0B', '#9CA3AF', '#CD7C2F'][i] + '22', color: ['#F59E0B', '#9CA3AF', '#CD7C2F'][i], fontSize: '12px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            {i + 1}
-                          </span>
-                          <p style={{ flex: 1, margin: 0, fontSize: '13px', fontWeight: 700, color: '#111', lineClamp: 1 }}>{p.descripcion}</p>
-                          {pilarI && <span style={{ padding: '2px 8px', borderRadius: '6px', background: pilarI.bg, color: pilarI.color, fontSize: '11px', fontWeight: 700 }}>{pilarI.label}</span>}
-                          <span style={{ fontSize: '12px', fontWeight: 800, color: P }}>{(p.metricas?.alcance ?? 0).toLocaleString()} alcance</span>
+                      <div key={p.id} style={{ padding:'14px 22px', borderBottom: i < topPosts.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px', flexWrap:'wrap' }}>
+                          <span style={{ fontSize:'18px' }}>{medals[i]}</span>
+                          <p style={{ flex:1, margin:0, fontSize:'13px', fontWeight:700, color:'#111' }}>{p.descripcion}</p>
+                          {pilarI && <span style={{ padding:'2px 8px', borderRadius:'6px', background:pilarI.bg, color:pilarI.color, fontSize:'11px', fontWeight:700 }}>{pilarI.label}</span>}
+                          <span style={{ fontSize:'13px', fontWeight:800, color:P }}>{(p.metricas?.alcance ?? 0).toLocaleString()}</span>
                         </div>
-                        {/* Barra de alcance */}
-                        <div style={{ height: '4px', background: '#F3F4F6', borderRadius: '2px', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${P}, #9333EA)`, borderRadius: '2px', transition: 'width 0.5s ease' }} />
+                        <div style={{ height:'6px', background:'#F3F4F6', borderRadius:'3px', overflow:'hidden' }}>
+                          <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg, ${P}, #9333EA)`, borderRadius:'3px', transition:'width 0.6s ease' }} />
                         </div>
-                        {/* Sub-métricas */}
-                        <div style={{ display: 'flex', gap: '14px', marginTop: '6px' }}>
-                          {p.metricas?.likes      ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>❤️ {p.metricas.likes.toLocaleString()}</span> : null}
-                          {p.metricas?.guardados  ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>🔖 {p.metricas.guardados.toLocaleString()}</span> : null}
-                          {p.metricas?.comentarios ? <span style={{ fontSize: '11px', color: '#9CA3AF' }}>💬 {p.metricas.comentarios.toLocaleString()}</span> : null}
-                          {p.metricas?.engagement ? <span style={{ fontSize: '11px', color: '#059669', fontWeight: 700 }}>📈 {p.metricas.engagement}%</span> : null}
+                        <div style={{ display:'flex', gap:'14px', marginTop:'7px' }}>
+                          {p.metricas?.likes       ? <span style={{ fontSize:'11px', color:'#9CA3AF' }}>❤️ {p.metricas.likes.toLocaleString()}</span> : null}
+                          {p.metricas?.guardados   ? <span style={{ fontSize:'11px', color:'#9CA3AF' }}>🔖 {p.metricas.guardados.toLocaleString()}</span> : null}
+                          {p.metricas?.comentarios ? <span style={{ fontSize:'11px', color:'#9CA3AF' }}>💬 {p.metricas.comentarios.toLocaleString()}</span> : null}
+                          {p.metricas?.engagement  ? <span style={{ fontSize:'11px', color:'#059669', fontWeight:700 }}>📈 {p.metricas.engagement}%</span> : null}
                         </div>
                       </div>
                     )
@@ -318,67 +446,57 @@ export default function ClientePortal() {
                 </div>
               )}
 
-              {/* Histórico por meses */}
-              {mesesPublicados.length > 0 && (
-                <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #F3F4F6' }}>
-                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🗂️ Historial por mes</p>
+              {/* ══ INFO PROYECTO + CTA ══ */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'14px' }}>
+                {/* Inicio del proyecto */}
+                {data.fecha_inicio && (
+                  <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #E5E7EB', display:'flex', gap:'14px', alignItems:'center' }}>
+                    <div style={{ width:'44px', height:'44px', borderRadius:'12px', background:'rgba(107,33,168,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>📆</div>
+                    <div>
+                      <p style={{ fontSize:'11px', fontWeight:700, color:'#9CA3AF', margin:'0 0 3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>Inicio del proyecto</p>
+                      <p style={{ fontSize:'15px', fontWeight:800, color:'#111', margin:0 }}>{data.fecha_inicio}</p>
+                    </div>
                   </div>
-                  {mesesPublicados.map(mes => {
-                    const posts = publicados.filter(p => p.fecha?.startsWith(mes))
-                    const [y, m] = mes.split('-')
-                    const mesLabel = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
-                    const alcMes  = posts.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
-                    return (
-                      <div key={mes} style={{ padding: '14px 20px', borderBottom: '1px solid #F9FAFB', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 1, minWidth: '120px' }}>
-                          <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 700, color: '#111', textTransform: 'capitalize' }}>{mesLabel}</p>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>{posts.length} post{posts.length !== 1 ? 's' : ''} publicados</p>
-                        </div>
-                        {alcMes > 0 && <span style={{ fontSize: '13px', fontWeight: 700, color: P }}>👁️ {alcMes.toLocaleString()}</span>}
-                        <button
-                          onClick={() => { setTab('parrilla'); setActiveMes(mes) }}
-                          style={{ padding: '6px 14px', borderRadius: '8px', background: 'rgba(107,33,168,0.08)', color: P, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}
-                        >
-                          Ver parrilla →
-                        </button>
+                )}
+                {/* Contrato */}
+                {data.contrato_url && (
+                  <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
+                    <div style={{ display:'flex', gap:'14px', alignItems:'center' }}>
+                      <div style={{ width:'44px', height:'44px', borderRadius:'12px', background:'rgba(5,150,105,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>📑</div>
+                      <div>
+                        <p style={{ fontSize:'11px', fontWeight:700, color:'#9CA3AF', margin:'0 0 3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>Contrato</p>
+                        <p style={{ fontSize:'13px', color:'#6B7280', margin:0 }}>Disponible para descargar</p>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              {/* Inicio fecha */}
-              {data.fecha_inicio && (
-                <div style={{ background: '#fff', borderRadius: '14px', padding: '16px 20px', border: '1px solid #E5E7EB', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '28px' }}>📆</span>
-                  <div>
-                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Inicio del proyecto</p>
-                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#374151', margin: 0 }}>{data.fecha_inicio}</p>
+                    </div>
+                    <a href={data.contrato_url} target="_blank" rel="noopener noreferrer" style={{ padding:'8px 16px', borderRadius:'10px', background:'#059669', color:'#fff', textDecoration:'none', fontWeight:700, fontSize:'12.5px', flexShrink:0 }}>
+                      Descargar →
+                    </a>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Contrato */}
-              {data.contrato_url && (
-                <div style={{ background: '#fff', borderRadius: '14px', padding: '18px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <p style={{ fontSize: '12px', fontWeight: 700, color: '#9CA3AF', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📑 Contrato de servicios</p>
-                    <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Tu contrato está disponible para descargar.</p>
-                  </div>
-                  <a href={data.contrato_url} target="_blank" rel="noopener noreferrer" style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
-                    Descargar contrato
-                  </a>
+              {/* CTA Solicitud */}
+              <div style={{
+                background:'linear-gradient(135deg, #1E0547, #3B0C87)',
+                borderRadius:'20px', padding:'24px 26px',
+                display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'16px',
+                position:'relative', overflow:'hidden',
+              }}>
+                <div style={{ position:'absolute', right:'-20px', top:'-20px', width:'120px', height:'120px', borderRadius:'50%', background:'rgba(255,255,255,0.04)' }} />
+                <div style={{ position:'relative', zIndex:1 }}>
+                  <p style={{ fontSize:'16px', fontWeight:900, color:'#fff', margin:'0 0 5px' }}>¿Tienes una solicitud?</p>
+                  <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.6)', margin:0 }}>Pide cambios, mejoras o consulta sobre tus materiales.</p>
                 </div>
-              )}
-
-              {/* Solicitud rápida */}
-              <div style={{ background: `linear-gradient(135deg, #F5F3FF, #EDE9FE)`, borderRadius: '14px', padding: '20px', border: `1.5px solid #DDD6FE`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-                <div>
-                  <p style={{ fontSize: '14px', fontWeight: 800, color: P, margin: '0 0 4px' }}>¿Tienes una solicitud?</p>
-                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>Pide cambios, mejoras o consulta algo sobre tus materiales.</p>
-                </div>
-                <button onClick={() => setShowSolForm(true)} style={{ padding: '10px 22px', borderRadius: '10px', background: P, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '13px', flexShrink: 0 }}>
+                <button
+                  onClick={() => setShowSolForm(true)}
+                  className="portal-action-btn"
+                  style={{
+                    padding:'12px 24px', borderRadius:'12px',
+                    background:'rgba(255,255,255,0.95)', color:P,
+                    border:'none', cursor:'pointer', fontWeight:800, fontSize:'14px',
+                    transition:'opacity 0.2s, transform 0.15s', flexShrink:0, position:'relative', zIndex:1,
+                  }}
+                >
                   + Nueva solicitud
                 </button>
               </div>

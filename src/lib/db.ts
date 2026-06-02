@@ -582,20 +582,23 @@ function portalPayload(c: Partial<Cliente>): {
   telefono: string | null; servicios: string[]; estado: string
   entregables: Entregable[]; parrilla: ParrillaItem[]; solicitudes: Solicitud[]
   contrato_url: string | null; fecha_inicio: string | null
+  logo_url: string | null; metricas_historico: import('../data/clientes').MetricaMes[]
 } {
   return {
-    nombre:       c.nombre       ?? '',
-    marca:        c.marca        ?? '',
-    email:        c.email        ?? '',
-    empresa:      c.empresa      ?? null,
-    telefono:     c.telefono     ?? null,
-    servicios:    c.servicios    ?? [],
-    estado:       c.estado       ?? 'activo',
-    entregables:  c.entregables  ?? [],
-    parrilla:     c.parrilla     ?? [],
-    solicitudes:  c.solicitudes  ?? [],
-    contrato_url: c.contrato_url ?? null,
-    fecha_inicio: c.fecha_inicio ?? null,
+    nombre:              c.nombre              ?? '',
+    marca:               c.marca               ?? '',
+    email:               c.email               ?? '',
+    empresa:             c.empresa             ?? null,
+    telefono:            c.telefono            ?? null,
+    servicios:           c.servicios           ?? [],
+    estado:              c.estado              ?? 'activo',
+    entregables:         c.entregables         ?? [],
+    parrilla:            c.parrilla            ?? [],
+    solicitudes:         c.solicitudes         ?? [],
+    contrato_url:        c.contrato_url        ?? null,
+    fecha_inicio:        c.fecha_inicio        ?? null,
+    logo_url:            c.logo_url            ?? null,
+    metricas_historico:  c.metricas_historico  ?? [],
   }
 }
 

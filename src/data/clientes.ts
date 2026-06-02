@@ -89,11 +89,26 @@ export type Solicitud = {
   createdAt?:   unknown
 }
 
+export type MetricaMes = {
+  mes:                string   // YYYY-MM
+  alcance?:           number
+  impresiones?:       number
+  likes?:             number
+  comentarios?:       number
+  guardados?:         number
+  compartidos?:       number
+  seguidores?:        number   // nuevos seguidores ese mes
+  engagement?:        number   // porcentaje, ej: 4.5
+  posts_publicados?:  number
+}
+
 export type ClienteEstado = 'activo' | 'pausado' | 'finalizado' | 'prospecto'
 
 export type Cliente = {
   _id?:          string
   access_token?: string    // token único para el portal del cliente
+  // Branding
+  logo_url?:     string    // URL del logo de la marca
   // Datos personales
   nombre:        string
   email:         string
@@ -112,6 +127,7 @@ export type Cliente = {
   entregables:   Entregable[]
   parrilla:      ParrillaItem[]
   solicitudes:   Solicitud[]
+  metricas_historico?: MetricaMes[]  // métricas mensuales manuales
   // Admin interno
   notas?:        string
   // Meta
