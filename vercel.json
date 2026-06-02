@@ -1,24 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/brief",
-      "has": [{ "type": "host", "value": "brief.almaagenciacreativa.com" }],
-      "destination": "https://brief.almaagenciacreativa.com",
-      "permanent": true
-    },
-    {
-      "source": "/brief",
-      "has": [{ "type": "host", "value": "almaagenciacreativa.com" }],
-      "destination": "https://brief.almaagenciacreativa.com",
-      "permanent": true
-    },
-    {
-      "source": "/brief",
-      "has": [{ "type": "host", "value": "www.almaagenciacreativa.com" }],
-      "destination": "https://brief.almaagenciacreativa.com",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
       "source": "/",
