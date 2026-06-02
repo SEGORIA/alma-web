@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { getPortalByToken, addSolicitudToPortal } from '../lib/db'
-import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
+import { getPortalByToken, addSolicitudToPortal, updateEntregableEnPortal } from '../lib/db'
+import type { Cliente, Solicitud, ParrillaItem, ComentarioContenido } from '../data/clientes'
 import {
   ENTREGABLE_CATEGORIAS, PARRILLA_ESTADOS, PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
+  ENTREGABLE_REVISION_ESTADOS,
 } from '../data/clientes'
 
 /* ── Brand tokens ───────────────────────────────────────── */
@@ -61,6 +62,11 @@ export default function ClientePortal() {
   const [expandedId,   setExpandedId]   = useState<string | null>(null)
   const [activeMes,    setActiveMes]    = useState<string>('all')
   const [copiedId,     setCopiedId]     = useState<string | null>(null)
+  // Contenido (revisión)
+  const [reviewingId,   setReviewingId]   = useState<string | null>(null)
+  const [reviewType,    setReviewType]    = useState<'aprobacion' | 'ajuste'>('aprobacion')
+  const [reviewText,    setReviewText]    = useState('')
+  const [reviewSending, setReviewSending] = useState(false)
 
   useEffect(() => {
     if (!token) { setLoading(false); return }
@@ -110,9 +116,40 @@ export default function ClientePortal() {
     finally { setSending(false) }
   }
 
+  async function submitComentario(entregableId: string) {
+    if (!data?.clienteId || !token) return
+    if (reviewType === 'ajuste' && !reviewText.trim()) return
+    const comentario: ComentarioContenido = {
+      id:        newId(),
+      tipo:      reviewType,
+      texto:     reviewText.trim() || (reviewType === 'aprobacion' ? '¡Perfecto! Aprobado.' : ''),
+      autor:     'cliente',
+      createdAt: new Date().toISOString(),
+    }
+    const target    = (data.entregables ?? []).find(e => e.id === entregableId)
+    if (!target) return
+    const estado_revision = reviewType === 'aprobacion' ? 'aprobado' : 'con_ajustes'
+    const comentarios     = [...(target.comentarios ?? []), comentario]
+    setReviewSending(true)
+    try {
+      await updateEntregableEnPortal(token, data.clienteId, entregableId, {
+        estado_revision: estado_revision as import('../data/clientes').EntregableRevision,
+        comentarios,
+      })
+      setData(d => d ? {
+        ...d,
+        entregables: (d.entregables ?? []).map(e =>
+          e.id === entregableId ? { ...e, estado_revision, comentarios } : e
+        ),
+      } : d)
+      setReviewingId(null); setReviewText('')
+    } catch { /* silencioso */ }
+    finally { setReviewSending(false) }
+  }
+
   const TABS = [
     { key: 'inicio',      label: '🏠 Inicio' },
-    { key: 'entregables', label: `📦 Materiales (${(data.entregables ?? []).length})` },
+    { key: 'entregables', label: `📋 Contenido (${(data.entregables ?? []).length})` },
     { key: 'parrilla',    label: `📅 Parrilla (${(data.parrilla ?? []).length})` },
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
   ] as const
@@ -203,7 +240,7 @@ export default function ClientePortal() {
               {/* Resumen del proyecto */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
                 {[
-                  { label: 'Materiales',   value: (data.entregables ?? []).length, icon: '📦', color: '#6B21A8' },
+                  { label: 'Contenidos',   value: (data.entregables ?? []).length, icon: '📋', color: '#6B21A8' },
                   { label: 'En parrilla',  value: parrilla.length,                 icon: '📅', color: '#0EA5E9' },
                   { label: 'Publicados',   value: publicados.length,               icon: '✅', color: '#059669' },
                   { label: 'Solicitudes',  value: (data.solicitudes ?? []).length, icon: '💬', color: '#D97706' },
@@ -349,47 +386,177 @@ export default function ClientePortal() {
           )
         })()}
 
-        {/* ── ENTREGABLES ── */}
+        {/* ── CONTENIDO (antes Entregables) ── */}
         {tab === 'entregables' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div>
             {(data.entregables ?? []).length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📦</p>
-                <p style={{ color: '#6B7280', fontSize: '15px' }}>Aún no hay materiales disponibles.<br />El equipo de Alma los irá subiendo aquí.</p>
+                <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📋</p>
+                <p style={{ color: '#6B7280', fontSize: '15px' }}>Aún no hay contenidos disponibles.<br />El equipo de Alma los irá subiendo aquí.</p>
               </div>
             ) : (
-              <>
-                {/* Group by category */}
-                {ENTREGABLE_CATEGORIAS.map(cat => {
-                  const items = (data.entregables ?? []).filter(e => e.categoria === cat.key)
-                  if (items.length === 0) return null
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(272px, 1fr))', gap: '16px' }}>
+                {(data.entregables ?? []).map(e => {
+                  const cat     = ENTREGABLE_CATEGORIAS.find(c => c.key === e.categoria)
+                  const revEst  = ENTREGABLE_REVISION_ESTADOS.find(x => x.value === (e.estado_revision ?? 'pendiente_revision'))
+                  const isRev   = reviewingId === e.id
+                  const comentarios = e.comentarios ?? []
+
                   return (
-                    <div key={cat.key} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-                      <div style={{ padding: '14px 18px', background: '#F9FAFB', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '20px' }}>{cat.icon}</span>
-                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: cat.color }}>{cat.label}</p>
-                        <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#9CA3AF' }}>{items.length} archivo{items.length > 1 ? 's' : ''}</span>
-                      </div>
-                      {items.map(e => (
-                        <div key={e.id} style={{ padding: '14px 18px', borderBottom: '1px solid #F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 700, color: '#111' }}>{e.nombre}</p>
-                            {e.descripcion && <p style={{ margin: 0, fontSize: '12.5px', color: '#6B7280' }}>{e.descripcion}</p>}
-                          </div>
-                          <a
-                            href={e.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ padding: '7px 16px', borderRadius: '8px', background: PL, color: P, textDecoration: 'none', fontWeight: 700, fontSize: '12.5px', flexShrink: 0 }}
-                          >
-                            Ver material →
-                          </a>
+                    <div key={e.id} style={{
+                      background: '#fff',
+                      borderRadius: '14px',
+                      border: '1px solid #E5E7EB',
+                      borderTop: `4px solid ${cat?.color ?? '#E5E7EB'}`,
+                      display: 'flex', flexDirection: 'column',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                      overflow: 'hidden',
+                    }}>
+
+                      {/* ── Header de la tarjeta ── */}
+                      <div style={{ padding: '16px 16px 12px', flex: 1 }}>
+                        {/* Categoría + estado */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 800, color: cat?.color ?? '#6B7280', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                            {cat?.icon} {cat?.label}
+                          </span>
+                          <span style={{ padding: '3px 9px', borderRadius: '20px', background: revEst?.bg ?? '#F3F4F6', color: revEst?.color ?? '#6B7280', fontSize: '10.5px', fontWeight: 800 }}>
+                            {revEst?.icon} {revEst?.label}
+                          </span>
                         </div>
-                      ))}
+
+                        {/* Título */}
+                        <p style={{ margin: '0 0 5px', fontSize: '15px', fontWeight: 800, color: '#111', lineHeight: 1.3 }}>{e.nombre}</p>
+                        {e.descripcion && <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>{e.descripcion}</p>}
+
+                        {/* Ver contenido */}
+                        <a
+                          href={e.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '5px',
+                            padding: '8px 14px', borderRadius: '8px',
+                            background: PL, color: P,
+                            textDecoration: 'none', fontWeight: 700, fontSize: '13px',
+                          }}
+                        >
+                          Ver contenido →
+                        </a>
+                      </div>
+
+                      {/* ── Historial de comentarios ── */}
+                      {comentarios.length > 0 && (
+                        <div style={{ padding: '10px 16px 0', borderTop: '1px solid #F3F4F6' }}>
+                          <p style={{ margin: '0 0 8px', fontSize: '10.5px', fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            💬 Comentarios ({comentarios.length})
+                          </p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
+                            {comentarios.map(c => {
+                              const isAprov = c.tipo === 'aprobacion'
+                              return (
+                                <div key={c.id} style={{
+                                  padding: '8px 10px', borderRadius: '8px',
+                                  background: isAprov ? '#F0FDF4' : '#FFF1F2',
+                                  border: `1px solid ${isAprov ? '#BBF7D0' : '#FECDD3'}`,
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: isAprov ? '#059669' : '#DC2626' }}>
+                                      {isAprov ? '✅ Aprobación' : '🔄 Ajuste'} · {c.autor === 'cliente' ? 'Tú' : 'Alma'}
+                                    </span>
+                                    {c.createdAt && (
+                                      <span style={{ fontSize: '10px', color: '#9CA3AF' }}>
+                                        {new Date(c.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: '12px', color: '#374151', lineHeight: 1.4 }}>{c.texto}</p>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ── Acciones ── */}
+                      <div style={{ padding: '12px 16px', borderTop: '1px solid #F3F4F6', marginTop: '12px' }}>
+                        {!isRev ? (
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={() => { setReviewingId(e.id); setReviewType('aprobacion'); setReviewText('') }}
+                              style={{
+                                flex: 1, padding: '8px 0', borderRadius: '8px',
+                                border: e.estado_revision === 'aprobado' ? '1.5px solid #BBF7D0' : '1.5px solid #059669',
+                                background: e.estado_revision === 'aprobado' ? '#F0FDF4' : '#fff',
+                                color: '#059669', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                              }}
+                            >
+                              ✅ Aprobar
+                            </button>
+                            <button
+                              onClick={() => { setReviewingId(e.id); setReviewType('ajuste'); setReviewText('') }}
+                              style={{
+                                flex: 1, padding: '8px 0', borderRadius: '8px',
+                                border: '1.5px solid #E5E7EB',
+                                background: '#fff', color: '#374151', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                              }}
+                            >
+                              🔄 Pedir ajuste
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                              <button onClick={() => setReviewType('aprobacion')} style={{ flex: 1, padding: '6px 0', borderRadius: '7px', border: `1.5px solid ${reviewType === 'aprobacion' ? '#059669' : '#E5E7EB'}`, background: reviewType === 'aprobacion' ? '#F0FDF4' : '#fff', color: reviewType === 'aprobacion' ? '#059669' : '#6B7280', cursor: 'pointer', fontWeight: 700, fontSize: '11.5px' }}>
+                                ✅ Aprobar
+                              </button>
+                              <button onClick={() => setReviewType('ajuste')} style={{ flex: 1, padding: '6px 0', borderRadius: '7px', border: `1.5px solid ${reviewType === 'ajuste' ? '#DC2626' : '#E5E7EB'}`, background: reviewType === 'ajuste' ? '#FFF1F2' : '#fff', color: reviewType === 'ajuste' ? '#DC2626' : '#6B7280', cursor: 'pointer', fontWeight: 700, fontSize: '11.5px' }}>
+                                🔄 Ajuste
+                              </button>
+                            </div>
+                            <textarea
+                              value={reviewText}
+                              onChange={ev => setReviewText(ev.target.value)}
+                              rows={3}
+                              placeholder={reviewType === 'aprobacion'
+                                ? 'Agrega un comentario (opcional)…'
+                                : 'Describe qué necesitas ajustar… *'}
+                              style={{
+                                width: '100%', padding: '9px 11px', borderRadius: '8px',
+                                border: `1.5px solid ${reviewType === 'ajuste' && !reviewText.trim() ? '#FECDD3' : '#E5E7EB'}`,
+                                fontSize: '13px', resize: 'vertical', outline: 'none',
+                                fontFamily: 'inherit', boxSizing: 'border-box',
+                              }}
+                            />
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                              <button
+                                onClick={() => submitComentario(e.id)}
+                                disabled={reviewSending || (reviewType === 'ajuste' && !reviewText.trim())}
+                                style={{
+                                  flex: 1, padding: '9px 0', borderRadius: '8px', border: 'none',
+                                  background: reviewSending ? '#9CA3AF' : (reviewType === 'aprobacion' ? '#059669' : '#DC2626'),
+                                  color: '#fff', cursor: reviewSending ? 'default' : 'pointer',
+                                  fontWeight: 800, fontSize: '13px',
+                                }}
+                              >
+                                {reviewSending ? 'Guardando…' : 'Confirmar'}
+                              </button>
+                              <button
+                                onClick={() => { setReviewingId(null); setReviewText('') }}
+                                style={{ padding: '9px 16px', borderRadius: '8px', border: '1.5px solid #E5E7EB', background: '#fff', color: '#6B7280', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
-              </>
+              </div>
             )}
           </div>
         )}

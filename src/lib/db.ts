@@ -22,6 +22,8 @@ import type { Brief, BriefFormConfig } from '../data/briefs'
 import { DEFAULT_BRIEF_CONFIG } from '../data/briefs'
 import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../data/clientes'
 
+
+
 /* ── Helpers ─────────────────────────────────────────────── */
 function articulosCol()   { return collection(db!, 'articulos') }
 function portafolioCol()  { return collection(db!, 'portafolio') }
@@ -683,6 +685,33 @@ export async function addSolicitudToPortal(
     updateDoc(doc(db!, 'portales',  token),     { solicitudes: arrayUnion(solicitud) }),
     updateDoc(doc(db!, 'clientes',  clienteId), { solicitudes: arrayUnion(solicitud), updatedAt: serverTimestamp() }),
   ])
+}
+
+export async function updateEntregableEnPortal(
+  token: string,
+  clienteId: string,
+  entregableId: string,
+  changes: Partial<Entregable>,
+): Promise<void> {
+  if (!firebaseReady || !db) return
+
+  // 1. Actualizar portales/{token}
+  const portalSnap = await getDoc(doc(db!, 'portales', token))
+  if (portalSnap.exists()) {
+    const entregables = ((portalSnap.data().entregables ?? []) as Entregable[]).map(e =>
+      e.id === entregableId ? { ...e, ...changes } : e
+    )
+    await updateDoc(doc(db!, 'portales', token), { entregables })
+  }
+
+  // 2. Actualizar clientes/{clienteId}
+  const clienteSnap = await getDoc(doc(db!, 'clientes', clienteId))
+  if (clienteSnap.exists()) {
+    const entregables = ((clienteSnap.data() as Cliente).entregables ?? []).map(e =>
+      e.id === entregableId ? { ...e, ...changes } : e
+    )
+    await updateDoc(doc(db!, 'clientes', clienteId), { entregables, updatedAt: serverTimestamp() })
+  }
 }
 
 export async function updateSolicitudEnCliente(

@@ -9,6 +9,7 @@ import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../../data/cl
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
+  ENTREGABLE_REVISION_ESTADOS,
 } from '../../data/clientes'
 
 /* ── Colores del módulo ──────────────────────────────────── */
@@ -371,7 +372,7 @@ export default function ClientesAdmin() {
             }}>
               {([
                 { key: 'perfil',      label: '👤 Perfil' },
-                { key: 'entregables', label: `📦 Entregables (${form.entregables.length})` },
+                { key: 'entregables', label: `📋 Contenido (${form.entregables.length})` },
                 { key: 'parrilla',    label: `📅 Parrilla (${form.parrilla.length})` },
                 { key: 'solicitudes', label: `💬 Solicitudes (${form.solicitudes.length})` },
                 { key: 'portal',      label: '🔗 Portal' },
@@ -491,39 +492,85 @@ export default function ClientesAdmin() {
                 </div>
               )}
 
-              {/* ─ ENTREGABLES ─ */}
+              {/* ─ CONTENIDO ─ */}
               {tab === 'entregables' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {form.entregables.length === 0 ? (
-                    <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '24px 0' }}>Sin entregables aún. Agrega el primero abajo.</p>
+                    <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '24px 0' }}>Sin contenidos aún. Agrega el primero abajo.</p>
                   ) : (
                     form.entregables.map(e => {
-                      const cat = ENTREGABLE_CATEGORIAS.find(c => c.key === e.categoria)
+                      const cat    = ENTREGABLE_CATEGORIAS.find(c => c.key === e.categoria)
+                      const revEst = ENTREGABLE_REVISION_ESTADOS.find(x => x.value === (e.estado_revision ?? 'pendiente_revision'))
+                      const comentarios = e.comentarios ?? []
                       return (
                         <div key={e.id} style={{
-                          background: '#fff', borderRadius: '12px', padding: '14px 16px',
-                          border: '1px solid #E5E7EB', display: 'flex', gap: '12px', alignItems: 'flex-start',
+                          background: '#fff', borderRadius: '12px',
+                          border: '1px solid #E5E7EB',
+                          borderLeft: `4px solid ${cat?.color ?? '#E5E7EB'}`,
+                          overflow: 'hidden',
                         }}>
-                          <span style={{
-                            width: '36px', height: '36px', borderRadius: '10px',
-                            background: (cat?.color ?? '#6B7280') + '20',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '18px', flexShrink: 0,
-                          }}>{cat?.icon ?? '📦'}</span>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: 700, color: '#111' }}>{e.nombre}</p>
-                            {e.descripcion && <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#6B7280' }}>{e.descripcion}</p>}
-                            <a href={e.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#6B21A8', wordBreak: 'break-all' }}>{e.url}</a>
+                          {/* Fila principal */}
+                          <div style={{ padding: '14px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                            <span style={{
+                              width: '36px', height: '36px', borderRadius: '10px',
+                              background: (cat?.color ?? '#6B7280') + '20',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '18px', flexShrink: 0,
+                            }}>{cat?.icon ?? '📦'}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#111' }}>{e.nombre}</p>
+                                <span style={{ padding: '2px 8px', borderRadius: '20px', background: revEst?.bg ?? '#F3F4F6', color: revEst?.color ?? '#6B7280', fontSize: '10.5px', fontWeight: 800 }}>
+                                  {revEst?.icon} {revEst?.label}
+                                </span>
+                                {comentarios.length > 0 && (
+                                  <span style={{ fontSize: '11px', color: '#9CA3AF' }}>💬 {comentarios.length}</span>
+                                )}
+                              </div>
+                              {e.descripcion && <p style={{ margin: '0 0 3px', fontSize: '12px', color: '#6B7280' }}>{e.descripcion}</p>}
+                              <a href={e.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#6B21A8', wordBreak: 'break-all' }}>{e.url}</a>
+                            </div>
+                            <button onClick={() => removeEntregable(e.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: '18px', flexShrink: 0, lineHeight: 1 }}>×</button>
                           </div>
-                          <button onClick={() => removeEntregable(e.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: '18px', flexShrink: 0, lineHeight: 1 }}>×</button>
+
+                          {/* Comentarios del cliente */}
+                          {comentarios.length > 0 && (
+                            <div style={{ padding: '10px 16px 14px', background: '#FAFAFA', borderTop: '1px solid #F3F4F6' }}>
+                              <p style={{ margin: '0 0 8px', fontSize: '10.5px', fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                Comentarios del cliente
+                              </p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {comentarios.map(c => {
+                                  const isAprov = c.tipo === 'aprobacion'
+                                  return (
+                                    <div key={c.id} style={{
+                                      padding: '8px 10px', borderRadius: '8px',
+                                      background: isAprov ? '#F0FDF4' : '#FFF1F2',
+                                      border: `1px solid ${isAprov ? '#BBF7D0' : '#FECDD3'}`,
+                                      display: 'flex', gap: '8px', alignItems: 'flex-start',
+                                    }}>
+                                      <span style={{ fontSize: '13px', flexShrink: 0 }}>{isAprov ? '✅' : '🔄'}</span>
+                                      <div style={{ flex: 1 }}>
+                                        <p style={{ margin: '0 0 2px', fontSize: '11px', fontWeight: 800, color: isAprov ? '#059669' : '#DC2626' }}>
+                                          {isAprov ? 'Aprobación' : 'Ajuste solicitado'} · {c.autor === 'cliente' ? 'Cliente' : 'Alma'}
+                                          {c.createdAt ? ` · ${new Date(c.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}` : ''}
+                                        </p>
+                                        <p style={{ margin: 0, fontSize: '12.5px', color: '#374151' }}>{c.texto}</p>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )
                     })
                   )}
 
-                  {/* Add form */}
+                  {/* Formulario agregar contenido */}
                   <div style={{ background: '#F0FDF4', border: '1.5px dashed #86EFAC', borderRadius: '14px', padding: '18px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Agregar entregable</p>
+                    <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Subir contenido</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                       <label style={labelStyle}>
                         Categoría
@@ -532,7 +579,7 @@ export default function ClientesAdmin() {
                         </select>
                       </label>
                       <label style={labelStyle}>
-                        Nombre *
+                        Nombre del contenido *
                         <input value={newE.nombre ?? ''} onChange={e => setNewE(n => ({ ...n, nombre: e.target.value }))} style={inputStyle} placeholder="Ej: Logo principal" />
                       </label>
                     </div>
@@ -542,13 +589,13 @@ export default function ClientesAdmin() {
                     </label>
                     <label style={{ ...labelStyle, marginBottom: '12px' }}>
                       Descripción (opcional)
-                      <input value={newE.descripcion ?? ''} onChange={e => setNewE(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="Breve descripción del material" />
+                      <input value={newE.descripcion ?? ''} onChange={e => setNewE(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="Contexto breve para el cliente" />
                     </label>
                     <button onClick={addEntregable} style={{
                       background: C1, color: '#fff', border: 'none', cursor: 'pointer',
                       padding: '9px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
                     }}>
-                      Agregar
+                      Subir contenido
                     </button>
                   </div>
                 </div>

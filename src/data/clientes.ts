@@ -2,13 +2,38 @@
 
 export type EntregableCategoria = 'branding' | 'redes' | 'web' | 'documentos' | 'videos' | 'otro'
 
-export type Entregable = {
-  id:          string
-  categoria:   EntregableCategoria
-  nombre:      string
-  url:         string
-  descripcion?: string
+export type ComentarioContenido = {
+  id:        string
+  tipo:      'aprobacion' | 'ajuste'
+  texto:     string
+  autor:     'cliente' | 'alma'
+  createdAt?: string
 }
+
+export type EntregableRevision = 'pendiente_revision' | 'en_revision' | 'aprobado' | 'con_ajustes'
+
+export type Entregable = {
+  id:               string
+  categoria:        EntregableCategoria
+  nombre:           string
+  url:              string
+  descripcion?:     string
+  estado_revision?: EntregableRevision
+  comentarios?:     ComentarioContenido[]
+}
+
+export const ENTREGABLE_REVISION_ESTADOS: {
+  value:  EntregableRevision
+  label:  string
+  color:  string
+  bg:     string
+  icon:   string
+}[] = [
+  { value: 'pendiente_revision', label: 'Pendiente',   color: '#6B7280', bg: '#F3F4F6',  icon: '⏳' },
+  { value: 'en_revision',        label: 'En revisión', color: '#D97706', bg: '#FEF3C7',  icon: '👀' },
+  { value: 'aprobado',           label: 'Aprobado',    color: '#059669', bg: '#D1FAE5',  icon: '✅' },
+  { value: 'con_ajustes',        label: 'Con ajustes', color: '#DC2626', bg: '#FEE2E2',  icon: '🔄' },
+]
 
 export type ParrillaEstado = 'borrador' | 'pendiente_aprobacion' | 'aprobado' | 'publicado'
 
