@@ -782,6 +782,111 @@ export async function saveLegalDocsUrls(urls: LegalDocUrl[]): Promise<void> {
   await setDoc(legalDocsDoc(), { urls, updatedAt: serverTimestamp() }, { merge: true })
 }
 
+/* ══ COTIZACIONES ═══════════════════════════════════════════ */
+
+export interface CotizacionItem {
+  id: string
+  descripcion: string
+  cantidad: number
+  precioUnit: number
+  subtotal: number
+}
+
+export interface Cotizacion {
+  _id?: string
+  numero: string
+  clienteId: string
+  clienteNombre: string
+  clienteEmail?: string
+  clienteEmpresa?: string
+  clienteNit?: string
+  fecha: string
+  validaHasta: string
+  estado: 'borrador' | 'enviada' | 'aprobada' | 'rechazada' | 'vencida'
+  items: CotizacionItem[]
+  iva: boolean
+  ivaPct: number
+  subtotal: number
+  total: number
+  notas: string
+}
+
+function cotizacionesCol() { return collection(db!, 'cotizaciones') }
+
+export async function getCotizaciones(): Promise<Cotizacion[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(cotizacionesCol(), orderBy('creadoEn', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Cotizacion), _id: d.id }))
+  } catch { return [] }
+}
+
+export async function saveCotizacion(data: Omit<Cotizacion, '_id'>): Promise<string> {
+  if (!db) throw new Error('DB not ready')
+  const ref = await addDoc(cotizacionesCol(), { ...data, creadoEn: serverTimestamp() })
+  return ref.id
+}
+
+export async function updateCotizacion(id: string, data: Partial<Cotizacion>): Promise<void> {
+  if (!firebaseReady || !db) return
+  await updateDoc(doc(db!, 'cotizaciones', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deleteCotizacion(id: string): Promise<void> {
+  if (!firebaseReady || !db) return
+  await deleteDoc(doc(db!, 'cotizaciones', id))
+}
+
+/* ══ CUENTAS DE COBRO ═══════════════════════════════════════ */
+
+export interface CuentaConcepto {
+  id: string
+  descripcion: string
+  valor: number
+}
+
+export interface CuentaCobro {
+  _id?: string
+  numero: string
+  clienteId: string
+  clienteNombre: string
+  clienteEmpresa?: string
+  clienteNit?: string
+  fecha: string
+  vencimiento: string
+  estado: 'pendiente' | 'enviada' | 'pagada' | 'vencida'
+  conceptos: CuentaConcepto[]
+  total: number
+  datosBancarios: string
+  notas: string
+}
+
+function cuentasCobroCol() { return collection(db!, 'cuentas_cobro') }
+
+export async function getCuentasCobro(): Promise<CuentaCobro[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(cuentasCobroCol(), orderBy('creadoEn', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as CuentaCobro), _id: d.id }))
+  } catch { return [] }
+}
+
+export async function saveCuentaCobro(data: Omit<CuentaCobro, '_id'>): Promise<string> {
+  if (!db) throw new Error('DB not ready')
+  const ref = await addDoc(cuentasCobroCol(), { ...data, creadoEn: serverTimestamp() })
+  return ref.id
+}
+
+export async function updateCuentaCobro(id: string, data: Partial<CuentaCobro>): Promise<void> {
+  if (!firebaseReady || !db) return
+  await updateDoc(doc(db!, 'cuentas_cobro', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deleteCuentaCobro(id: string): Promise<void> {
+  if (!firebaseReady || !db) return
+  await deleteDoc(doc(db!, 'cuentas_cobro', id))
+}
+
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 
 export async function seedConfig() {

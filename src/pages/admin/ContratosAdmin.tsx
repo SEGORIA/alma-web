@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { getClientes, updateCliente, getLegalDocsUrls, saveLegalDocsUrls } from '../../lib/db'
@@ -24,11 +24,6 @@ const inputStyle: React.CSSProperties = {
   fontSize: '13px', color: WHT, background: '#1A1A22', outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }
-const labelStyle: React.CSSProperties = {
-  display: 'flex', flexDirection: 'column', gap: '5px',
-  fontSize: '10px', fontWeight: 700, color: MUT,
-  textTransform: 'uppercase', letterSpacing: '0.5px',
-}
 
 /* ── Catálogo de documentos legales ─────────────────────── */
 const LEGAL_DOCS: { key: string; num: string; titulo: string; desc: string; icon: string; color: string }[] = [
@@ -45,28 +40,7 @@ const LEGAL_DOCS: { key: string; num: string; titulo: string; desc: string; icon
   { key: 'anexo_c',         num: 'C',    icon: '✅', color: TEAL,  titulo: 'Anexo C — Acta de Entrega',                  desc: 'Registro formal de entrega y recibo a satisfacción de los entregables.' },
 ]
 
-/* ── Tipos para Orden de Servicio ───────────────────────── */
-type Entregable = { descripcion: string; fecha: string; responsable: string }
-
-const EMPTY_ORDEN = {
-  numero: '',
-  fecha: new Date().toISOString().split('T')[0],
-  cliente_id: '',
-  nombre_cliente: '',
-  nit_cc: '',
-  contacto: '',
-  cargo: '',
-  tipo_servicios: [] as string[],
-  descripcion: '',
-  entregables: [{ descripcion: '', fecha: '', responsable: 'ALMA' }] as Entregable[],
-  valor: '',
-  anticipo: '',
-  saldo: '',
-  notas: '',
-  ciudad: 'Manizales',
-}
-
-type TabMain = 'contratos' | 'documentos' | 'orden'
+type TabMain = 'contratos' | 'documentos'
 
 /* ════════════════════════════════════════════════════════════ */
 export default function ContratosAdmin() {
@@ -90,10 +64,6 @@ export default function ContratosAdmin() {
   const [editDocUrl,  setEditDocUrl] = useState('')
   const [savingDoc,   setSavingDoc]  = useState(false)
 
-  /* ── ORDEN ── */
-  const [orden, setOrden] = useState({ ...EMPTY_ORDEN })
-  const printRef = useRef<HTMLDivElement>(null)
-
   /* load */
   useEffect(() => {
     getClientes().then(d => { setClientes(d); setLoading(false) })
@@ -103,20 +73,6 @@ export default function ContratosAdmin() {
       setDocUrls(map)
     })
   }, [])
-
-  /* ── Pre-fill orden desde cliente ── */
-  function selectClienteOrden(id: string) {
-    const c = clientes.find(x => x._id === id)
-    if (!c) { setOrden(o => ({ ...o, cliente_id: id })); return }
-    setOrden(o => ({
-      ...o,
-      cliente_id:     id,
-      nombre_cliente: c.nombre,
-      contacto:       c.nombre,
-      tipo_servicios: c.servicios ?? [],
-      valor:          c.valor_contrato ?? '',
-    }))
-  }
 
   /* ── Stats contratos ── */
   const activos     = clientes.filter(c => c.estado === 'activo')
@@ -146,46 +102,6 @@ export default function ContratosAdmin() {
     setEditingDoc(null); setSavingDoc(false)
   }
 
-  /* ── Print orden ── */
-  function printOrden() {
-    const printContent = printRef.current?.innerHTML
-    if (!printContent) return
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(`
-      <!DOCTYPE html><html><head>
-      <meta charset="UTF-8">
-      <title>Orden de Servicio ${orden.numero}</title>
-      <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Arial', sans-serif; font-size: 12px; color: #111; padding: 40px; }
-        .header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 20px; }
-        .header h1 { font-size: 18px; font-weight: 900; letter-spacing: 2px; }
-        .header p { font-size: 11px; color: #555; margin-top: 4px; }
-        .os-title { font-size: 15px; font-weight: 700; text-align: center; margin-bottom: 20px; letter-spacing: 1px; border: 1.5px solid #111; padding: 8px; }
-        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .field { border: 0.5px solid #ccc; padding: 7px 10px; border-radius: 2px; }
-        .field label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: #888; display: block; margin-bottom: 2px; }
-        .field span { font-size: 12px; font-weight: 600; color: #111; }
-        .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin: 18px 0 8px; border-bottom: 0.5px solid #ccc; padding-bottom: 4px; }
-        .desc-box { border: 0.5px solid #ccc; padding: 10px; min-height: 60px; border-radius: 2px; font-size: 12px; line-height: 1.6; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #f5f5f5; text-align: left; padding: 6px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; border: 0.5px solid #ccc; }
-        td { padding: 6px 8px; border: 0.5px solid #ccc; }
-        .firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-        .firma-box { border-top: 1.5px solid #111; padding-top: 8px; }
-        .firma-box p { font-size: 11px; color: #555; }
-        .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-        .chip { background: #f0f0f0; padding: 2px 8px; border-radius: 3px; font-size: 10px; }
-        .pago-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      </style>
-      </head><body>${printContent}</body></html>
-    `)
-    win.document.close()
-    win.focus()
-    win.print()
-  }
-
   /* ════════════════════════════════════════════════════════ */
   return (
     <AdminLayout>
@@ -197,11 +113,6 @@ export default function ContratosAdmin() {
             <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
             <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: WHT, letterSpacing: '-0.5px' }}>Contratos</h1>
           </div>
-          {tab === 'orden' && (
-            <button onClick={printOrden} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: 'linear-gradient(135deg,#6E2DFF,#A855F7)', color: WHT, fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              🖨️ Imprimir / Guardar PDF
-            </button>
-          )}
         </div>
 
         {/* ── Main tabs ── */}
@@ -209,7 +120,6 @@ export default function ContratosAdmin() {
           {([
             { key: 'contratos',  label: '📑 Contratos' },
             { key: 'documentos', label: `📚 Documentos (${LEGAL_DOCS.length})` },
-            { key: 'orden',      label: '✍️ Nueva Orden' },
           ] as { key: TabMain; label: string }[]).map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
               padding: '11px 20px', border: 'none', background: 'none', cursor: 'pointer',
@@ -337,156 +247,6 @@ export default function ContratosAdmin() {
           </div>
         )}
 
-        {/* ════════════ TAB: ORDEN DE SERVICIO ════════════ */}
-        {tab === 'orden' && (
-          <div>
-            <p style={{ fontSize: '12px', color: MUT, marginBottom: '24px', lineHeight: 1.6 }}>
-              Completa los campos y haz clic en <strong style={{ color: WHT }}>Imprimir / Guardar PDF</strong> para generar la Orden de Servicio.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px' }}>
-
-              {/* ── Formulario izquierda ── */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: AMB, margin: '0 0 14px' }}>Datos de la orden</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <label style={labelStyle}>No. de Orden<input value={orden.numero} onChange={e => setOrden(o => ({ ...o, numero: e.target.value }))} style={inputStyle} placeholder="001" /></label>
-                    <label style={labelStyle}>Fecha<input type="date" value={orden.fecha} onChange={e => setOrden(o => ({ ...o, fecha: e.target.value }))} style={inputStyle} /></label>
-                    <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
-                      Cliente (opcional)
-                      <select value={orden.cliente_id} onChange={e => selectClienteOrden(e.target.value)} style={inputStyle}>
-                        <option value="">— Sin vincular —</option>
-                        {clientes.map(c => <option key={c._id} value={c._id}>{c.marca} — {c.nombre}</option>)}
-                      </select>
-                    </label>
-                  </div>
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TEAL, margin: '0 0 14px' }}>Datos del cliente</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <label style={labelStyle}>Nombre / Empresa<input value={orden.nombre_cliente} onChange={e => setOrden(o => ({ ...o, nombre_cliente: e.target.value }))} style={inputStyle} placeholder="Nombre del cliente" /></label>
-                      <label style={labelStyle}>NIT / CC<input value={orden.nit_cc} onChange={e => setOrden(o => ({ ...o, nit_cc: e.target.value }))} style={inputStyle} placeholder="900.000.000-0" /></label>
-                      <label style={labelStyle}>Contacto<input value={orden.contacto} onChange={e => setOrden(o => ({ ...o, contacto: e.target.value }))} style={inputStyle} placeholder="Nombre contacto" /></label>
-                      <label style={labelStyle}>Cargo<input value={orden.cargo} onChange={e => setOrden(o => ({ ...o, cargo: e.target.value }))} style={inputStyle} placeholder="Gerente / Fundador" /></label>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: ACC2, margin: '0 0 14px' }}>Tipo de servicio</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {['Marketing', 'Branding', 'Web', 'IA / Automatización', 'Diseño', 'Fotografía', 'Video', 'Otro'].map(s => {
-                      const active = orden.tipo_servicios.includes(s)
-                      return (
-                        <button key={s} onClick={() => setOrden(o => ({ ...o, tipo_servicios: active ? o.tipo_servicios.filter(x => x !== s) : [...o.tipo_servicios, s] }))} style={{ padding: '5px 11px', borderRadius: '20px', border: `1.5px solid ${active ? C1 : BDR2}`, background: active ? 'rgba(138,63,252,.15)' : 'transparent', color: active ? ACC2 : MUT, fontSize: '11px', fontWeight: active ? 700 : 500, cursor: 'pointer', transition: 'all .15s' }}>
-                          {s}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#60A5FA', margin: '0 0 14px' }}>Descripción del proyecto</p>
-                  <textarea value={orden.descripcion} onChange={e => setOrden(o => ({ ...o, descripcion: e.target.value }))} rows={5} placeholder="Describe el alcance, objetivos y particularidades del proyecto…" style={{ ...inputStyle, resize: 'vertical' }} />
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: AMB, margin: '0 0 14px' }}>Valor y forma de pago</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                    <label style={labelStyle}>Valor total<input value={orden.valor} onChange={e => setOrden(o => ({ ...o, valor: e.target.value }))} style={inputStyle} placeholder="$0 COP" /></label>
-                    <label style={labelStyle}>Anticipo (50%)<input value={orden.anticipo} onChange={e => setOrden(o => ({ ...o, anticipo: e.target.value }))} style={inputStyle} placeholder="$0 COP" /></label>
-                    <label style={labelStyle}>Saldo<input value={orden.saldo} onChange={e => setOrden(o => ({ ...o, saldo: e.target.value }))} style={inputStyle} placeholder="$0 COP" /></label>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Entregables + notas derecha ── */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TEAL, margin: 0 }}>Cronograma de entregables</p>
-                    <button onClick={() => setOrden(o => ({ ...o, entregables: [...o.entregables, { descripcion: '', fecha: '', responsable: 'ALMA' }] }))} style={{ padding: '4px 10px', borderRadius: '3px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, cursor: 'pointer', fontSize: '10px', fontWeight: 700 }}>+ Agregar</button>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {orden.entregables.map((e, i) => (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto', gap: '8px', alignItems: 'center' }}>
-                        <input value={e.descripcion} onChange={ev => setOrden(o => ({ ...o, entregables: o.entregables.map((x, j) => j === i ? { ...x, descripcion: ev.target.value } : x) }))} style={{ ...inputStyle }} placeholder={`Entregable ${i + 1}`} />
-                        <input type="date" value={e.fecha} onChange={ev => setOrden(o => ({ ...o, entregables: o.entregables.map((x, j) => j === i ? { ...x, fecha: ev.target.value } : x) }))} style={{ ...inputStyle, width: '130px' }} />
-                        <input value={e.responsable} onChange={ev => setOrden(o => ({ ...o, entregables: o.entregables.map((x, j) => j === i ? { ...x, responsable: ev.target.value } : x) }))} style={{ ...inputStyle, width: '80px' }} placeholder="Resp." />
-                        {orden.entregables.length > 1 && (
-                          <button onClick={() => setOrden(o => ({ ...o, entregables: o.entregables.filter((_, j) => j !== i) }))} style={{ background: 'none', border: 'none', color: ROSE, cursor: 'pointer', fontSize: '16px', lineHeight: 1, padding: '4px' }}>×</button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>Notas / Cláusulas adicionales</p>
-                  <textarea value={orden.notas} onChange={e => setOrden(o => ({ ...o, notas: e.target.value }))} rows={4} placeholder="Condiciones especiales, restricciones, acuerdos adicionales…" style={{ ...inputStyle, resize: 'vertical' }} />
-                </div>
-
-                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '20px' }}>
-                  <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>Ciudad</p>
-                  <input value={orden.ciudad} onChange={e => setOrden(o => ({ ...o, ciudad: e.target.value }))} style={{ ...inputStyle, maxWidth: '200px' }} />
-                </div>
-
-                <button onClick={() => setOrden({ ...EMPTY_ORDEN })} style={{ padding: '10px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  🗑 Limpiar formulario
-                </button>
-              </div>
-            </div>
-
-            {/* ── Vista previa imprimible (oculta) ── */}
-            <div ref={printRef} style={{ display: 'none' }}>
-              <div className="header">
-                <h1>ALMA AGENCIA CREATIVA S.A.S.</h1>
-                <p>Manizales, Caldas, Colombia · contacto@almaagenciacreativa.com</p>
-              </div>
-              <div className="os-title">ORDEN DE SERVICIO No. {orden.numero || '___'}</div>
-              <div className="grid2">
-                <div className="field"><label>Fecha</label><span>{orden.fecha || '___'}</span></div>
-                <div className="field"><label>Ciudad</label><span>{orden.ciudad}</span></div>
-                <div className="field"><label>Cliente / Empresa</label><span>{orden.nombre_cliente || '___'}</span></div>
-                <div className="field"><label>NIT / CC</label><span>{orden.nit_cc || '___'}</span></div>
-                <div className="field"><label>Contacto</label><span>{orden.contacto || '___'}</span></div>
-                <div className="field"><label>Cargo</label><span>{orden.cargo || '___'}</span></div>
-              </div>
-              <div className="field" style={{ marginBottom: '12px' }}>
-                <label>Tipo de servicio</label>
-                <div className="chips" style={{ marginTop: '4px' }}>
-                  {orden.tipo_servicios.length > 0 ? orden.tipo_servicios.map(s => <span key={s} className="chip">{s}</span>) : <span style={{ fontSize: '11px', color: '#888' }}>—</span>}
-                </div>
-              </div>
-              <p className="section-title">Descripción del proyecto y alcance</p>
-              <div className="desc-box">{orden.descripcion || '—'}</div>
-              <p className="section-title">Cronograma de entregables</p>
-              <table>
-                <thead><tr><th>#</th><th>Entregable</th><th>Fecha estimada</th><th>Responsable</th></tr></thead>
-                <tbody>
-                  {orden.entregables.map((e, i) => (
-                    <tr key={i}><td>{i + 1}</td><td>{e.descripcion || '—'}</td><td>{e.fecha || '—'}</td><td>{e.responsable}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="section-title">Valor y forma de pago</p>
-              <div className="pago-grid">
-                <div className="field"><label>Valor total del proyecto</label><span>{orden.valor || '___'}</span></div>
-                <div className="field"><label>Anticipo (50%) — al inicio</label><span>{orden.anticipo || '___'}</span></div>
-                <div className="field"><label>Saldo — contra entrega</label><span>{orden.saldo || '___'}</span></div>
-              </div>
-              {orden.notas && (<><p className="section-title">Notas y cláusulas adicionales</p><div className="desc-box">{orden.notas}</div></>)}
-              <div className="firma-grid">
-                <div className="firma-box"><p><strong>ALMA AGENCIA CREATIVA S.A.S.</strong></p><p style={{ marginTop: '32px' }}>_________________________________</p><p>Firma autorizada</p><p>C.C. / NIT: ___________________________</p><p>Cargo: ________________________________</p><p>Ciudad y fecha: {orden.ciudad}, {orden.fecha}</p></div>
-                <div className="firma-box"><p><strong>EL CLIENTE</strong></p><p style={{ marginTop: '32px' }}>_________________________________</p><p>Firma del cliente</p><p>C.C. / NIT: {orden.nit_cc || '___'}</p><p>Cargo: {orden.cargo || '___'}</p><p>Ciudad y fecha: {orden.ciudad}, {orden.fecha}</p></div>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
     </AdminLayout>

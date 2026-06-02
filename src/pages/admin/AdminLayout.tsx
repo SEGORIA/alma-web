@@ -15,11 +15,13 @@ const PAGINA_WEB = [
 ]
 
 const NEGOCIO = [
-  { label: '📋 Brief',         to: '/admin/brief' },
-  { label: '💼 Finanzas',      to: '/admin/finanzas' },
-  { label: '📑 Contratos',     to: '/admin/contratos' },
-  { label: '👥 Clientes',      to: '/admin/clientes' },
-  { label: '🎓 Academia',      to: '/admin/academia' },
+  { label: '📋 Brief',              to: '/admin/brief' },
+  { label: '💼 Finanzas',           to: '/admin/finanzas' },
+  { label: '📑 Contratos',          to: '/admin/contratos' },
+  { label: '👥 Clientes',           to: '/admin/clientes' },
+  { label: '📊 Cotizaciones',       to: '/admin/cotizaciones' },
+  { label: '💳 Cuentas de Cobro',   to: '/admin/cuentas-cobro' },
+  { label: '🎓 Academia',           to: '/admin/academia' },
 ]
 
 const WEB_PREFIXES = PAGINA_WEB.map(i => i.to)
