@@ -3,7 +3,7 @@ import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import {
   getClientes, saveCliente, updateCliente, deleteCliente,
-  updateSolicitudEnCliente, marcaToSlug,
+  updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
 } from '../../lib/db'
 import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes } from '../../data/clientes'
 import {
@@ -83,6 +83,10 @@ export default function ClientesAdmin() {
   const [editingParrillaData, setEditingParrillaData] = useState<Partial<ParrillaItem>>({})
   const [respuestas, setRespuestas] = useState<Record<string, string>>({})
 
+  /* logo upload */
+  const [logoUploading, setLogoUploading] = useState(false)
+  const [logoError,     setLogoError]     = useState('')
+
   /* confirm delete */
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
@@ -105,6 +109,20 @@ export default function ClientesAdmin() {
     const r: Record<string, string> = {}
     c.solicitudes.forEach(s => { if (s.respuesta) r[s.id] = s.respuesta })
     setRespuestas(r)
+  }
+
+  async function handleLogoUpload(file: File) {
+    const slug = form.access_token || marcaToSlug(form.marca) || `temp-${Date.now()}`
+    setLogoUploading(true); setLogoError('')
+    try {
+      const url = await uploadClienteLogo(file, slug)
+      setForm(f => ({ ...f, logo_url: url }))
+    } catch (e) {
+      setLogoError('No se pudo subir el logo. Verifica que Firebase Storage esté habilitado.')
+      console.error(e)
+    } finally {
+      setLogoUploading(false)
+    }
   }
 
   async function handleSave() {
@@ -524,25 +542,67 @@ export default function ClientesAdmin() {
                     </label>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-                    <label style={labelStyle}>
-                      Logo de la marca (URL)
-                      <input value={form.logo_url ?? ''} onChange={e => setForm(f => ({ ...f, logo_url: e.target.value }))} style={inputStyle} placeholder="https://i.imgur.com/…logo.png" />
-                    </label>
+                  {/* Logo upload */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', alignItems: 'start' }}>
+                    <div>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: MUT, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px' }}>
+                        Logo de la marca
+                      </p>
+                      {/* Preview or drop zone */}
+                      <div style={{
+                        position: 'relative', borderRadius: '6px', overflow: 'hidden',
+                        border: `0.5px dashed ${form.logo_url ? BDR : BDR2}`,
+                        background: '#0D0D14',
+                        minHeight: '90px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {logoUploading ? (
+                          <div style={{ textAlign: 'center', padding: '16px' }}>
+                            <div style={{ fontSize: '20px', marginBottom: '6px', animation: 'spin 1s linear infinite' }}>⏳</div>
+                            <p style={{ fontSize: '11px', color: MUT, margin: 0 }}>Subiendo…</p>
+                          </div>
+                        ) : form.logo_url ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', width: '100%' }}>
+                            <img
+                              src={form.logo_url} alt="Logo"
+                              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '6px', background: '#1A1A22', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ margin: '0 0 4px', fontSize: '12px', color: WHT, fontWeight: 600 }}>Logo cargado ✓</p>
+                              <p style={{ margin: '0 0 6px', fontSize: '10px', color: MUT }}>Se muestra en el portal</p>
+                              <label style={{ cursor: 'pointer' }}>
+                                <span style={{ fontSize: '10px', color: ACC2, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
+                                  Cambiar
+                                </span>
+                                <input type="file" accept="image/*" style={{ display: 'none' }}
+                                  onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = '' }}
+                                />
+                              </label>
+                            </div>
+                            <button
+                              onClick={() => setForm(f => ({ ...f, logo_url: '' }))}
+                              style={{ background: 'none', border: 'none', color: ROSE, cursor: 'pointer', fontSize: '16px', flexShrink: 0, lineHeight: 1, padding: '4px' }}
+                              title="Quitar logo"
+                            >×</button>
+                          </div>
+                        ) : (
+                          <label style={{ cursor: 'pointer', textAlign: 'center', padding: '20px', display: 'block', width: '100%' }}>
+                            <div style={{ fontSize: '24px', marginBottom: '6px' }}>🖼️</div>
+                            <p style={{ fontSize: '12px', color: ACC2, fontWeight: 700, margin: '0 0 2px' }}>Subir logo</p>
+                            <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>PNG, JPG, SVG, WEBP</p>
+                            <input type="file" accept="image/*" style={{ display: 'none' }}
+                              onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = '' }}
+                            />
+                          </label>
+                        )}
+                      </div>
+                      {logoError && <p style={{ fontSize: '11px', color: ROSE, margin: '6px 0 0' }}>{logoError}</p>}
+                    </div>
                     <label style={labelStyle}>
                       URL del contrato
                       <input value={form.contrato_url ?? ''} onChange={e => setForm(f => ({ ...f, contrato_url: e.target.value }))} style={inputStyle} placeholder="https://drive.google.com/…" />
                     </label>
                   </div>
-                  {form.logo_url && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: '#F9FAFB', borderRadius: '10px', border: '1px solid #E5E7EB' }}>
-                      <img src={form.logo_url} alt="Logo" style={{ height: '44px', width: '44px', objectFit: 'contain', borderRadius: '8px', background: '#fff', padding: '4px', border: '1px solid #E5E7EB' }} />
-                      <div>
-                        <p style={{ margin: '0 0 2px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Vista previa del logo</p>
-                        <p style={{ margin: 0, fontSize: '11px', color: '#9CA3AF' }}>Se muestra en el portal del cliente</p>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Servicios */}
                   <div>

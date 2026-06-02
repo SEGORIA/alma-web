@@ -2,7 +2,8 @@ import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp, arrayUnion,
 } from 'firebase/firestore'
-import { db, firebaseReady } from './firebase'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { db, storage, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
 import { proyectosEstaticos } from '../data/portafolio'
 import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/precios'
@@ -557,6 +558,22 @@ export async function getBriefFormConfig(): Promise<BriefFormConfig> {
 export async function saveBriefFormConfig(config: BriefFormConfig): Promise<void> {
   if (!firebaseReady || !db) return
   await setDoc(briefConfigDoc(), { ...config, updatedAt: serverTimestamp() })
+}
+
+/* ══ STORAGE — LOGOS ════════════════════════════════════════ */
+
+/**
+ * Sube el logo de un cliente a Firebase Storage y devuelve la URL pública.
+ * Ruta: logos/{slug}/{timestamp}.{ext}
+ * Si Storage no está disponible lanza un error descriptivo.
+ */
+export async function uploadClienteLogo(file: File, slug: string): Promise<string> {
+  if (!storage) throw new Error('Firebase Storage no está configurado (VITE_FIREBASE_STORAGE_BUCKET vacío)')
+  const ext  = file.name.split('.').pop() ?? 'png'
+  const path = `logos/${slug}/${Date.now()}.${ext}`
+  const storageRef = ref(storage, path)
+  await uploadBytes(storageRef, file)
+  return getDownloadURL(storageRef)
 }
 
 /* ══ CLIENTES ═══════════════════════════════════════════════ */

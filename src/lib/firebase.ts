@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, type Auth } from 'firebase/auth'
 import { getFirestore, type Firestore } from 'firebase/firestore'
+import { getStorage, type FirebaseStorage } from 'firebase/storage'
 
 // Solo inicializa Firebase si están configuradas las variables de entorno.
 // Sin ellas el sitio público sigue funcionando con datos estáticos.
@@ -9,8 +10,9 @@ export const firebaseReady = !!(
   import.meta.env.VITE_FIREBASE_PROJECT_ID
 )
 
-let _auth: Auth      | null = null
-let _db:   Firestore | null = null
+let _auth:    Auth            | null = null
+let _db:      Firestore       | null = null
+let _storage: FirebaseStorage | null = null
 
 if (firebaseReady) {
   const firebaseConfig = {
@@ -21,10 +23,12 @@ if (firebaseReady) {
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId:             import.meta.env.VITE_FIREBASE_APP_ID,
   }
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
-  _auth     = getAuth(app)
-  _db       = getFirestore(app)
+  const app  = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+  _auth      = getAuth(app)
+  _db        = getFirestore(app)
+  _storage   = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? getStorage(app) : null
 }
 
-export const auth = _auth
-export const db   = _db
+export const auth    = _auth
+export const db      = _db
+export const storage = _storage
