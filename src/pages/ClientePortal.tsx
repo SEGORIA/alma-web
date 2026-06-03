@@ -168,6 +168,9 @@ export default function ClientePortal() {
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
   ]
 
+  // Compact header when an HTML parrilla is active
+  const isHtmlParrilla = tab === 'parrilla' && (data.parrilla_htmls ?? []).length > 0
+
   return (
     <div style={{ minHeight: '100vh', background: '#F2F0FA', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <style>{`
@@ -179,83 +182,136 @@ export default function ClientePortal() {
       `}</style>
 
       {/* ══ HEADER ══ */}
-      <div style={{
-        background: 'linear-gradient(140deg, #0A0118 0%, #1E0547 35%, #3B0C87 65%, #6D28D9 100%)',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* Decorative blobs */}
-        <div style={{ position:'absolute', top:'-60px', right:'-60px', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', bottom:'-30px', left:'5%', width:'200px', height:'200px', borderRadius:'50%', background:'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', top:'40%', left:'50%', width:'300px', height:'300px', borderRadius:'50%', background:'radial-gradient(circle, rgba(109,40,217,0.1) 0%, transparent 70%)', pointerEvents:'none', transform:'translate(-50%,-50%)' }} />
-
-        <div style={{ maxWidth:'920px', margin:'0 auto', position:'relative', zIndex:1 }}>
-
-          {/* Top bar */}
-          <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ background:'rgba(255,255,255,0.1)', borderRadius:'8px', padding:'5px 12px', backdropFilter:'blur(8px)' }}>
-              <img src="/alma-logo.png" alt="Alma" style={{ height:'26px', width:'auto', display:'block' }} />
-            </div>
-            <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>Portal de cliente</span>
-          </div>
-
-          {/* Brand hero */}
-          <div style={{ padding:'12px 24px 28px', display:'flex', alignItems:'flex-start', gap:'20px', flexWrap:'wrap' }}>
-            {/* Logo */}
-            {data.logo_url ? (
-              <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.18)', padding:'8px', flexShrink:0, backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <img src={data.logo_url} alt={data.marca} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', borderRadius:'10px' }} />
+      {isHtmlParrilla ? (
+        /* ── Compact banner cuando hay parrilla HTML activa ── */
+        <div style={{
+          background: 'linear-gradient(140deg, #0A0118 0%, #1E0547 35%, #3B0C87 65%, #6D28D9 100%)',
+        }}>
+          <div style={{ maxWidth: '920px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+            {/* Slim identity bar */}
+            <div style={{ padding: '10px 20px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Alma logo */}
+              <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '7px', padding: '4px 9px', backdropFilter: 'blur(8px)', flexShrink: 0 }}>
+                <img src="/alma-logo.png" alt="Alma" style={{ height: '19px', width: 'auto', display: 'block' }} />
               </div>
-            ) : (
-              <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px', fontWeight:900, color:'#fff', flexShrink:0, backdropFilter:'blur(8px)', letterSpacing:'-1px' }}>
-                {(data.marca ?? '?')[0].toUpperCase()}
-              </div>
-            )}
-
-            {/* Nombre + Estado */}
-            <div style={{ flex:1, minWidth:'180px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
-                <h1 style={{ margin:0, color:'#fff', fontSize:'28px', fontWeight:900, letterSpacing:'-0.5px', lineHeight:1.1 }}>{data.marca}</h1>
-                {estadoInfo && (
-                  <span style={{ padding:'4px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.9)', fontSize:'11.5px', fontWeight:700, border:'1px solid rgba(255,255,255,0.15)', backdropFilter:'blur(8px)' }}>
-                    {estadoInfo.icon} {estadoInfo.label}
-                  </span>
-                )}
-              </div>
-              <p style={{ margin:'0 0 14px', color:'rgba(255,255,255,0.6)', fontSize:'14px' }}>Bienvenido/a, <strong style={{ color:'rgba(255,255,255,0.88)', fontWeight:700 }}>{data.nombre}</strong></p>
-              {/* Services */}
-              {(data.servicios ?? []).length > 0 && (
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
-                  {(data.servicios ?? []).map(s => (
-                    <span key={s} style={{ padding:'4px 11px', borderRadius:'20px', background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.75)', fontSize:'12px', fontWeight:600, border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(4px)' }}>{s}</span>
-                  ))}
+              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '14px', flexShrink: 0 }}>·</span>
+              {/* Brand avatar (small) */}
+              {data.logo_url ? (
+                <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', padding: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={data.logo_url} alt={data.marca} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                </div>
+              ) : (
+                <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900, color: '#fff', flexShrink: 0 }}>
+                  {(data.marca ?? '?')[0].toUpperCase()}
                 </div>
               )}
+              {/* Brand name */}
+              <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff', flex: 1, letterSpacing: '-0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.marca}</span>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0 }}>Portal</span>
+            </div>
+            {/* Tabs */}
+            <div style={{ display: 'flex', overflowX: 'auto', paddingLeft: '8px', marginTop: '2px' }}>
+              {TABS.map(t => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className="portal-tab-btn"
+                  style={{
+                    padding: '10px 18px', border: 'none', cursor: 'pointer', flexShrink: 0,
+                    background: tab === t.key ? 'rgba(255,255,255,1)' : 'transparent',
+                    color: tab === t.key ? P : 'rgba(255,255,255,0.65)',
+                    fontSize: '12.5px', fontWeight: tab === t.key ? 800 : 500,
+                    borderRadius: tab === t.key ? '12px 12px 0 0' : '0',
+                    whiteSpace: 'nowrap', transition: 'all 0.2s',
+                    borderBottom: tab === t.key ? 'none' : '0',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
           </div>
+        </div>
+      ) : (
+        /* ── Full header (resto de tabs) ── */
+        <div style={{
+          background: 'linear-gradient(140deg, #0A0118 0%, #1E0547 35%, #3B0C87 65%, #6D28D9 100%)',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* Decorative blobs */}
+          <div style={{ position:'absolute', top:'-60px', right:'-60px', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', bottom:'-30px', left:'5%', width:'200px', height:'200px', borderRadius:'50%', background:'radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', top:'40%', left:'50%', width:'300px', height:'300px', borderRadius:'50%', background:'radial-gradient(circle, rgba(109,40,217,0.1) 0%, transparent 70%)', pointerEvents:'none', transform:'translate(-50%,-50%)' }} />
 
-          {/* Navigation tabs */}
-          <div style={{ display:'flex', overflowX:'auto', paddingLeft:'8px' }}>
-            {TABS.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className="portal-tab-btn"
-                style={{
-                  padding:'13px 20px', border:'none', cursor:'pointer', flexShrink:0,
-                  background: tab === t.key ? 'rgba(255,255,255,1)' : 'transparent',
-                  color: tab === t.key ? P : 'rgba(255,255,255,0.65)',
-                  fontSize:'13px', fontWeight: tab === t.key ? 800 : 500,
-                  borderRadius: tab === t.key ? '14px 14px 0 0' : '0',
-                  whiteSpace:'nowrap', transition:'all 0.2s',
-                  borderBottom: tab === t.key ? 'none' : '0',
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div style={{ maxWidth:'920px', margin:'0 auto', position:'relative', zIndex:1 }}>
+
+            {/* Top bar */}
+            <div style={{ padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ background:'rgba(255,255,255,0.1)', borderRadius:'8px', padding:'5px 12px', backdropFilter:'blur(8px)' }}>
+                <img src="/alma-logo.png" alt="Alma" style={{ height:'26px', width:'auto', display:'block' }} />
+              </div>
+              <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:600, letterSpacing:'0.5px', textTransform:'uppercase' }}>Portal de cliente</span>
+            </div>
+
+            {/* Brand hero */}
+            <div style={{ padding:'12px 24px 28px', display:'flex', alignItems:'flex-start', gap:'20px', flexWrap:'wrap' }}>
+              {/* Logo */}
+              {data.logo_url ? (
+                <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.18)', padding:'8px', flexShrink:0, backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <img src={data.logo_url} alt={data.marca} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', borderRadius:'10px' }} />
+                </div>
+              ) : (
+                <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px', fontWeight:900, color:'#fff', flexShrink:0, backdropFilter:'blur(8px)', letterSpacing:'-1px' }}>
+                  {(data.marca ?? '?')[0].toUpperCase()}
+                </div>
+              )}
+
+              {/* Nombre + Estado */}
+              <div style={{ flex:1, minWidth:'180px' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
+                  <h1 style={{ margin:0, color:'#fff', fontSize:'28px', fontWeight:900, letterSpacing:'-0.5px', lineHeight:1.1 }}>{data.marca}</h1>
+                  {estadoInfo && (
+                    <span style={{ padding:'4px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.9)', fontSize:'11.5px', fontWeight:700, border:'1px solid rgba(255,255,255,0.15)', backdropFilter:'blur(8px)' }}>
+                      {estadoInfo.icon} {estadoInfo.label}
+                    </span>
+                  )}
+                </div>
+                <p style={{ margin:'0 0 14px', color:'rgba(255,255,255,0.6)', fontSize:'14px' }}>Bienvenido/a, <strong style={{ color:'rgba(255,255,255,0.88)', fontWeight:700 }}>{data.nombre}</strong></p>
+                {/* Services */}
+                {(data.servicios ?? []).length > 0 && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
+                    {(data.servicios ?? []).map(s => (
+                      <span key={s} style={{ padding:'4px 11px', borderRadius:'20px', background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.75)', fontSize:'12px', fontWeight:600, border:'1px solid rgba(255,255,255,0.12)', backdropFilter:'blur(4px)' }}>{s}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Navigation tabs */}
+            <div style={{ display:'flex', overflowX:'auto', paddingLeft:'8px' }}>
+              {TABS.map(t => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className="portal-tab-btn"
+                  style={{
+                    padding:'13px 20px', border:'none', cursor:'pointer', flexShrink:0,
+                    background: tab === t.key ? 'rgba(255,255,255,1)' : 'transparent',
+                    color: tab === t.key ? P : 'rgba(255,255,255,0.65)',
+                    fontSize:'13px', fontWeight: tab === t.key ? 800 : 500,
+                    borderRadius: tab === t.key ? '14px 14px 0 0' : '0',
+                    whiteSpace:'nowrap', transition:'all 0.2s',
+                    borderBottom: tab === t.key ? 'none' : '0',
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Content ── */}
       <div style={{ maxWidth:'920px', margin:'0 auto', padding:'28px 20px' }}>
@@ -735,7 +791,7 @@ export default function ClientePortal() {
                 <iframe
                     key={current.id}
                     srcDoc={injected}
-                    style={{ width: '100%', height: 'calc(100vh - 140px)', minHeight: '700px', border: 'none', display: 'block' }}
+                    style={{ width: '100%', height: 'calc(100vh - 96px)', minHeight: '700px', border: 'none', display: 'block' }}
                     title={current.label}
                     sandbox="allow-scripts"
                   />
