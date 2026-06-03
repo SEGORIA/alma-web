@@ -5,7 +5,7 @@ import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
 } from '../../lib/db'
-import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes } from '../../data/clientes'
+import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
@@ -26,7 +26,7 @@ const ROSE  = '#FF4D8D'                   // danger
 const AMB   = '#FFB865'                   // amber / pausado
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal'
+type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -86,6 +86,12 @@ export default function ClientesAdmin() {
   /* logo upload */
   const [logoUploading, setLogoUploading] = useState(false)
   const [logoError,     setLogoError]     = useState('')
+
+  /* parrilla html upload */
+  const [newHtmlLabel,    setNewHtmlLabel]    = useState('')
+  const [newHtmlMes,      setNewHtmlMes]      = useState('')
+  const [htmlUploading,   setHtmlUploading]   = useState(false)
+  const [htmlUploadError, setHtmlUploadError] = useState('')
 
   /* confirm delete */
   const [confirmId, setConfirmId] = useState<string | null>(null)
@@ -243,6 +249,32 @@ export default function ClientesAdmin() {
   function startEditMes(m: MetricaMes) {
     setEditMes(m.mes)
     setNewMes({ ...m })
+  }
+
+  async function addParrillaHtml(file: File) {
+    if (!newHtmlLabel.trim() || !newHtmlMes.trim()) return
+    setHtmlUploading(true); setHtmlUploadError('')
+    try {
+      const texto = await file.text()
+      const item: ParrillaHtml = {
+        id:        newId(),
+        mes:       newHtmlMes,
+        label:     newHtmlLabel.trim(),
+        contenido: texto,
+        titulo:    newHtmlLabel.trim(),
+        createdAt: new Date().toISOString(),
+      }
+      setForm(f => ({ ...f, parrilla_htmls: [...(f.parrilla_htmls ?? []), item] }))
+      setNewHtmlLabel(''); setNewHtmlMes('')
+    } catch {
+      setHtmlUploadError('No se pudo leer el archivo HTML.')
+    } finally {
+      setHtmlUploading(false)
+    }
+  }
+
+  function removeParrillaHtml(id: string) {
+    setForm(f => ({ ...f, parrilla_htmls: (f.parrilla_htmls ?? []).filter(h => h.id !== id) }))
   }
 
   async function saveSolicitudRespuesta(s: Solicitud) {
@@ -469,6 +501,7 @@ export default function ClientesAdmin() {
                 { key: 'solicitudes', label: `💬 Solicitudes (${form.solicitudes.length})` },
                 { key: 'metricas',    label: `📊 Métricas (${(form.metricas_historico ?? []).length})` },
                 { key: 'portal',      label: '🔗 Portal' },
+                { key: 'estrategia',  label: '🎯 Estrategia' },
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
                   key={t.key}
@@ -1306,6 +1339,149 @@ export default function ClientesAdmin() {
                   </div>
                 </div>
               )})()}
+
+              {/* ─ ESTRATEGIA ─ */}
+              {tab === 'estrategia' && (() => {
+                const amFields: { key: keyof AnalisisMarca; label: string; rows: number; placeholder: string }[] = [
+                  { key: 'resumen',      label: 'Resumen de la marca',       rows: 3, placeholder: 'Descripción general de la marca…' },
+                  { key: 'colores',      label: 'Colores',                   rows: 1, placeholder: 'Verde Oliva #4A4A1E · Ámbar #C9A84C' },
+                  { key: 'tipografias',  label: 'Tipografías',               rows: 1, placeholder: 'Display: Lora · Cuerpo: Montserrat' },
+                  { key: 'voz_si',       label: 'Voz de la marca — SÍ',      rows: 2, placeholder: 'Cercana · Inspiradora · Educativa' },
+                  { key: 'voz_no',       label: 'Voz de la marca — NO',      rows: 2, placeholder: 'Formal · Técnica · Excluyente' },
+                  { key: 'fortalezas',   label: 'Fortalezas',                rows: 2, placeholder: '' },
+                  { key: 'brechas',      label: 'Brechas / Oportunidades',   rows: 2, placeholder: '' },
+                  { key: 'bio_actual',   label: 'Bio actual',                rows: 2, placeholder: 'Bio que tiene actualmente en redes…' },
+                  { key: 'bio_propuesta',label: 'Bio propuesta',             rows: 2, placeholder: 'Nueva bio recomendada…' },
+                ]
+                const sectionHdr = (label: string) => (
+                  <p style={{ fontSize: '10px', fontWeight: 700, color: ACC2, textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 12px', borderBottom: `0.5px solid ${BDR}`, paddingBottom: '8px' }}>
+                    {label}
+                  </p>
+                )
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
+                    {/* ── Plan del mes ── */}
+                    <div>
+                      {sectionHdr('📦 Plan del mes')}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <label style={labelStyle}>
+                          Nombre del plan
+                          <input value={form.plan_mes?.nombre ?? ''} onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, nombre: e.target.value } }))} style={inputStyle} placeholder="Ej: Plan Esencial" />
+                        </label>
+                        <label style={labelStyle}>
+                          Período
+                          <input value={form.plan_mes?.periodo ?? ''} onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, periodo: e.target.value } }))} style={inputStyle} placeholder="Ej: Julio 2026" />
+                        </label>
+                        <label style={labelStyle}>
+                          Valor
+                          <input value={form.plan_mes?.valor ?? ''} onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, valor: e.target.value } }))} style={inputStyle} placeholder="Ej: $1.500.000 COP" />
+                        </label>
+                      </div>
+                      <label style={{ ...labelStyle, marginTop: '12px' }}>
+                        Qué incluye (una línea = un ítem)
+                        <textarea
+                          value={(form.plan_mes?.incluye ?? []).join('\n')}
+                          onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, incluye: e.target.value.split('\n').filter(l => l.trim()) } }))}
+                          rows={5}
+                          placeholder={'8 posts mensuales\n4 reels\n2 stories diarias\n1 informe de resultados'}
+                          style={{ ...inputStyle, resize: 'vertical', marginTop: '4px' }}
+                        />
+                      </label>
+                      <label style={{ ...labelStyle, marginTop: '10px' }}>
+                        Notas para el cliente
+                        <textarea
+                          value={form.plan_mes?.notas ?? ''}
+                          onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, notas: e.target.value } }))}
+                          rows={2}
+                          placeholder="Notas adicionales…"
+                          style={{ ...inputStyle, resize: 'vertical', marginTop: '4px' }}
+                        />
+                      </label>
+                    </div>
+
+                    {/* ── Análisis de marca ── */}
+                    <div>
+                      {sectionHdr('🎨 Análisis de marca')}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {amFields.map(field => (
+                          <label key={String(field.key)} style={labelStyle}>
+                            {field.label}
+                            <textarea
+                              value={form.analisis_marca?.[field.key] ?? ''}
+                              onChange={e => setForm(f => ({ ...f, analisis_marca: { ...f.analisis_marca, [field.key]: e.target.value } }))}
+                              rows={field.rows}
+                              placeholder={field.placeholder}
+                              style={{ ...inputStyle, resize: 'vertical', marginTop: '4px' }}
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ── Parrilla HTML ── */}
+                    <div>
+                      {sectionHdr('📅 Parrillas HTML por mes')}
+
+                      {/* Lista existente */}
+                      {(form.parrilla_htmls ?? []).length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                          {[...(form.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes)).map(h => (
+                            <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '10px 14px' }}>
+                              <span style={{ fontSize: '18px' }}>📄</span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ margin: 0, fontSize: '13px', color: WHT, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.label}</p>
+                                <p style={{ margin: '2px 0 0', fontSize: '11px', color: MUT }}>{h.mes}</p>
+                              </div>
+                              <button
+                                onClick={() => removeParrillaHtml(h.id)}
+                                style={{ padding: '4px 10px', borderRadius: '4px', border: `0.5px solid #4a1a2e`, background: 'transparent', cursor: 'pointer', fontSize: '11px', color: ROSE, flexShrink: 0 }}
+                              >
+                                🗑 Eliminar
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Formulario agregar */}
+                      <div style={{ background: '#0D0D14', border: `1px dashed ${BDR2}`, borderRadius: '8px', padding: '16px' }}>
+                        <p style={{ fontSize: '11px', fontWeight: 700, color: MUT, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>+ Subir nueva parrilla HTML</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                          <label style={labelStyle}>
+                            Etiqueta *
+                            <input value={newHtmlLabel} onChange={e => setNewHtmlLabel(e.target.value)} style={inputStyle} placeholder="Mes 1 · Julio 2026" />
+                          </label>
+                          <label style={labelStyle}>
+                            Mes *
+                            <input type="month" value={newHtmlMes} onChange={e => setNewHtmlMes(e.target.value)} style={inputStyle} />
+                          </label>
+                        </div>
+                        <label style={labelStyle}>
+                          Archivo HTML *
+                          <input
+                            type="file"
+                            accept=".html,text/html"
+                            disabled={!newHtmlLabel.trim() || !newHtmlMes || htmlUploading}
+                            onChange={e => {
+                              const file = e.target.files?.[0]
+                              if (file) addParrillaHtml(file)
+                              e.target.value = ''
+                            }}
+                            style={{ ...inputStyle, cursor: !newHtmlLabel.trim() || !newHtmlMes ? 'not-allowed' : 'pointer', padding: '7px 12px', marginTop: '4px' }}
+                          />
+                        </label>
+                        {htmlUploading && <p style={{ fontSize: '12px', color: ACC2, margin: '8px 0 0' }}>Procesando archivo…</p>}
+                        {htmlUploadError && <p style={{ fontSize: '12px', color: ROSE, margin: '8px 0 0' }}>{htmlUploadError}</p>}
+                        {(!newHtmlLabel.trim() || !newHtmlMes) && (
+                          <p style={{ fontSize: '11px', color: MUT, margin: '8px 0 0' }}>Completa la etiqueta y el mes antes de seleccionar el archivo.</p>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Modal footer */}

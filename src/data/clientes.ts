@@ -102,6 +102,35 @@ export type MetricaMes = {
   posts_publicados?:  number
 }
 
+export type PlanMes = {
+  nombre?:  string     // "Plan Esencial"
+  periodo?: string     // "Julio 2026"
+  valor?:   string     // "$1.500.000 COP"
+  incluye?: string[]   // bullet points
+  notas?:   string
+}
+
+export type AnalisisMarca = {
+  resumen?:       string   // descripción general de la marca
+  colores?:       string   // "Verde Oliva #4A4A1E · Ámbar #C9A84C · Arena #C8B888"
+  tipografias?:   string   // "Display: Lora · Cuerpo: Montserrat"
+  voz_si?:        string   // cómo SÍ habla la marca (separado por ·)
+  voz_no?:        string   // cómo NO habla la marca
+  fortalezas?:    string
+  brechas?:       string
+  bio_actual?:    string
+  bio_propuesta?: string
+}
+
+export type ParrillaHtml = {
+  id:         string
+  mes:        string    // "2026-07"
+  label:      string    // "Mes 1 · Julio 2026"
+  contenido:  string    // HTML completo como string
+  titulo?:    string    // "Estrategia Digital Mes 1"
+  createdAt?: string
+}
+
 export type ClienteEstado = 'activo' | 'pausado' | 'finalizado' | 'prospecto'
 
 export type Cliente = {
@@ -128,6 +157,10 @@ export type Cliente = {
   parrilla:      ParrillaItem[]
   solicitudes:   Solicitud[]
   metricas_historico?: MetricaMes[]  // métricas mensuales manuales
+  // Estrategia mensual
+  plan_mes?:       PlanMes
+  analisis_marca?: AnalisisMarca
+  parrilla_htmls?: ParrillaHtml[]
   // Servicios adicionales
   acomp_eventos?: boolean             // acompañamiento a eventos incluido
   grabaciones_mes?: number            // grabaciones programadas por mes

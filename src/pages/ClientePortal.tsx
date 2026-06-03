@@ -46,12 +46,22 @@ function NotFound() {
   )
 }
 
+/* ── Logo injection into HTML parrilla ───────────────────── */
+function injectLogo(html: string, logoUrl: string, marca: string): string {
+  if (!logoUrl) return html
+  const navImg  = `<img src="${logoUrl}" alt="${marca}" class="logo-nav"  style="width:30px;height:30px;object-fit:contain;border-radius:4px;">`
+  const heroImg = `<img src="${logoUrl}" alt="${marca}" class="logo-hero" style="width:130px;height:130px;object-fit:contain;">`
+  return html
+    .replace(/<svg[^>]*class="logo-nav"[^>]*>[\s\S]*?<\/svg>/g,  navImg)
+    .replace(/<svg[^>]*class="logo-hero"[^>]*>[\s\S]*?<\/svg>/g, heroImg)
+}
+
 /* ── Main Component ──────────────────────────────────────── */
 export default function ClientePortal() {
   const { token } = useParams<{ token: string }>()
   const [data,    setData]    = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab,     setTab]     = useState<'inicio' | 'entregables' | 'parrilla' | 'solicitudes'>('inicio')
+  const [tab,     setTab]     = useState<'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes'>('inicio')
   const [showSolForm, setShowSolForm] = useState(false)
   const [solTipo,     setSolTipo]     = useState<Solicitud['tipo']>('cambio')
   const [solDesc,     setSolDesc]     = useState('')
@@ -59,6 +69,7 @@ export default function ClientePortal() {
   const [sending,     setSending]     = useState(false)
   const [sent,        setSent]        = useState(false)
   // Parrilla
+  const [activeHtmlId, setActiveHtmlId] = useState<string | null>(null)
   const [expandedId,   setExpandedId]   = useState<string | null>(null)
   const [activeMes,    setActiveMes]    = useState<string>('all')
   const [copiedId,     setCopiedId]     = useState<string | null>(null)
@@ -147,12 +158,15 @@ export default function ClientePortal() {
     finally { setReviewSending(false) }
   }
 
-  const TABS = [
+  type PortalTab = 'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes'
+  const TABS: { key: PortalTab; label: string }[] = [
     { key: 'inicio',      label: '🏠 Inicio' },
     { key: 'entregables', label: `📋 Contenido (${(data.entregables ?? []).length})` },
-    { key: 'parrilla',    label: `📅 Parrilla (${(data.parrilla ?? []).length})` },
+    { key: 'parrilla',    label: `📅 Parrilla` },
+    ...(data.plan_mes        ? [{ key: 'plan'  as PortalTab, label: '📦 Plan del mes' }]     : []),
+    ...(data.analisis_marca  ? [{ key: 'marca' as PortalTab, label: '🎨 Análisis' }]          : []),
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
-  ] as const
+  ]
 
   return (
     <div style={{ minHeight: '100vh', background: '#F2F0FA', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -681,6 +695,51 @@ export default function ClientePortal() {
 
         {/* ── PARRILLA ── */}
         {tab === 'parrilla' && (() => {
+
+          // ── Vista HTML (si hay parrillas HTML subidas) ──
+          const htmls = [...(data.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
+          if (htmls.length > 0) {
+            const current = htmls.find(h => h.id === activeHtmlId) ?? htmls[0]
+            const injected = data.logo_url
+              ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
+              : current.contenido
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeUp 0.35s ease' }}>
+                {/* Selector de mes */}
+                {htmls.length > 1 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {htmls.map(h => (
+                      <button
+                        key={h.id}
+                        onClick={() => setActiveHtmlId(h.id)}
+                        style={{
+                          padding: '7px 18px', borderRadius: '20px', cursor: 'pointer',
+                          border: `1.5px solid ${current.id === h.id ? P : '#E5E7EB'}`,
+                          background: current.id === h.id ? P : '#fff',
+                          color: current.id === h.id ? '#fff' : '#6B7280',
+                          fontSize: '12.5px', fontWeight: 700, transition: 'all 0.15s',
+                        }}
+                      >
+                        {h.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Iframe con el HTML inyectado */}
+                <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
+                  <iframe
+                    key={current.id}
+                    srcDoc={injected}
+                    style={{ width: '100%', height: 'calc(100vh - 280px)', minHeight: '640px', border: 'none', display: 'block' }}
+                    title={current.label}
+                    sandbox="allow-scripts"
+                  />
+                </div>
+              </div>
+            )
+          }
+
+          // ── Vista tabla (parrilla clásica) ──
           const allItems = [...(data.parrilla ?? [])].sort((a, b) => {
             if (a.dia_num && b.dia_num) return a.dia_num - b.dia_num
             return (a.fecha ?? '').localeCompare(b.fecha ?? '')
@@ -980,6 +1039,96 @@ export default function ClientePortal() {
             )}
           </div>
         )}
+
+        {/* ── PLAN DEL MES ── */}
+        {tab === 'plan' && (() => {
+          const plan = data.plan_mes
+          if (!plan) return (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📦</p>
+              <p style={{ color: '#6B7280', fontSize: '15px' }}>El plan del mes estará disponible aquí muy pronto.</p>
+            </div>
+          )
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', animation: 'fadeUp 0.35s ease' }}>
+
+              {/* Header del plan */}
+              <div style={{ background: 'linear-gradient(135deg, #1E0547, #3B0C87)', borderRadius: '20px', padding: '28px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '140px', height: '140px', borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+                <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Plan contratado</p>
+                {plan.nombre && <h2 style={{ margin: '0 0 10px', fontSize: '26px', fontWeight: 900, color: '#fff', lineHeight: 1.15 }}>{plan.nombre}</h2>}
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  {plan.periodo && <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>📅 {plan.periodo}</span>}
+                  {plan.valor   && <span style={{ fontSize: '14px', color: '#A78BFA', fontWeight: 800 }}>💰 {plan.valor}</span>}
+                </div>
+              </div>
+
+              {/* Qué incluye */}
+              {(plan.incluye ?? []).length > 0 && (
+                <div style={{ background: '#fff', borderRadius: '18px', padding: '24px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <p style={{ margin: '0 0 16px', fontSize: '14px', fontWeight: 900, color: '#111' }}>📋 Qué incluye tu plan</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {(plan.incluye ?? []).map((item, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: `rgba(107,33,168,0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                          <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke={P} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.55 }}>{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notas */}
+              {plan.notas && (
+                <div style={{ background: '#FFF7ED', borderRadius: '16px', padding: '18px', border: '1.5px solid #FED7AA' }}>
+                  <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📝 Notas</p>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#78350F', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{plan.notas}</p>
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* ── ANÁLISIS DE MARCA ── */}
+        {tab === 'marca' && (() => {
+          const am = data.analisis_marca
+          if (!am) return (
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <p style={{ fontSize: '40px', margin: '0 0 12px' }}>🎨</p>
+              <p style={{ color: '#6B7280', fontSize: '15px' }}>El análisis de marca estará disponible aquí muy pronto.</p>
+            </div>
+          )
+
+          const sections: { field: keyof typeof am; icon: string; title: string }[] = [
+            { field: 'resumen',      icon: '📋', title: 'Resumen de la marca' },
+            { field: 'colores',      icon: '🎨', title: 'Colores corporativos' },
+            { field: 'tipografias',  icon: '✍️', title: 'Tipografías' },
+            { field: 'voz_si',       icon: '✅', title: 'Voz de la marca — Cómo SÍ hablamos' },
+            { field: 'voz_no',       icon: '🚫', title: 'Voz de la marca — Cómo NO hablamos' },
+            { field: 'fortalezas',   icon: '💪', title: 'Fortalezas' },
+            { field: 'brechas',      icon: '🔍', title: 'Brechas y oportunidades' },
+            { field: 'bio_actual',   icon: '📱', title: 'Bio actual' },
+            { field: 'bio_propuesta',icon: '✨', title: 'Bio propuesta' },
+          ]
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', animation: 'fadeUp 0.35s ease' }}>
+              {sections.map(s => {
+                const val = am[s.field]
+                if (!val) return null
+                return (
+                  <div key={s.field} style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                    <p style={{ margin: '0 0 10px', fontSize: '11px', fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.icon} {s.title}</p>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#374151', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>{val}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
+
       </div>
 
       {/* ── Footer ── */}
