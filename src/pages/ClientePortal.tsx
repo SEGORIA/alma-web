@@ -704,10 +704,16 @@ export default function ClientePortal() {
               ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
               : current.contenido
             return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeUp 0.35s ease' }}>
+              /* Rompe el contenedor maxWidth:920px y ocupa todo el ancho de pantalla */
+              <div style={{
+                width: '100vw',
+                marginLeft: 'calc(50% - 50vw - 20px)',
+                marginTop: '-28px',
+                animation: 'fadeUp 0.35s ease',
+              }}>
                 {/* Selector de mes */}
                 {htmls.length > 1 && (
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '16px 20px 12px' }}>
                     {htmls.map(h => (
                       <button
                         key={h.id}
@@ -725,16 +731,14 @@ export default function ClientePortal() {
                     ))}
                   </div>
                 )}
-                {/* Iframe con el HTML inyectado */}
-                <div style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid #E5E7EB', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' }}>
-                  <iframe
+                {/* Iframe ancho completo */}
+                <iframe
                     key={current.id}
                     srcDoc={injected}
-                    style={{ width: '100%', height: 'calc(100vh - 280px)', minHeight: '640px', border: 'none', display: 'block' }}
+                    style={{ width: '100%', height: 'calc(100vh - 140px)', minHeight: '700px', border: 'none', display: 'block' }}
                     title={current.label}
                     sandbox="allow-scripts"
                   />
-                </div>
               </div>
             )
           }
