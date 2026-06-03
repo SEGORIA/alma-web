@@ -163,8 +163,8 @@ export default function ClientePortal() {
     { key: 'inicio',      label: '🏠 Inicio' },
     { key: 'entregables', label: `📋 Contenido (${(data.entregables ?? []).length})` },
     { key: 'parrilla',    label: `📅 Parrilla` },
-    ...(data.plan_mes        ? [{ key: 'plan'  as PortalTab, label: '📦 Plan del mes' }]     : []),
-    ...(data.analisis_marca  ? [{ key: 'marca' as PortalTab, label: '🎨 Análisis' }]          : []),
+    { key: 'plan',        label: '📦 Plan del mes' },
+    { key: 'marca',       label: '🎨 Análisis' },
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
   ]
 
