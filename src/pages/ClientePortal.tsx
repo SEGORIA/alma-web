@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal, updateEntregableEnPortal } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
-import type { Cliente, Solicitud, ParrillaItem, ComentarioContenido } from '../data/clientes'
+import type { Cliente, Solicitud, ComentarioContenido } from '../data/clientes'
 import {
-  ENTREGABLE_CATEGORIAS, PARRILLA_ESTADOS, PILARES_CONTENIDO,
+  ENTREGABLE_CATEGORIAS, PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
   ENTREGABLE_REVISION_ESTADOS,
 } from '../data/clientes'
@@ -73,9 +73,6 @@ export default function ClientePortal() {
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
   const [visiblePasswords,    setVisiblePasswords]    = useState<Set<string>>(new Set())
-  const [expandedId,          setExpandedId]          = useState<string | null>(null)
-  const [activeMes,           setActiveMes]           = useState<string>('all')
-  const [copiedId,            setCopiedId]            = useState<string | null>(null)
   // Contenido (revisión)
   const [reviewingId,   setReviewingId]   = useState<string | null>(null)
   const [reviewType,    setReviewType]    = useState<'aprobacion' | 'ajuste'>('aprobacion')
@@ -889,7 +886,7 @@ export default function ClientePortal() {
           }
 
           // ── Tablero Trello (siempre visible — placeholders si no hay meses) ──
-          if (parrillaMeses.length > 0 || htmlsLegacy.length === 0) {
+          {
             const boardIsPlaceholder = parrillaMeses.length === 0
             const now = new Date()
             const placeholderCols: typeof parrillaMeses = boardIsPlaceholder
@@ -1052,168 +1049,8 @@ export default function ClientePortal() {
             )
           }
 
-          // ── Vista tabla (parrilla clásica — fallback) ──
-          const allItems = [...(data.parrilla ?? [])].sort((a, b) => {
-            if (a.dia_num && b.dia_num) return a.dia_num - b.dia_num
-            return (a.fecha ?? '').localeCompare(b.fecha ?? '')
-          })
 
-          const mesesFiltro = [...new Set(allItems.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort()
-          const currentMes  = activeMes === 'all' ? null : activeMes
-          const items       = currentMes ? allItems.filter(p => p.fecha?.startsWith(currentMes)) : allItems
-          const semanas     = [...new Set(items.map(p => p.semana ?? 0))]
-
-          function copyCaption(p: ParrillaItem) {
-            const text = [p.caption, p.hashtags].filter(Boolean).join('\n\n')
-            if (text) {
-              navigator.clipboard.writeText(text)
-              setCopiedId(p.id)
-              setTimeout(() => setCopiedId(null), 2000)
-            }
-          }
-
-          if (allItems.length === 0) return (
-            <div style={{ textAlign:'center', padding:'60px 20px' }}>
-              <p style={{ fontSize:'40px', margin:'0 0 12px' }}>📅</p>
-              <p style={{ color:'#6B7280', fontSize:'15px' }}>La parrilla de contenido estará disponible aquí.<br />El equipo de Alma la completará pronto.</p>
-            </div>
-          )
-
-          return (
-            <div style={{ display:'flex', flexDirection:'column', gap:'0' }}>
-              <div style={{ marginBottom:'24px' }}>
-                <p style={{ margin:'0 0 4px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Plan editorial · {allItems.length} días</p>
-                <h2 style={{ margin:'0 0 2px', fontSize:'28px', fontWeight:900, color:'#111', lineHeight:1.15 }}>El Calendario <em style={{ color:'#D97706', fontStyle:'italic', fontWeight:800 }}>Exacto</em></h2>
-                <h2 style={{ margin:0, fontSize:'28px', fontWeight:900, color:'#111', lineHeight:1.15 }}>Día por Día</h2>
-              </div>
-
-              {mesesFiltro.length > 1 && (
-                <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', marginBottom:'20px' }}>
-                  <button onClick={() => setActiveMes('all')} style={{ padding:'6px 14px', borderRadius:'20px', border:`1.5px solid ${activeMes === 'all' ? P : '#E5E7EB'}`, background: activeMes === 'all' ? P : '#fff', color: activeMes === 'all' ? '#fff' : '#6B7280', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>Todos</button>
-                  {mesesFiltro.map(mes => {
-                    const [y, m] = mes.split('-')
-                    const label = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month:'short', year:'numeric' })
-                    return (
-                      <button key={mes} onClick={() => setActiveMes(mes)} style={{ padding:'6px 14px', borderRadius:'20px', border:`1.5px solid ${activeMes === mes ? P : '#E5E7EB'}`, background: activeMes === mes ? P : '#fff', color: activeMes === mes ? '#fff' : '#6B7280', fontSize:'12px', fontWeight:700, cursor:'pointer', textTransform:'capitalize' }}>{label}</button>
-                    )
-                  })}
-                </div>
-              )}
-
-              <div style={{ background:'#111', borderRadius:'12px 12px 0 0', padding:'10px 16px', display:'grid', gridTemplateColumns:'52px 1fr 120px 160px', gap:'0', alignItems:'center' }}>
-                {['DÍA', 'CONTENIDO', 'PILAR', 'CTA / KEYWORD'].map(h => (
-                  <span key={h} style={{ fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.55)', letterSpacing:'1px', textTransform:'uppercase' }}>{h}</span>
-                ))}
-              </div>
-
-              <div style={{ border:'1px solid #E5E7EB', borderTop:'none', borderRadius:'0 0 16px 16px', overflow:'hidden' }}>
-                {semanas.map((sem, si) => {
-                  const semItems = sem === 0 ? items.filter(p => !p.semana) : items.filter(p => p.semana === sem)
-                  if (semItems.length === 0) return null
-                  const diasRange = semItems.filter(p => p.dia_num).map(p => p.dia_num!)
-                  const dMin = diasRange.length ? Math.min(...diasRange) : null
-                  const dMax = diasRange.length ? Math.max(...diasRange) : null
-                  return (
-                    <div key={`sem-${sem}-${si}`}>
-                      {sem > 0 && (
-                        <div style={{ background:'#111', padding:'12px 16px', display:'flex', alignItems:'baseline', gap:'10px' }}>
-                          <span style={{ background:'#fff', color:'#111', borderRadius:'4px', padding:'1px 7px', fontSize:'11px', fontWeight:900 }}>S{sem}</span>
-                          <span style={{ fontSize:'13px', fontWeight:800, color:'#fff' }}>SEMANA {sem}</span>
-                          {dMin && dMax && <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.5)', marginLeft:'4px' }}>· DÍAS {dMin}–{dMax}</span>}
-                        </div>
-                      )}
-                      {semItems.map((p, idx) => {
-                        const isExpanded = expandedId === p.id
-                        const pilarI = PILARES_CONTENIDO.find(x => x.value === p.pilar)
-                        const est    = PARRILLA_ESTADOS.find(x => x.value === p.estado)
-                        const instrLines = (p.instrucciones ?? '').split('\n').filter(Boolean)
-                        const hasCopy = !!(p.caption || p.hashtags)
-                        return (
-                          <div key={p.id} style={{ borderBottom:'1px solid #F3F4F6' }}>
-                            <div onClick={() => setExpandedId(isExpanded ? null : p.id)}
-                              style={{ display:'grid', gridTemplateColumns:'52px 1fr 120px 160px', gap:'0', alignItems:'center', padding:'14px 16px', background: isExpanded ? '#F9FAFB' : idx % 2 === 0 ? '#fff' : '#FAFAFA', cursor:'pointer', transition:'background 0.1s' }}>
-                              <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'4px' }}>
-                                <span style={{ fontSize:'18px', fontWeight:900, color:'#111', lineHeight:1 }}>{p.dia_num ? String(p.dia_num).padStart(2,'0') : '—'}</span>
-                                {est && <span style={{ padding:'1px 5px', borderRadius:'4px', background:est.bg, color:est.color, fontSize:'9px', fontWeight:700, whiteSpace:'nowrap' }}>{est.label}</span>}
-                              </div>
-                              <div style={{ paddingRight:'12px' }}>
-                                <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'4px', flexWrap:'wrap' }}>
-                                  <span style={{ padding:'2px 7px', borderRadius:'4px', background:'#111', color:'#fff', fontSize:'10px', fontWeight:800, letterSpacing:'0.3px', whiteSpace:'nowrap' }}>{p.tipo.toUpperCase()}{p.duracion ? ` · ${p.duracion.toUpperCase()}` : ''}</span>
-                                  <span style={{ fontSize:'10px', color:'#9CA3AF' }}>{p.red}</span>
-                                  {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize:'10px', color:P, fontWeight:700, textDecoration:'none' }}>🔗 Ver post</a>}
-                                </div>
-                                <p style={{ margin:'0 0 2px', fontSize:'14px', fontWeight:800, color:'#111', lineHeight:1.3 }}>{p.descripcion}</p>
-                                {p.subtitulo && <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>{p.subtitulo}</p>}
-                              </div>
-                              <div>{pilarI ? <span style={{ padding:'3px 9px', borderRadius:'6px', background:pilarI.bg, color:pilarI.color, fontSize:'11px', fontWeight:800, whiteSpace:'nowrap' }}>{pilarI.label.toUpperCase()}</span> : <span style={{ fontSize:'11px', color:'#E5E7EB' }}>—</span>}</div>
-                              <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                                {p.cta ? <span style={{ padding:'5px 12px', borderRadius:'8px', background:'#D97706', color:'#fff', fontSize:'11.5px', fontWeight:800, whiteSpace:'nowrap' }}>{p.cta} ▶</span> : <span style={{ fontSize:'11px', color:'#E5E7EB' }}>—</span>}
-                                <span style={{ marginLeft:'auto', fontSize:'14px', color:'#9CA3AF', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition:'transform 0.2s' }}>▾</span>
-                              </div>
-                            </div>
-                            {isExpanded && (
-                              <div style={{ background:'#FAFAFA', borderTop:'1px solid #F0F0F0', borderBottom:'1px solid #E5E7EB' }}>
-                                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0' }}>
-                                  <div style={{ padding:'20px', borderRight:'1px solid #E5E7EB' }}>
-                                    <p style={{ margin:'0 0 12px', fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Concepto visual</p>
-                                    {p.concepto_visual ? <p style={{ margin:0, fontSize:'13px', color:'#374151', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{p.concepto_visual}</p> : <p style={{ margin:0, fontSize:'12px', color:'#D1D5DB' }}>Sin concepto visual aún.</p>}
-                                  </div>
-                                  <div style={{ padding:'20px', borderRight:'1px solid #E5E7EB' }}>
-                                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
-                                      <p style={{ margin:0, fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Caption completo</p>
-                                      {hasCopy && <button onClick={e => { e.stopPropagation(); copyCaption(p) }} style={{ padding:'4px 10px', borderRadius:'6px', border:'1px solid #E5E7EB', background: copiedId === p.id ? '#059669' : '#fff', color: copiedId === p.id ? '#fff' : '#374151', fontSize:'11px', fontWeight:700, cursor:'pointer', transition:'all 0.2s' }}>{copiedId === p.id ? '✓ Copiado' : '📋 Copiar'}</button>}
-                                    </div>
-                                    {p.caption ? (
-                                      <div style={{ background:'#111', borderRadius:'10px', padding:'14px 16px' }}>
-                                        <p style={{ margin:'0 0 10px', fontSize:'13px', color:'#E5E7EB', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{p.caption}</p>
-                                        {p.hashtags && <p style={{ margin:0, fontSize:'12px', color:'#6B7280', lineHeight:1.6 }}>{p.hashtags}</p>}
-                                      </div>
-                                    ) : <p style={{ margin:0, fontSize:'12px', color:'#D1D5DB' }}>Caption pendiente.</p>}
-                                  </div>
-                                  <div style={{ padding:'20px' }}>
-                                    <p style={{ margin:'0 0 12px', fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Instrucciones de publicación</p>
-                                    {instrLines.length > 0 ? (
-                                      <ul style={{ margin:'0 0 12px', paddingLeft:'16px', display:'flex', flexDirection:'column', gap:'6px' }}>
-                                        {instrLines.map((line, i) => <li key={i} style={{ fontSize:'12.5px', color:'#374151', lineHeight:1.5 }}>{line}</li>)}
-                                      </ul>
-                                    ) : <p style={{ margin:'0 0 12px', fontSize:'12px', color:'#D1D5DB' }}>Sin instrucciones aún.</p>}
-                                    {p.story_del_dia && (
-                                      <div style={{ background:'#FEF9C3', borderRadius:'8px', padding:'10px 12px', marginTop:'8px' }}>
-                                        <p style={{ margin:'0 0 4px', fontSize:'10px', fontWeight:800, color:'#92400E', textTransform:'uppercase', letterSpacing:'0.5px' }}>📱 Story del día</p>
-                                        <p style={{ margin:0, fontSize:'12px', color:'#78350F', lineHeight:1.5 }}>{p.story_del_dia}</p>
-                                      </div>
-                                    )}
-                                    {p.estado === 'publicado' && p.metricas && Object.values(p.metricas).some(v => v != null && v > 0) && (
-                                      <div style={{ background:'rgba(107,33,168,0.06)', borderRadius:'8px', padding:'10px 12px', marginTop:'10px' }}>
-                                        <p style={{ margin:'0 0 6px', fontSize:'10px', fontWeight:800, color:P, textTransform:'uppercase', letterSpacing:'0.5px' }}>📊 Métricas</p>
-                                        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
-                                          {p.metricas.alcance     ? <span style={{ fontSize:'12px' }}>👁️ {p.metricas.alcance.toLocaleString()}</span>     : null}
-                                          {p.metricas.likes       ? <span style={{ fontSize:'12px' }}>❤️ {p.metricas.likes.toLocaleString()}</span>       : null}
-                                          {p.metricas.comentarios ? <span style={{ fontSize:'12px' }}>💬 {p.metricas.comentarios.toLocaleString()}</span>  : null}
-                                          {p.metricas.guardados   ? <span style={{ fontSize:'12px' }}>🔖 {p.metricas.guardados.toLocaleString()}</span>    : null}
-                                          {p.metricas.engagement  ? <span style={{ fontSize:'12px', color:'#059669', fontWeight:700 }}>📈 {p.metricas.engagement}%</span> : null}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            {p.story_del_dia && !isExpanded && (
-                              <div style={{ background:'#FFFBEB', borderTop:'1px dashed #FDE68A', padding:'9px 16px 9px 68px', display:'flex', gap:'8px', alignItems:'center' }}>
-                                <span style={{ fontSize:'11px', fontWeight:800, color:'#92400E', textTransform:'uppercase', letterSpacing:'0.5px', flexShrink:0 }}>📱 Story del día {p.dia_num ?? ''}:</span>
-                                <span style={{ fontSize:'12px', color:'#78350F', fontStyle:'italic' }}>{p.story_del_dia}</span>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
+          return null
         })()}
 
         {/* ── ACCESOS ── */}
