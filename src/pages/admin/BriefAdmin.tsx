@@ -368,7 +368,7 @@ function FormBuilder() {
   const [saving, setSaving]           = useState(false)
   const [saved, setSaved]             = useState(false)
   const [expandedSec, setExpandedSec] = useState<string | null>('s1')
-  const [newField, setNewField]       = useState<{ sectionKey: string; label: string; type: 'text' | 'textarea' } | null>(null)
+  const [newField, setNewField]       = useState<{ sectionKey: string; label: string; type: 'text' | 'textarea'; required: boolean } | null>(null)
 
   useEffect(() => {
     getBriefFormConfig().then(c => { setConfig(c); setLoading(false) })
@@ -402,6 +402,7 @@ function FormBuilder() {
       type:       newField.type,
       active:     true,
       custom:     true,
+      required:   newField.required,
     }
     setConfig(prev => ({ ...prev, fields: [...prev.fields, field] }))
     setNewField(null)
@@ -504,9 +505,28 @@ function FormBuilder() {
                           <span style={{ fontSize: '10px', color: '#9CA3AF', background: '#F3F4F6', padding: '3px 8px', borderRadius: '4px', whiteSpace: 'nowrap', flexShrink: 0 }}>
                             {TYPE_LABELS[field.type] ?? field.type}
                           </span>
-                          {field.required && (
-                            <span style={{ fontSize: '10px', color: '#EF4444', fontWeight: 700, flexShrink: 0 }}>REQ</span>
-                          )}
+                          <button
+                            onClick={() => updateField(field.key, { required: !field.required })}
+                            title={field.required ? 'Quitar obligatorio' : 'Marcar como obligatorio'}
+                            style={{
+                              flexShrink: 0,
+                              padding: '3px 8px', borderRadius: '5px', cursor: 'pointer',
+                              fontSize: '10px', fontWeight: 700, border: 'none',
+                              background: field.required ? '#FEE2E2' : '#F3F4F6',
+                              color: field.required ? '#EF4444' : '#9CA3AF',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = field.required ? '#FECACA' : '#E5E7EB'
+                              e.currentTarget.style.color = field.required ? '#DC2626' : '#6B7280'
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = field.required ? '#FEE2E2' : '#F3F4F6'
+                              e.currentTarget.style.color = field.required ? '#EF4444' : '#9CA3AF'
+                            }}
+                          >
+                            {field.required ? 'REQ ✓' : 'REQ'}
+                          </button>
                           {field.custom && (
                             <button
                               onClick={() => deleteCustomField(field.key)}
@@ -523,34 +543,57 @@ function FormBuilder() {
 
                   {/* Add custom field */}
                   {newField?.sectionKey === section.key ? (
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                      <input
-                        autoFocus
-                        type="text"
-                        placeholder="Escribe la pregunta…"
-                        value={newField.label}
-                        onChange={e => setNewField(p => p ? { ...p, label: e.target.value } : null)}
-                        onKeyDown={e => { if (e.key === 'Enter') addCustomField(); if (e.key === 'Escape') setNewField(null) }}
-                        style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #6B21A8', fontSize: '13px', outline: 'none', fontFamily: 'inherit' }}
-                      />
-                      <select
-                        value={newField.type}
-                        onChange={e => setNewField(p => p ? { ...p, type: e.target.value as 'text' | 'textarea' } : null)}
-                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '12px', background: '#fff', cursor: 'pointer' }}
-                      >
-                        <option value="text">Texto corto</option>
-                        <option value="textarea">Texto largo</option>
-                      </select>
-                      <button onClick={addCustomField} style={{ background: '#6B21A8', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                        Agregar
-                      </button>
-                      <button onClick={() => setNewField(null)} style={{ background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', cursor: 'pointer' }}>
-                        ✕
-                      </button>
+                    <div style={{ background: '#F9FAFB', border: '1.5px solid #6B21A8', borderRadius: '10px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Escribe la pregunta…"
+                          value={newField.label}
+                          onChange={e => setNewField(p => p ? { ...p, label: e.target.value } : null)}
+                          onKeyDown={e => { if (e.key === 'Enter') addCustomField(); if (e.key === 'Escape') setNewField(null) }}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px', outline: 'none', fontFamily: 'inherit', background: '#fff' }}
+                        />
+                        <select
+                          value={newField.type}
+                          onChange={e => setNewField(p => p ? { ...p, type: e.target.value as 'text' | 'textarea' } : null)}
+                          style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '12px', background: '#fff', cursor: 'pointer', flexShrink: 0 }}
+                        >
+                          <option value="text">Texto corto</option>
+                          <option value="textarea">Texto largo</option>
+                          <option value="email">Email</option>
+                          <option value="tel">Teléfono</option>
+                        </select>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                        {/* Toggle obligatorio */}
+                        <button
+                          onClick={() => setNewField(p => p ? { ...p, required: !p.required } : null)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '6px',
+                            padding: '6px 12px', borderRadius: '7px', cursor: 'pointer',
+                            fontSize: '12px', fontWeight: 700, border: 'none',
+                            background: newField.required ? '#FEE2E2' : '#F3F4F6',
+                            color: newField.required ? '#DC2626' : '#6B7280',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <span style={{ fontSize: '14px' }}>{newField.required ? '🔴' : '⚪'}</span>
+                          {newField.required ? 'Obligatorio' : 'Opcional'}
+                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={addCustomField} disabled={!newField.label.trim()} style={{ background: newField.label.trim() ? '#6B21A8' : '#E5E7EB', color: newField.label.trim() ? '#fff' : '#9CA3AF', border: 'none', borderRadius: '8px', padding: '8px 18px', fontSize: '12px', fontWeight: 700, cursor: newField.label.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>
+                            ＋ Agregar
+                          </button>
+                          <button onClick={() => setNewField(null)} style={{ background: '#F3F4F6', color: '#6B7280', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '12px', cursor: 'pointer' }}>
+                            ✕
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <button
-                      onClick={() => setNewField({ sectionKey: section.key, label: '', type: 'text' })}
+                      onClick={() => setNewField({ sectionKey: section.key, label: '', type: 'text', required: false })}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'none', border: '1.5px dashed #D1D5DB', borderRadius: '8px', padding: '7px 14px', fontSize: '12px', color: '#6B7280', cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s' }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = '#6B21A8'; e.currentTarget.style.color = '#6B21A8' }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = '#D1D5DB'; e.currentTarget.style.color = '#6B7280' }}

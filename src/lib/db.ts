@@ -612,6 +612,8 @@ function portalPayload(c: Partial<Cliente>): {
   plan_mes: import('../data/clientes').PlanMes | null
   analisis_marca: import('../data/clientes').AnalisisMarca | null
   parrilla_htmls: import('../data/clientes').ParrillaHtml[]
+  parrilla_meses: import('../data/clientes').ParrillaMes[]
+  accesos: import('../data/clientes').AccesoItem[]
 } {
   return {
     nombre:              c.nombre              ?? '',
@@ -633,6 +635,8 @@ function portalPayload(c: Partial<Cliente>): {
     plan_mes:            c.plan_mes            ?? null,
     analisis_marca:      c.analisis_marca      ?? null,
     parrilla_htmls:      c.parrilla_htmls      ?? [],
+    parrilla_meses:      c.parrilla_meses      ?? [],
+    accesos:             c.accesos             ?? [],
   }
 }
 

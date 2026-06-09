@@ -5,7 +5,7 @@ import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
 } from '../../lib/db'
-import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml } from '../../data/clientes'
+import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
@@ -26,7 +26,7 @@ const ROSE  = '#FF4D8D'                   // danger
 const AMB   = '#FFB865'                   // amber / pausado
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia'
+type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -92,6 +92,19 @@ export default function ClientesAdmin() {
   const [newHtmlMes,      setNewHtmlMes]      = useState('')
   const [htmlUploading,   setHtmlUploading]   = useState(false)
   const [htmlUploadError, setHtmlUploadError] = useState('')
+
+  /* tablero trello por meses */
+  const [expandedTrelloMesId,   setExpandedTrelloMesId]   = useState<string | null>(null)
+  const [newMesLabel2,          setNewMesLabel2]           = useState('')
+  const [newMesMesValue,        setNewMesMesValue]         = useState('')
+  const [trelloMesHtmlUploading,setTrelloMesHtmlUploading] = useState<string | null>(null)  // id del mes que está subiendo
+  const [newExtraData,          setNewExtraData]           = useState<Record<string, { label: string; url: string; nota: string }>>({})
+
+  /* accesos */
+  const [newAcceso, setNewAcceso] = useState<Omit<AccesoItem, 'id' | 'createdAt'>>({ plataforma:'', usuario:'', password:'', url:'', notas:'' })
+  const [showNewPwd, setShowNewPwd] = useState(false)
+  const [editAccesoId, setEditAccesoId] = useState<string | null>(null)
+  const [showEditPwd,  setShowEditPwd]  = useState(false)
 
   /* confirm delete */
   const [confirmId, setConfirmId] = useState<string | null>(null)
@@ -275,6 +288,90 @@ export default function ClientesAdmin() {
 
   function removeParrillaHtml(id: string) {
     setForm(f => ({ ...f, parrilla_htmls: (f.parrilla_htmls ?? []).filter(h => h.id !== id) }))
+  }
+
+  /* ── Tablero Trello — funciones ── */
+
+  function addTrelloMes() {
+    if (!newMesLabel2.trim() || !newMesMesValue) return
+    const mes: ParrillaMes = {
+      id:        newId(),
+      mes:       newMesMesValue,
+      label:     newMesLabel2.trim(),
+      createdAt: new Date().toISOString(),
+    }
+    setForm(f => ({ ...f, parrilla_meses: [...(f.parrilla_meses ?? []), mes] }))
+    setNewMesLabel2(''); setNewMesMesValue('')
+    setExpandedTrelloMesId(mes.id)
+  }
+
+  function removeTrelloMes(id: string) {
+    setForm(f => ({ ...f, parrilla_meses: (f.parrilla_meses ?? []).filter(m => m.id !== id) }))
+    if (expandedTrelloMesId === id) setExpandedTrelloMesId(null)
+  }
+
+  function updateTrelloMes(id: string, patch: Partial<ParrillaMes>) {
+    setForm(f => ({
+      ...f,
+      parrilla_meses: (f.parrilla_meses ?? []).map(m => m.id === id ? { ...m, ...patch } : m),
+    }))
+  }
+
+  async function uploadTrelloMesHtml(mesId: string, file: File) {
+    setTrelloMesHtmlUploading(mesId)
+    try {
+      const texto = await file.text()
+      updateTrelloMes(mesId, { html_contenido: texto })
+    } catch { /* ignore */ } finally {
+      setTrelloMesHtmlUploading(null)
+    }
+  }
+
+  function addExtraToMes(mesId: string) {
+    const d = newExtraData[mesId]
+    if (!d?.label?.trim()) return
+    const extra: ParrillaExtraItem = {
+      id:    newId(),
+      label: d.label.trim(),
+      url:   d.url?.trim() || undefined,
+      nota:  d.nota?.trim() || undefined,
+    }
+    updateTrelloMes(mesId, {
+      extras: [...((form.parrilla_meses ?? []).find(m => m.id === mesId)?.extras ?? []), extra],
+    })
+    setNewExtraData(prev => ({ ...prev, [mesId]: { label: '', url: '', nota: '' } }))
+  }
+
+  function removeExtraFromMes(mesId: string, extraId: string) {
+    const mes = (form.parrilla_meses ?? []).find(m => m.id === mesId)
+    if (!mes) return
+    updateTrelloMes(mesId, { extras: (mes.extras ?? []).filter(e => e.id !== extraId) })
+  }
+
+  /* ── Accesos — funciones ── */
+  function addAcceso() {
+    if (!newAcceso.plataforma.trim() || !newAcceso.usuario.trim() || !newAcceso.password.trim()) return
+    const item: AccesoItem = {
+      id:         newId(),
+      plataforma: newAcceso.plataforma.trim(),
+      usuario:    newAcceso.usuario.trim(),
+      password:   newAcceso.password,
+      url:        newAcceso.url?.trim() || undefined,
+      notas:      newAcceso.notas?.trim() || undefined,
+      createdAt:  new Date().toISOString(),
+    }
+    setForm(f => ({ ...f, accesos: [...(f.accesos ?? []), item] }))
+    setNewAcceso({ plataforma:'', usuario:'', password:'', url:'', notas:'' })
+    setShowNewPwd(false)
+  }
+
+  function removeAcceso(id: string) {
+    setForm(f => ({ ...f, accesos: (f.accesos ?? []).filter(a => a.id !== id) }))
+    if (editAccesoId === id) setEditAccesoId(null)
+  }
+
+  function updateAcceso(id: string, patch: Partial<AccesoItem>) {
+    setForm(f => ({ ...f, accesos: (f.accesos ?? []).map(a => a.id === id ? { ...a, ...patch } : a) }))
   }
 
   async function saveSolicitudRespuesta(s: Solicitud) {
@@ -502,6 +599,7 @@ export default function ClientesAdmin() {
                 { key: 'metricas',    label: `📊 Métricas (${(form.metricas_historico ?? []).length})` },
                 { key: 'portal',      label: '🔗 Portal' },
                 { key: 'estrategia',  label: '🎯 Estrategia' },
+                { key: 'accesos',     label: `🔐 Accesos (${(form.accesos ?? []).length})` },
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
                   key={t.key}
@@ -533,8 +631,13 @@ export default function ClientesAdmin() {
                       <input value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} style={inputStyle} placeholder="Nombre completo" />
                     </label>
                     <label style={labelStyle}>
-                      Marca / Proyecto <span style={{ color: '#EF4444' }}>*</span>
-                      <input value={form.marca} onChange={e => setForm(f => ({ ...f, marca: e.target.value }))} style={inputStyle} placeholder="Ej: Studio Alma" />
+                      Marca / Empresa <span style={{ color: '#EF4444' }}>*</span>
+                      <input
+                        value={form.marca}
+                        onChange={e => setForm(f => ({ ...f, marca: e.target.value, empresa: e.target.value }))}
+                        style={inputStyle}
+                        placeholder="Ej: Casa Mama Hotel"
+                      />
                     </label>
                     <label style={labelStyle}>
                       Email <span style={{ color: '#EF4444' }}>*</span>
@@ -543,10 +646,6 @@ export default function ClientesAdmin() {
                     <label style={labelStyle}>
                       Teléfono
                       <input value={form.telefono ?? ''} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} style={inputStyle} placeholder="+57 300 000 0000" />
-                    </label>
-                    <label style={labelStyle}>
-                      Empresa
-                      <input value={form.empresa ?? ''} onChange={e => setForm(f => ({ ...f, empresa: e.target.value }))} style={inputStyle} placeholder="Nombre de la empresa" />
                     </label>
                     <label style={labelStyle}>
                       Estado
@@ -1419,66 +1518,310 @@ export default function ClientesAdmin() {
                       </div>
                     </div>
 
-                    {/* ── Parrilla HTML ── */}
+                    {/* ── Tablero Trello por meses ── */}
                     <div>
-                      {sectionHdr('📅 Parrillas HTML por mes')}
+                      {sectionHdr('📋 Tablero Trello por meses')}
 
-                      {/* Lista existente */}
-                      {(form.parrilla_htmls ?? []).length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                          {[...(form.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes)).map(h => (
-                            <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '10px 14px' }}>
-                              <span style={{ fontSize: '18px' }}>📄</span>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <p style={{ margin: 0, fontSize: '13px', color: WHT, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.label}</p>
-                                <p style={{ margin: '2px 0 0', fontSize: '11px', color: MUT }}>{h.mes}</p>
+                      {/* Lista de meses existentes */}
+                      {(form.parrilla_meses ?? []).length > 0 && (
+                        <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginBottom:'16px' }}>
+                          {[...(form.parrilla_meses ?? [])].sort((a, b) => a.mes.localeCompare(b.mes)).map(mes => {
+                            const isOpen = expandedTrelloMesId === mes.id
+                            const extraInit = newExtraData[mes.id] ?? { label:'', url:'', nota:'' }
+                            return (
+                              <div key={mes.id} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius:'8px', overflow:'hidden' }}>
+                                {/* Cabecera del mes */}
+                                <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'10px 14px', cursor:'pointer' }}
+                                  onClick={() => setExpandedTrelloMesId(isOpen ? null : mes.id)}>
+                                  <span style={{ fontSize:'16px' }}>📅</span>
+                                  <div style={{ flex:1, minWidth:0 }}>
+                                    <p style={{ margin:0, fontSize:'13px', color:WHT, fontWeight:700 }}>{mes.label}</p>
+                                    <p style={{ margin:'1px 0 0', fontSize:'11px', color:MUT }}>{mes.mes}</p>
+                                  </div>
+                                  <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                                    {mes.html_contenido && <span style={{ fontSize:'10px', background:'rgba(107,33,168,0.25)', color:'#C4B5FD', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>HTML ✓</span>}
+                                    {(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels) && <span style={{ fontSize:'10px', background:'rgba(5,150,105,0.2)', color:'#6EE7B7', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>Drive ✓</span>}
+                                    {(mes.extras ?? []).length > 0 && <span style={{ fontSize:'10px', background:'rgba(217,119,6,0.2)', color:'#FCD34D', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>{(mes.extras ?? []).length} extras</span>}
+                                    <span style={{ fontSize:'13px', color:MUT, transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition:'transform 0.2s' }}>▾</span>
+                                  </div>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); removeTrelloMes(mes.id) }}
+                                    style={{ padding:'3px 9px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}
+                                  >🗑</button>
+                                </div>
+
+                                {/* Panel expandido */}
+                                {isOpen && (
+                                  <div style={{ borderTop:`0.5px solid ${BDR}`, padding:'14px', display:'flex', flexDirection:'column', gap:'14px' }}>
+
+                                    {/* Editar etiqueta */}
+                                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+                                      <label style={labelStyle}>
+                                        Etiqueta
+                                        <input value={mes.label} onChange={e => updateTrelloMes(mes.id, { label: e.target.value })} style={inputStyle} placeholder="Mes 1 · Julio 2026" />
+                                      </label>
+                                      <label style={labelStyle}>
+                                        Mes
+                                        <input type="month" value={mes.mes} onChange={e => updateTrelloMes(mes.id, { mes: e.target.value })} style={inputStyle} />
+                                      </label>
+                                    </div>
+
+                                    {/* Bloque 1: HTML Estrategia */}
+                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#A78BFA', textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
+                                      <label style={labelStyle}>
+                                        Título de la estrategia (opcional)
+                                        <input value={mes.html_titulo ?? ''} onChange={e => updateTrelloMes(mes.id, { html_titulo: e.target.value })} style={inputStyle} placeholder="Estrategia Digital · Julio 2026" />
+                                      </label>
+                                      <div style={{ marginTop:'10px' }}>
+                                        {mes.html_contenido ? (
+                                          <div style={{ display:'flex', alignItems:'center', gap:'10px', background:DIM, border:`0.5px solid ${BDR}`, borderRadius:'6px', padding:'8px 12px' }}>
+                                            <span style={{ fontSize:'14px' }}>✅</span>
+                                            <p style={{ margin:0, fontSize:'12px', color:'#6EE7B7', flex:1 }}>HTML cargado ({(mes.html_contenido.length / 1024).toFixed(1)} KB)</p>
+                                            <button onClick={() => updateTrelloMes(mes.id, { html_contenido: undefined })} style={{ padding:'3px 8px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE }}>✕ Quitar</button>
+                                          </div>
+                                        ) : (
+                                          <label style={{ ...labelStyle }}>
+                                            Subir archivo HTML
+                                            <input
+                                              type="file" accept=".html,text/html"
+                                              disabled={trelloMesHtmlUploading === mes.id}
+                                              onChange={e => { const f = e.target.files?.[0]; if (f) uploadTrelloMesHtml(mes.id, f); e.target.value = '' }}
+                                              style={{ ...inputStyle, cursor:'pointer', padding:'7px 12px', marginTop:'4px' }}
+                                            />
+                                            {trelloMesHtmlUploading === mes.id && <span style={{ fontSize:'11px', color:ACC2, marginTop:'4px', display:'block' }}>Procesando…</span>}
+                                          </label>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Bloque 2: Drive Links */}
+                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#6EE7B7', textTransform:'uppercase', letterSpacing:'0.5px' }}>🗂️ Bloque 2 — Accesos Google Drive</p>
+                                      <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                                        <label style={labelStyle}>
+                                          POST — URL Drive
+                                          <input value={mes.drive_links?.post ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, post: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
+                                        </label>
+                                        <label style={labelStyle}>
+                                          CARRUSEL — URL Drive
+                                          <input value={mes.drive_links?.carrusel ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, carrusel: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
+                                        </label>
+                                        <label style={labelStyle}>
+                                          REELS — URL Drive
+                                          <input value={mes.drive_links?.reels ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, reels: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
+                                        </label>
+                                      </div>
+                                    </div>
+
+                                    {/* Bloque 3: Extras */}
+                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#FCD34D', textTransform:'uppercase', letterSpacing:'0.5px' }}>📦 Bloque 3 — Extras / Otros</p>
+                                      {(mes.extras ?? []).length > 0 && (
+                                        <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'10px' }}>
+                                          {(mes.extras ?? []).map(ex => (
+                                            <div key={ex.id} style={{ display:'flex', alignItems:'center', gap:'8px', background:DIM, border:`0.5px solid ${BDR}`, borderRadius:'5px', padding:'7px 10px' }}>
+                                              <div style={{ flex:1, minWidth:0 }}>
+                                                <p style={{ margin:0, fontSize:'12px', color:WHT, fontWeight:600 }}>{ex.label}</p>
+                                                {ex.url && <p style={{ margin:'1px 0 0', fontSize:'10px', color:MUT, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ex.url}</p>}
+                                                {ex.nota && <p style={{ margin:'1px 0 0', fontSize:'10px', color:MUT }}>{ex.nota}</p>}
+                                              </div>
+                                              <button onClick={() => removeExtraFromMes(mes.id, ex.id)} style={{ padding:'2px 7px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'10px', color:ROSE }}>✕</button>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                      <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                                        <label style={labelStyle}>
+                                          Etiqueta *
+                                          <input value={extraInit.label} onChange={e => setNewExtraData(p => ({ ...p, [mes.id]: { ...extraInit, label: e.target.value } }))} style={inputStyle} placeholder="Link de referencia" />
+                                        </label>
+                                        <label style={labelStyle}>
+                                          URL (opcional)
+                                          <input value={extraInit.url} onChange={e => setNewExtraData(p => ({ ...p, [mes.id]: { ...extraInit, url: e.target.value } }))} style={inputStyle} placeholder="https://..." />
+                                        </label>
+                                        <label style={labelStyle}>
+                                          Nota (opcional)
+                                          <input value={extraInit.nota} onChange={e => setNewExtraData(p => ({ ...p, [mes.id]: { ...extraInit, nota: e.target.value } }))} style={inputStyle} placeholder="Contexto adicional" />
+                                        </label>
+                                        <button
+                                          disabled={!extraInit.label.trim()}
+                                          onClick={() => addExtraToMes(mes.id)}
+                                          style={{ padding:'7px 16px', borderRadius:'6px', border:'none', background: extraInit.label.trim() ? ACC2 : BDR2, color: extraInit.label.trim() ? '#fff' : MUT, cursor: extraInit.label.trim() ? 'pointer' : 'not-allowed', fontWeight:700, fontSize:'12px', alignSelf:'flex-start' }}
+                                        >+ Agregar extra</button>
+                                      </div>
+                                    </div>
+
+                                  </div>
+                                )}
                               </div>
-                              <button
-                                onClick={() => removeParrillaHtml(h.id)}
-                                style={{ padding: '4px 10px', borderRadius: '4px', border: `0.5px solid #4a1a2e`, background: 'transparent', cursor: 'pointer', fontSize: '11px', color: ROSE, flexShrink: 0 }}
-                              >
-                                🗑 Eliminar
-                              </button>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       )}
 
-                      {/* Formulario agregar */}
-                      <div style={{ background: '#0D0D14', border: `1px dashed ${BDR2}`, borderRadius: '8px', padding: '16px' }}>
-                        <p style={{ fontSize: '11px', fontWeight: 700, color: MUT, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 12px' }}>+ Subir nueva parrilla HTML</p>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      {/* Formulario nuevo mes */}
+                      <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                        <p style={{ fontSize:'11px', fontWeight:700, color:MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Agregar nuevo mes al tablero</p>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
                           <label style={labelStyle}>
                             Etiqueta *
-                            <input value={newHtmlLabel} onChange={e => setNewHtmlLabel(e.target.value)} style={inputStyle} placeholder="Mes 1 · Julio 2026" />
+                            <input value={newMesLabel2} onChange={e => setNewMesLabel2(e.target.value)} style={inputStyle} placeholder="Mes 1 · Julio 2026" />
                           </label>
                           <label style={labelStyle}>
                             Mes *
-                            <input type="month" value={newHtmlMes} onChange={e => setNewHtmlMes(e.target.value)} style={inputStyle} />
+                            <input type="month" value={newMesMesValue} onChange={e => setNewMesMesValue(e.target.value)} style={inputStyle} />
                           </label>
                         </div>
-                        <label style={labelStyle}>
-                          Archivo HTML *
-                          <input
-                            type="file"
-                            accept=".html,text/html"
-                            disabled={!newHtmlLabel.trim() || !newHtmlMes || htmlUploading}
-                            onChange={e => {
-                              const file = e.target.files?.[0]
-                              if (file) addParrillaHtml(file)
-                              e.target.value = ''
-                            }}
-                            style={{ ...inputStyle, cursor: !newHtmlLabel.trim() || !newHtmlMes ? 'not-allowed' : 'pointer', padding: '7px 12px', marginTop: '4px' }}
-                          />
-                        </label>
-                        {htmlUploading && <p style={{ fontSize: '12px', color: ACC2, margin: '8px 0 0' }}>Procesando archivo…</p>}
-                        {htmlUploadError && <p style={{ fontSize: '12px', color: ROSE, margin: '8px 0 0' }}>{htmlUploadError}</p>}
-                        {(!newHtmlLabel.trim() || !newHtmlMes) && (
-                          <p style={{ fontSize: '11px', color: MUT, margin: '8px 0 0' }}>Completa la etiqueta y el mes antes de seleccionar el archivo.</p>
-                        )}
+                        <button
+                          disabled={!newMesLabel2.trim() || !newMesMesValue}
+                          onClick={addTrelloMes}
+                          style={{ padding:'8px 18px', borderRadius:'6px', border:'none', background: newMesLabel2.trim() && newMesMesValue ? C1 : BDR2, color: newMesLabel2.trim() && newMesMesValue ? '#fff' : MUT, cursor: newMesLabel2.trim() && newMesMesValue ? 'pointer' : 'not-allowed', fontWeight:700, fontSize:'12px' }}
+                        >+ Crear mes</button>
                       </div>
+
+                      {/* Legacy: parrillas HTML antiguas */}
+                      {(form.parrilla_htmls ?? []).length > 0 && (
+                        <div style={{ marginTop:'20px' }}>
+                          {sectionHdr('📅 Parrillas HTML legacy (sistema anterior)')}
+                          <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px' }}>
+                            {[...(form.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes)).map(h => (
+                              <div key={h.id} style={{ display:'flex', alignItems:'center', gap:'10px', background:DIM, border:`0.5px solid ${BDR}`, borderRadius:'6px', padding:'10px 14px' }}>
+                                <span style={{ fontSize:'18px' }}>📄</span>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                  <p style={{ margin:0, fontSize:'13px', color:WHT, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{h.label}</p>
+                                  <p style={{ margin:'2px 0 0', fontSize:'11px', color:MUT }}>{h.mes}</p>
+                                </div>
+                                <button onClick={() => removeParrillaHtml(h.id)} style={{ padding:'4px 10px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}>🗑 Eliminar</button>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                            <p style={{ fontSize:'11px', fontWeight:700, color:MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Subir parrilla HTML legacy</p>
+                            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
+                              <label style={labelStyle}>Etiqueta *<input value={newHtmlLabel} onChange={e => setNewHtmlLabel(e.target.value)} style={inputStyle} placeholder="Mes 1 · Julio 2026" /></label>
+                              <label style={labelStyle}>Mes *<input type="month" value={newHtmlMes} onChange={e => setNewHtmlMes(e.target.value)} style={inputStyle} /></label>
+                            </div>
+                            <label style={labelStyle}>
+                              Archivo HTML *
+                              <input type="file" accept=".html,text/html" disabled={!newHtmlLabel.trim() || !newHtmlMes || htmlUploading}
+                                onChange={e => { const file = e.target.files?.[0]; if (file) addParrillaHtml(file); e.target.value = '' }}
+                                style={{ ...inputStyle, cursor: !newHtmlLabel.trim() || !newHtmlMes ? 'not-allowed' : 'pointer', padding:'7px 12px', marginTop:'4px' }} />
+                            </label>
+                            {htmlUploading && <p style={{ fontSize:'12px', color:ACC2, margin:'8px 0 0' }}>Procesando…</p>}
+                            {htmlUploadError && <p style={{ fontSize:'12px', color:ROSE, margin:'8px 0 0' }}>{htmlUploadError}</p>}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
+                  </div>
+                )
+              })()}
+
+              {/* ─ ACCESOS ─ */}
+              {tab === 'accesos' && (() => {
+                const PLAT_COLORS: Record<string, string> = {
+                  instagram:'#E1306C', facebook:'#1877F2', tiktok:'#010101',
+                  youtube:'#FF0000', twitter:'#1DA1F2', x:'#000',
+                  linkedin:'#0A66C2', google:'#4285F4', gmail:'#EA4335',
+                  canva:'#00C4CC', wordpress:'#21759B', shopify:'#96BF48',
+                  mailchimp:'#FFB800', whatsapp:'#25D366', pinterest:'#E60023',
+                }
+                function getPlatColor(nombre: string) {
+                  return PLAT_COLORS[nombre.toLowerCase().replace(/\s/g,'')] ?? ACC2
+                }
+
+                return (
+                  <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'4px 0 6px' }}>
+                      <span style={{ fontSize:'12px', fontWeight:800, color: WHT, letterSpacing:'0.3px' }}>🔐 Accesos y credenciales</span>
+                      <div style={{ flex:1, height:'1px', background: BDR }} />
+                    </div>
+
+                    {/* Lista existente */}
+                    {(form.accesos ?? []).length > 0 && (
+                      <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                        {(form.accesos ?? []).map(acc => {
+                          const color = getPlatColor(acc.plataforma)
+                          const isEditing = editAccesoId === acc.id
+                          return (
+                            <div key={acc.id} style={{ background: DIM, border:`0.5px solid ${BDR}`, borderLeft:`3px solid ${color}`, borderRadius:'8px', overflow:'hidden' }}>
+                              {/* Cabecera */}
+                              <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'10px 14px', cursor:'pointer' }}
+                                onClick={() => { setEditAccesoId(isEditing ? null : acc.id); setShowEditPwd(false) }}>
+                                <div style={{ width:'28px', height:'28px', borderRadius:'6px', background:`${color}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', flexShrink:0, fontWeight:900, color }}>
+                                  {acc.plataforma[0]?.toUpperCase()}
+                                </div>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                  <p style={{ margin:0, fontSize:'13px', color: WHT, fontWeight:700 }}>{acc.plataforma}</p>
+                                  <p style={{ margin:'1px 0 0', fontSize:'11px', color: MUT, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{acc.usuario}</p>
+                                </div>
+                                <span style={{ fontSize:'11px', color: MUT, transform: isEditing ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▾</span>
+                                <button onClick={e => { e.stopPropagation(); removeAcceso(acc.id) }}
+                                  style={{ padding:'2px 8px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color: ROSE, flexShrink:0 }}>🗑</button>
+                              </div>
+                              {/* Editor inline */}
+                              {isEditing && (
+                                <div style={{ borderTop:`0.5px solid ${BDR}`, padding:'12px 14px', display:'flex', flexDirection:'column', gap:'8px' }}>
+                                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px' }}>
+                                    <label style={labelStyle}>Plataforma<input value={acc.plataforma} onChange={e => updateAcceso(acc.id, { plataforma: e.target.value })} style={inputStyle} /></label>
+                                    <label style={labelStyle}>Usuario / Email<input value={acc.usuario} onChange={e => updateAcceso(acc.id, { usuario: e.target.value })} style={inputStyle} /></label>
+                                  </div>
+                                  <label style={labelStyle}>
+                                    Contraseña
+                                    <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
+                                      <input type={showEditPwd ? 'text' : 'password'} value={acc.password} onChange={e => updateAcceso(acc.id, { password: e.target.value })} style={{ ...inputStyle, flex:1 }} />
+                                      <button onClick={() => setShowEditPwd(v => !v)} style={{ padding:'8px 12px', borderRadius:'6px', border:`0.5px solid ${BDR2}`, background:DIM, color: WHT, cursor:'pointer', fontSize:'13px', flexShrink:0 }}>
+                                        {showEditPwd ? '🙈' : '👁'}
+                                      </button>
+                                    </div>
+                                  </label>
+                                  <label style={labelStyle}>URL (opcional)<input value={acc.url ?? ''} onChange={e => updateAcceso(acc.id, { url: e.target.value || undefined })} style={inputStyle} placeholder="https://..." /></label>
+                                  <label style={labelStyle}>Notas<input value={acc.notas ?? ''} onChange={e => updateAcceso(acc.id, { notas: e.target.value || undefined })} style={inputStyle} placeholder="Contexto adicional" /></label>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Formulario nuevo acceso */}
+                    <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                      <p style={{ fontSize:'11px', fontWeight:700, color: MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Agregar nuevo acceso</p>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
+                        <label style={labelStyle}>
+                          Plataforma *
+                          <input value={newAcceso.plataforma} onChange={e => setNewAcceso(p => ({ ...p, plataforma: e.target.value }))} style={inputStyle} placeholder="Instagram, Google, Canva…" list="plat-list" />
+                          <datalist id="plat-list">
+                            {['Instagram','Facebook','TikTok','YouTube','Twitter','LinkedIn','Google','Gmail','Canva','WordPress','Shopify','Mailchimp','WhatsApp','Pinterest','X'].map(p => <option key={p} value={p} />)}
+                          </datalist>
+                        </label>
+                        <label style={labelStyle}>
+                          Usuario / Email *
+                          <input value={newAcceso.usuario} onChange={e => setNewAcceso(p => ({ ...p, usuario: e.target.value }))} style={inputStyle} placeholder="usuario@email.com" />
+                        </label>
+                      </div>
+                      <label style={{ ...labelStyle, marginBottom:'10px', display:'flex', flexDirection:'column' }}>
+                        Contraseña *
+                        <div style={{ display:'flex', gap:'6px', alignItems:'center', marginTop:'4px' }}>
+                          <input type={showNewPwd ? 'text' : 'password'} value={newAcceso.password} onChange={e => setNewAcceso(p => ({ ...p, password: e.target.value }))} style={{ ...inputStyle, flex:1, marginTop:0 }} placeholder="Contraseña" />
+                          <button onClick={() => setShowNewPwd(v => !v)} style={{ padding:'8px 12px', borderRadius:'6px', border:`0.5px solid ${BDR2}`, background:DIM, color: WHT, cursor:'pointer', fontSize:'13px', flexShrink:0 }}>
+                            {showNewPwd ? '🙈' : '👁'}
+                          </button>
+                        </div>
+                      </label>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'12px' }}>
+                        <label style={labelStyle}>URL (opcional)<input value={newAcceso.url ?? ''} onChange={e => setNewAcceso(p => ({ ...p, url: e.target.value }))} style={inputStyle} placeholder="https://..." /></label>
+                        <label style={labelStyle}>Notas (opcional)<input value={newAcceso.notas ?? ''} onChange={e => setNewAcceso(p => ({ ...p, notas: e.target.value }))} style={inputStyle} placeholder="Contexto adicional" /></label>
+                      </div>
+                      <button
+                        disabled={!newAcceso.plataforma.trim() || !newAcceso.usuario.trim() || !newAcceso.password.trim()}
+                        onClick={addAcceso}
+                        style={{ padding:'8px 20px', borderRadius:'6px', border:'none', background: newAcceso.plataforma && newAcceso.usuario && newAcceso.password ? C1 : BDR2, color: newAcceso.plataforma && newAcceso.usuario && newAcceso.password ? '#fff' : MUT, fontWeight:700, fontSize:'12px', cursor: newAcceso.plataforma && newAcceso.usuario && newAcceso.password ? 'pointer' : 'not-allowed' }}
+                      >+ Agregar acceso</button>
+                    </div>
                   </div>
                 )
               })()}

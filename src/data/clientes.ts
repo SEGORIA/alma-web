@@ -91,6 +91,7 @@ export type Solicitud = {
 
 export type MetricaMes = {
   mes:                string   // YYYY-MM
+  plataforma?:        string   // "ig" | "fb" | "tk" | "tw" | "li" | "yt" — si aplica a una red específica
   alcance?:           number
   impresiones?:       number
   likes?:             number
@@ -131,6 +132,47 @@ export type ParrillaHtml = {
   createdAt?: string
 }
 
+// ── Tablero Trello por meses ──────────────────────────────
+
+export type ParrillaDriveLinks = {
+  post?:     string   // URL Google Drive — POSTs
+  carrusel?: string   // URL Google Drive — Carruseles
+  reels?:    string   // URL Google Drive — Reels
+}
+
+export type ParrillaExtraItem = {
+  id:     string
+  label:  string
+  url?:   string
+  nota?:  string
+}
+
+export type ParrillaMes = {
+  id:              string
+  mes:             string              // "2026-07"
+  label:           string              // "Julio 2026" · "Mes 1 · Julio 2026"
+  // Bloque 1 — estrategia HTML (opcional)
+  html_contenido?: string
+  html_titulo?:    string
+  // Bloque 2 — accesos Google Drive
+  drive_links?:    ParrillaDriveLinks
+  // Bloque 3 — extras / otros (opcional)
+  extras?:         ParrillaExtraItem[]
+  createdAt?:      string
+}
+
+// ── Accesos / Credenciales por plataforma ─────────────────
+
+export type AccesoItem = {
+  id:         string
+  plataforma: string    // "Instagram", "Facebook", "TikTok", etc.
+  usuario:    string    // usuario / email / número
+  password:   string    // contraseña (cifrado a cargo del admin)
+  url?:       string    // enlace directo a la cuenta
+  notas?:     string    // notas adicionales
+  createdAt?: string
+}
+
 export type ClienteEstado = 'activo' | 'pausado' | 'finalizado' | 'prospecto'
 
 export type Cliente = {
@@ -161,6 +203,8 @@ export type Cliente = {
   plan_mes?:       PlanMes
   analisis_marca?: AnalisisMarca
   parrilla_htmls?: ParrillaHtml[]
+  parrilla_meses?: ParrillaMes[]    // Tablero Trello por mes
+  accesos?:        AccesoItem[]     // Credenciales de plataformas
   // Servicios adicionales
   acomp_eventos?: boolean             // acompañamiento a eventos incluido
   grabaciones_mes?: number            // grabaciones programadas por mes

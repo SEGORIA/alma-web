@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
-import { Routes, Route, Link as RouterLink } from 'react-router-dom'
+import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom'
+import { trackPageView } from './lib/analytics'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import './index.css'
@@ -564,6 +565,15 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
+/* ── Route tracker: registra page_view en GA4 ───────────── */
+function RouteTracker() {
+  const location = useLocation()
+  useEffect(() => {
+    trackPageView(location.pathname)
+  }, [location.pathname])
+  return null
+}
+
 /* ── App Router ──────────────────────────────────────────── */
 export default function App() {
   // Subdominio brief → mostrar solo el formulario, sin landing ni nav
@@ -577,6 +587,7 @@ export default function App() {
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <RouteTracker />
       <BackToTop />
       <Routes>
         {/* Público */}

@@ -61,7 +61,7 @@ export default function ClientePortal() {
   const { token } = useParams<{ token: string }>()
   const [data,    setData]    = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab,     setTab]     = useState<'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes'>('inicio')
+  const [tab,     setTab]     = useState<'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos'>('inicio')
   const [showSolForm, setShowSolForm] = useState(false)
   const [solTipo,     setSolTipo]     = useState<Solicitud['tipo']>('cambio')
   const [solDesc,     setSolDesc]     = useState('')
@@ -69,10 +69,12 @@ export default function ClientePortal() {
   const [sending,     setSending]     = useState(false)
   const [sent,        setSent]        = useState(false)
   // Parrilla
-  const [activeHtmlId, setActiveHtmlId] = useState<string | null>(null)
-  const [expandedId,   setExpandedId]   = useState<string | null>(null)
-  const [activeMes,    setActiveMes]    = useState<string>('all')
-  const [copiedId,     setCopiedId]     = useState<string | null>(null)
+  const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
+  const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
+  const [visiblePasswords,    setVisiblePasswords]    = useState<Set<string>>(new Set())
+  const [expandedId,          setExpandedId]          = useState<string | null>(null)
+  const [activeMes,           setActiveMes]           = useState<string>('all')
+  const [copiedId,            setCopiedId]            = useState<string | null>(null)
   // Contenido (revisión)
   const [reviewingId,   setReviewingId]   = useState<string | null>(null)
   const [reviewType,    setReviewType]    = useState<'aprobacion' | 'ajuste'>('aprobacion')
@@ -158,7 +160,7 @@ export default function ClientePortal() {
     finally { setReviewSending(false) }
   }
 
-  type PortalTab = 'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes'
+  type PortalTab = 'inicio' | 'entregables' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos'
   const TABS: { key: PortalTab; label: string }[] = [
     { key: 'inicio',      label: '🏠 Inicio' },
     { key: 'entregables', label: `📋 Contenido (${(data.entregables ?? []).length})` },
@@ -166,10 +168,14 @@ export default function ClientePortal() {
     { key: 'plan',        label: '📦 Plan del mes' },
     { key: 'marca',       label: '🎨 Análisis' },
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
+    ...((data.accesos ?? []).length > 0 ? [{ key: 'accesos' as PortalTab, label: '🔐 Accesos' }] : []),
   ]
 
-  // Compact header when an HTML parrilla is active
-  const isHtmlParrilla = tab === 'parrilla' && (data.parrilla_htmls ?? []).length > 0
+  // Compact header when parrilla tab has Trello board OR legacy HTML active
+  const isHtmlParrilla = tab === 'parrilla' && (
+    (data.parrilla_meses ?? []).length > 0 ||
+    (data.parrilla_htmls ?? []).length > 0
+  )
 
   return (
     <div style={{ minHeight: '100vh', background: '#F2F0FA', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
@@ -286,6 +292,48 @@ export default function ClientePortal() {
                   </div>
                 )}
               </div>
+
+              {/* ── Plan contratado (derecha) ── */}
+              {(data.plan_mes?.nombre || (data.plan_mes?.incluye ?? []).length > 0 || data.valor_contrato) && (
+                <div style={{
+                  flexShrink:0,
+                  background:'linear-gradient(135deg, rgba(250,204,21,0.10) 0%, rgba(250,204,21,0.05) 100%)',
+                  border:'1px solid rgba(250,204,21,0.28)',
+                  borderRadius:'16px',
+                  padding:'14px 18px',
+                  backdropFilter:'blur(10px)',
+                  minWidth:'180px',
+                  maxWidth:'260px',
+                }}>
+                  {/* Encabezado del plan */}
+                  <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'10px' }}>
+                    <div style={{ width:'22px', height:'22px', borderRadius:'50%', background:'rgba(250,204,21,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', flexShrink:0 }}>⭐</div>
+                    <div>
+                      {data.plan_mes?.nombre && (
+                        <p style={{ margin:0, fontSize:'13px', fontWeight:800, color:'rgba(250,204,21,0.95)', lineHeight:1.2 }}>{data.plan_mes.nombre}</p>
+                      )}
+                      {data.valor_contrato && (
+                        <p style={{ margin:0, fontSize:'11px', fontWeight:600, color:'rgba(255,255,255,0.45)' }}>{data.valor_contrato}{data.moneda ? ` ${data.moneda}` : ''}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Items del plan */}
+                  {(data.plan_mes?.incluye ?? []).length > 0 && (
+                    <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
+                      {(data.plan_mes!.incluye ?? []).slice(0, 5).map((item, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:'6px' }}>
+                          <span style={{ color:'rgba(250,204,21,0.7)', fontSize:'10px', marginTop:'2px', flexShrink:0, lineHeight:1.4 }}>✦</span>
+                          <span style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.65)', lineHeight:1.4, fontWeight:500 }}>{item}</span>
+                        </div>
+                      ))}
+                      {(data.plan_mes?.incluye ?? []).length > 5 && (
+                        <p style={{ margin:'2px 0 0', fontSize:'10.5px', color:'rgba(255,255,255,0.3)', fontWeight:500 }}>+{(data.plan_mes!.incluye ?? []).length - 5} más incluidos</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Navigation tabs */}
@@ -528,6 +576,22 @@ export default function ClientePortal() {
                     </div>
                   </div>
                 )}
+                {/* Plan contratado */}
+                {(data.plan_mes?.nombre || data.valor_contrato) && (
+                  <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #E5E7EB', display:'flex', gap:'14px', alignItems:'center' }}>
+                    <div style={{ width:'44px', height:'44px', borderRadius:'12px', background:'rgba(107,33,168,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'22px', flexShrink:0 }}>📦</div>
+                    <div style={{ minWidth:0 }}>
+                      <p style={{ fontSize:'11px', fontWeight:700, color:'#9CA3AF', margin:'0 0 3px', textTransform:'uppercase', letterSpacing:'0.5px' }}>Plan contratado</p>
+                      {data.plan_mes?.nombre && (
+                        <p style={{ fontSize:'15px', fontWeight:800, color:'#111', margin:'0 0 1px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{data.plan_mes.nombre}</p>
+                      )}
+                      {data.valor_contrato && (
+                        <p style={{ fontSize:'13px', fontWeight:700, color:P, margin:0 }}>{data.valor_contrato}{data.moneda ? ` ${data.moneda}` : ''}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Contrato */}
                 {data.contrato_url && (
                   <div style={{ background:'#fff', borderRadius:'16px', padding:'20px', border:'1px solid #E5E7EB', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
@@ -751,67 +815,218 @@ export default function ClientePortal() {
 
         {/* ── PARRILLA ── */}
         {tab === 'parrilla' && (() => {
+          const parrillaMeses = [...(data.parrilla_meses ?? [])].sort((a, b) => a.mes.localeCompare(b.mes))
+          const htmlsLegacy   = [...(data.parrilla_htmls  ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
 
-          // ── Vista HTML (si hay parrillas HTML subidas) ──
-          const htmls = [...(data.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
-          if (htmls.length > 0) {
-            const current = htmls.find(h => h.id === activeHtmlId) ?? htmls[0]
+          // ── Fullscreen HTML (tablero Trello — clic en card estrategia) ──
+          if (activeParrillaMesId) {
+            const mes = parrillaMeses.find(m => m.id === activeParrillaMesId)
+            if (mes?.html_contenido) {
+              const injected = data.logo_url
+                ? injectLogo(mes.html_contenido, data.logo_url, data.marca ?? '')
+                : mes.html_contenido
+              return (
+                <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px' }}>
+                  {/* Barra de retorno */}
+                  <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                    <button
+                      onClick={() => setActiveParrillaMesId(null)}
+                      style={{ padding:'6px 14px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.08)', color:'#fff', cursor:'pointer', fontWeight:700, fontSize:'12px', transition:'all 0.15s' }}
+                    >
+                      ← Tablero
+                    </button>
+                    <span style={{ fontSize:'13px', fontWeight:700, color:'rgba(255,255,255,0.8)' }}>
+                      {mes.html_titulo ?? mes.label}
+                    </span>
+                  </div>
+                  <iframe
+                    key={mes.id}
+                    srcDoc={injected}
+                    style={{ width:'100%', height:'calc(100vh - 96px)', minHeight:'700px', border:'none', display:'block' }}
+                    title={mes.label}
+                    sandbox="allow-scripts"
+                  />
+                </div>
+              )
+            }
+            // No tiene HTML, volver al tablero silenciosamente
+            return (
+              <div style={{ textAlign:'center', padding:'60px 20px' }}>
+                <p style={{ fontSize:'40px', margin:'0 0 12px' }}>📋</p>
+                <p style={{ color:'#6B7280', fontSize:'14px', marginBottom:'16px' }}>No hay HTML de estrategia para este mes.</p>
+                <button onClick={() => setActiveParrillaMesId(null)} style={{ padding:'9px 20px', borderRadius:'10px', background:P, color:'#fff', border:'none', cursor:'pointer', fontWeight:700, fontSize:'13px' }}>
+                  ← Volver al tablero
+                </button>
+              </div>
+            )
+          }
+
+          // ── Vista HTML legacy (parrilla_htmls) si no hay tablero nuevo ──
+          if (parrillaMeses.length === 0 && htmlsLegacy.length > 0) {
+            const current = htmlsLegacy.find(h => h.id === activeHtmlId) ?? htmlsLegacy[0]
             const injected = data.logo_url
               ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
               : current.contenido
             return (
-              /* Rompe el contenedor maxWidth:920px y ocupa todo el ancho de pantalla */
-              <div style={{
-                width: '100vw',
-                marginLeft: 'calc(50% - 50vw - 20px)',
-                marginTop: '-28px',
-                animation: 'fadeUp 0.35s ease',
-              }}>
-                {/* Selector de mes */}
-                {htmls.length > 1 && (
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '16px 20px 12px' }}>
-                    {htmls.map(h => (
-                      <button
-                        key={h.id}
-                        onClick={() => setActiveHtmlId(h.id)}
-                        style={{
-                          padding: '7px 18px', borderRadius: '20px', cursor: 'pointer',
-                          border: `1.5px solid ${current.id === h.id ? P : '#E5E7EB'}`,
-                          background: current.id === h.id ? P : '#fff',
-                          color: current.id === h.id ? '#fff' : '#6B7280',
-                          fontSize: '12.5px', fontWeight: 700, transition: 'all 0.15s',
-                        }}
-                      >
+              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', animation:'fadeUp 0.35s ease' }}>
+                {htmlsLegacy.length > 1 && (
+                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', padding:'16px 20px 12px' }}>
+                    {htmlsLegacy.map(h => (
+                      <button key={h.id} onClick={() => setActiveHtmlId(h.id)}
+                        style={{ padding:'7px 18px', borderRadius:'20px', cursor:'pointer', border:`1.5px solid ${current.id === h.id ? P : '#E5E7EB'}`, background: current.id === h.id ? P : '#fff', color: current.id === h.id ? '#fff' : '#6B7280', fontSize:'12.5px', fontWeight:700, transition:'all 0.15s' }}>
                         {h.label}
                       </button>
                     ))}
                   </div>
                 )}
-                {/* Iframe ancho completo */}
-                <iframe
-                    key={current.id}
-                    srcDoc={injected}
-                    style={{ width: '100%', height: 'calc(100vh - 96px)', minHeight: '700px', border: 'none', display: 'block' }}
-                    title={current.label}
-                    sandbox="allow-scripts"
-                  />
+                <iframe key={current.id} srcDoc={injected} style={{ width:'100%', height:'calc(100vh - 96px)', minHeight:'700px', border:'none', display:'block' }} title={current.label} sandbox="allow-scripts" />
               </div>
             )
           }
 
-          // ── Vista tabla (parrilla clásica) ──
+          // ── Tablero Trello ──
+          if (parrillaMeses.length > 0) {
+            return (
+              <div style={{
+                width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px',
+                background:'linear-gradient(160deg, #0E0322 0%, #1A0640 55%, #2D0C72 100%)',
+                minHeight:'calc(100vh - 96px)',
+                padding:'20px 24px 32px',
+                animation:'fadeUp 0.35s ease',
+              }}>
+                {/* Título del tablero */}
+                <div style={{ marginBottom:'20px', display:'flex', alignItems:'center', gap:'12px' }}>
+                  <p style={{ margin:0, fontSize:'12px', fontWeight:800, color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'1.5px' }}>
+                    Tablero de contenido
+                  </p>
+                  <div style={{ flex:1, height:'1px', background:'rgba(255,255,255,0.07)' }} />
+                </div>
+
+                {/* Columnas */}
+                <div style={{ display:'flex', gap:'16px', overflowX:'auto', alignItems:'flex-start', paddingBottom:'16px' }}>
+                  {parrillaMeses.map(mes => {
+                    const hasHtml   = !!mes.html_contenido
+                    const hasDrive  = !!(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels)
+                    const hasExtras = (mes.extras ?? []).length > 0
+                    const [y, mo]   = mes.mes.split('-')
+                    const mesNombre = new Date(+y, +mo - 1, 1).toLocaleDateString('es-CO', { month:'long', year:'numeric' })
+
+                    return (
+                      <div key={mes.id} style={{ minWidth:'272px', maxWidth:'272px', display:'flex', flexDirection:'column', gap:'10px', flexShrink:0 }}>
+                        {/* Cabecera de columna */}
+                        <div style={{ background:'rgba(255,255,255,0.08)', backdropFilter:'blur(10px)', borderRadius:'10px', padding:'12px 14px', border:'1px solid rgba(255,255,255,0.1)' }}>
+                          <p style={{ margin:0, fontSize:'14px', fontWeight:900, color:'#fff', letterSpacing:'-0.2px' }}>{mes.label}</p>
+                          <p style={{ margin:'2px 0 0', fontSize:'11px', color:'rgba(255,255,255,0.4)', textTransform:'capitalize' }}>{mesNombre}</p>
+                        </div>
+
+                        {/* Card 1: Estrategia HTML */}
+                        {hasHtml && (
+                          <div
+                            onClick={() => setActiveParrillaMesId(mes.id)}
+                            className="portal-card"
+                            style={{ background:'#fff', borderRadius:'10px', padding:'14px 14px 12px', border:'1px solid #E5E7EB', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.08)', transition:'transform 0.15s, box-shadow 0.15s' }}
+                          >
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                              <div style={{ width:'26px', height:'26px', borderRadius:'6px', background:PL, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'13px' }}>📋</div>
+                              <p style={{ margin:0, fontSize:'10px', fontWeight:800, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Estrategia del mes</p>
+                            </div>
+                            {mes.html_titulo && (
+                              <p style={{ margin:'0 0 8px', fontSize:'13.5px', color:'#111', fontWeight:700, lineHeight:1.3 }}>{mes.html_titulo}</p>
+                            )}
+                            <span style={{ fontSize:'12px', color:P, fontWeight:700 }}>Ver estrategia completa →</span>
+                          </div>
+                        )}
+
+                        {/* Card 2: Accesos Drive */}
+                        {hasDrive && (
+                          <div style={{ background:'#fff', borderRadius:'10px', padding:'14px', border:'1px solid #E5E7EB', boxShadow:'0 2px 8px rgba(0,0,0,0.08)' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                              <div style={{ width:'26px', height:'26px', borderRadius:'6px', background:'rgba(5,150,105,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'13px' }}>🗂️</div>
+                              <p style={{ margin:0, fontSize:'10px', fontWeight:800, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Accesos Drive</p>
+                            </div>
+                            <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
+                              {mes.drive_links?.post && (
+                                <a href={mes.drive_links.post} target="_blank" rel="noopener noreferrer"
+                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#F0FDF4', border:'1px solid #BBF7D0', textDecoration:'none' }}
+                                  onClick={e => e.stopPropagation()}>
+                                  <span style={{ fontSize:'15px' }}>📄</span>
+                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#065F46', flex:1 }}>POST</span>
+                                  <span style={{ fontSize:'11px', color:'#6EE7B7' }}>↗</span>
+                                </a>
+                              )}
+                              {mes.drive_links?.carrusel && (
+                                <a href={mes.drive_links.carrusel} target="_blank" rel="noopener noreferrer"
+                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#EFF6FF', border:'1px solid #BFDBFE', textDecoration:'none' }}
+                                  onClick={e => e.stopPropagation()}>
+                                  <span style={{ fontSize:'15px' }}>🎠</span>
+                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#1E40AF', flex:1 }}>CARRUSEL</span>
+                                  <span style={{ fontSize:'11px', color:'#93C5FD' }}>↗</span>
+                                </a>
+                              )}
+                              {mes.drive_links?.reels && (
+                                <a href={mes.drive_links.reels} target="_blank" rel="noopener noreferrer"
+                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#FDF4FF', border:'1px solid #E9D5FF', textDecoration:'none' }}
+                                  onClick={e => e.stopPropagation()}>
+                                  <span style={{ fontSize:'15px' }}>🎬</span>
+                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#7E22CE', flex:1 }}>REELS</span>
+                                  <span style={{ fontSize:'11px', color:'#D8B4FE' }}>↗</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Card 3: Extras */}
+                        {hasExtras && (
+                          <div style={{ background:'#fff', borderRadius:'10px', padding:'14px', border:'1px solid #E5E7EB', boxShadow:'0 2px 8px rgba(0,0,0,0.08)' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
+                              <div style={{ width:'26px', height:'26px', borderRadius:'6px', background:'rgba(217,119,6,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'13px' }}>📦</div>
+                              <p style={{ margin:0, fontSize:'10px', fontWeight:800, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Extras / Otros</p>
+                            </div>
+                            <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
+                              {(mes.extras ?? []).map(ex => (
+                                <div key={ex.id} style={{ padding:'9px 12px', borderRadius:'8px', background:'#FAFAFA', border:'1px solid #F3F4F6' }}>
+                                  {ex.url ? (
+                                    <a href={ex.url} target="_blank" rel="noopener noreferrer"
+                                      style={{ display:'flex', alignItems:'center', gap:'6px', textDecoration:'none' }}
+                                      onClick={e => e.stopPropagation()}>
+                                      <span style={{ fontSize:'13px', fontWeight:700, color:P, flex:1 }}>{ex.label}</span>
+                                      <span style={{ fontSize:'11px', color:P }}>↗</span>
+                                    </a>
+                                  ) : (
+                                    <p style={{ margin:0, fontSize:'13px', fontWeight:700, color:'#374151' }}>{ex.label}</p>
+                                  )}
+                                  {ex.nota && <p style={{ margin:'3px 0 0', fontSize:'11.5px', color:'#9CA3AF', lineHeight:1.4 }}>{ex.nota}</p>}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Empty column */}
+                        {!hasHtml && !hasDrive && !hasExtras && (
+                          <div style={{ padding:'20px 14px', background:'rgba(255,255,255,0.04)', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.12)', textAlign:'center' }}>
+                            <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', margin:0 }}>Sin contenido aún</p>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          }
+
+          // ── Vista tabla (parrilla clásica — fallback) ──
           const allItems = [...(data.parrilla ?? [])].sort((a, b) => {
             if (a.dia_num && b.dia_num) return a.dia_num - b.dia_num
             return (a.fecha ?? '').localeCompare(b.fecha ?? '')
           })
 
-          // Meses disponibles
-          const meses = [...new Set(allItems.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort()
-          const currentMes = activeMes === 'all' ? null : activeMes
-          const items = currentMes ? allItems.filter(p => p.fecha?.startsWith(currentMes)) : allItems
-
-          // Agrupar por semanas
-          const semanas = [...new Set(items.map(p => p.semana ?? 0))]
+          const mesesFiltro = [...new Set(allItems.map(p => p.fecha?.slice(0, 7)).filter(Boolean))].sort()
+          const currentMes  = activeMes === 'all' ? null : activeMes
+          const items       = currentMes ? allItems.filter(p => p.fecha?.startsWith(currentMes)) : allItems
+          const semanas     = [...new Set(items.map(p => p.semana ?? 0))]
 
           function copyCaption(p: ParrillaItem) {
             const text = [p.caption, p.hashtags].filter(Boolean).join('\n\n')
@@ -823,230 +1038,265 @@ export default function ClientePortal() {
           }
 
           if (allItems.length === 0) return (
-            <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <p style={{ fontSize: '40px', margin: '0 0 12px' }}>📅</p>
-              <p style={{ color: '#6B7280', fontSize: '15px' }}>La parrilla de contenido estará disponible aquí.<br />El equipo de Alma la completará pronto.</p>
+            <div style={{ textAlign:'center', padding:'60px 20px' }}>
+              <p style={{ fontSize:'40px', margin:'0 0 12px' }}>📅</p>
+              <p style={{ color:'#6B7280', fontSize:'15px' }}>La parrilla de contenido estará disponible aquí.<br />El equipo de Alma la completará pronto.</p>
             </div>
           )
 
           return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-
-              {/* ── Encabezado editorial ── */}
-              <div style={{ marginBottom: '24px' }}>
-                <p style={{ margin: '0 0 4px', fontSize: '11px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  Plan editorial · {allItems.length} días
-                </p>
-                <h2 style={{ margin: '0 0 2px', fontSize: '28px', fontWeight: 900, color: '#111', lineHeight: 1.15 }}>
-                  El Calendario <em style={{ color: '#D97706', fontStyle: 'italic', fontWeight: 800 }}>Exacto</em>
-                </h2>
-                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: '#111', lineHeight: 1.15 }}>Día por Día</h2>
+            <div style={{ display:'flex', flexDirection:'column', gap:'0' }}>
+              <div style={{ marginBottom:'24px' }}>
+                <p style={{ margin:'0 0 4px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Plan editorial · {allItems.length} días</p>
+                <h2 style={{ margin:'0 0 2px', fontSize:'28px', fontWeight:900, color:'#111', lineHeight:1.15 }}>El Calendario <em style={{ color:'#D97706', fontStyle:'italic', fontWeight:800 }}>Exacto</em></h2>
+                <h2 style={{ margin:0, fontSize:'28px', fontWeight:900, color:'#111', lineHeight:1.15 }}>Día por Día</h2>
               </div>
 
-              {/* ── Filtro por mes ── */}
-              {meses.length > 1 && (
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                  <button onClick={() => setActiveMes('all')} style={{ padding: '6px 14px', borderRadius: '20px', border: `1.5px solid ${activeMes === 'all' ? P : '#E5E7EB'}`, background: activeMes === 'all' ? P : '#fff', color: activeMes === 'all' ? '#fff' : '#6B7280', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                    Todos
-                  </button>
-                  {meses.map(mes => {
+              {mesesFiltro.length > 1 && (
+                <div style={{ display:'flex', gap:'6px', flexWrap:'wrap', marginBottom:'20px' }}>
+                  <button onClick={() => setActiveMes('all')} style={{ padding:'6px 14px', borderRadius:'20px', border:`1.5px solid ${activeMes === 'all' ? P : '#E5E7EB'}`, background: activeMes === 'all' ? P : '#fff', color: activeMes === 'all' ? '#fff' : '#6B7280', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>Todos</button>
+                  {mesesFiltro.map(mes => {
                     const [y, m] = mes.split('-')
-                    const label = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
+                    const label = new Date(+y, +m - 1, 1).toLocaleDateString('es-CO', { month:'short', year:'numeric' })
                     return (
-                      <button key={mes} onClick={() => setActiveMes(mes)} style={{ padding: '6px 14px', borderRadius: '20px', border: `1.5px solid ${activeMes === mes ? P : '#E5E7EB'}`, background: activeMes === mes ? P : '#fff', color: activeMes === mes ? '#fff' : '#6B7280', fontSize: '12px', fontWeight: 700, cursor: 'pointer', textTransform: 'capitalize' }}>
-                        {label}
-                      </button>
+                      <button key={mes} onClick={() => setActiveMes(mes)} style={{ padding:'6px 14px', borderRadius:'20px', border:`1.5px solid ${activeMes === mes ? P : '#E5E7EB'}`, background: activeMes === mes ? P : '#fff', color: activeMes === mes ? '#fff' : '#6B7280', fontSize:'12px', fontWeight:700, cursor:'pointer', textTransform:'capitalize' }}>{label}</button>
                     )
                   })}
                 </div>
               )}
 
-              {/* ── Tabla de headers ── */}
-              <div style={{ background: '#111', borderRadius: '12px 12px 0 0', padding: '10px 16px', display: 'grid', gridTemplateColumns: '52px 1fr 120px 160px', gap: '0', alignItems: 'center' }}>
+              <div style={{ background:'#111', borderRadius:'12px 12px 0 0', padding:'10px 16px', display:'grid', gridTemplateColumns:'52px 1fr 120px 160px', gap:'0', alignItems:'center' }}>
                 {['DÍA', 'CONTENIDO', 'PILAR', 'CTA / KEYWORD'].map(h => (
-                  <span key={h} style={{ fontSize: '10px', fontWeight: 800, color: 'rgba(255,255,255,0.55)', letterSpacing: '1px', textTransform: 'uppercase' }}>{h}</span>
+                  <span key={h} style={{ fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.55)', letterSpacing:'1px', textTransform:'uppercase' }}>{h}</span>
                 ))}
               </div>
 
-              {/* ── Ítems por semana ── */}
-              <div style={{ border: '1px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+              <div style={{ border:'1px solid #E5E7EB', borderTop:'none', borderRadius:'0 0 16px 16px', overflow:'hidden' }}>
                 {semanas.map((sem, si) => {
                   const semItems = sem === 0 ? items.filter(p => !p.semana) : items.filter(p => p.semana === sem)
                   if (semItems.length === 0) return null
                   const diasRange = semItems.filter(p => p.dia_num).map(p => p.dia_num!)
                   const dMin = diasRange.length ? Math.min(...diasRange) : null
                   const dMax = diasRange.length ? Math.max(...diasRange) : null
-
                   return (
                     <div key={`sem-${sem}-${si}`}>
-                      {/* Separador de semana */}
                       {sem > 0 && (
-                        <div style={{ background: '#111', padding: '12px 16px', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-                          <span style={{ background: '#fff', color: '#111', borderRadius: '4px', padding: '1px 7px', fontSize: '11px', fontWeight: 900 }}>S{sem}</span>
-                          <span style={{ fontSize: '13px', fontWeight: 800, color: '#fff' }}>SEMANA {sem}</span>
-                          {dMin && dMax && (
-                            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginLeft: '4px' }}>· DÍAS {dMin}–{dMax}</span>
-                          )}
+                        <div style={{ background:'#111', padding:'12px 16px', display:'flex', alignItems:'baseline', gap:'10px' }}>
+                          <span style={{ background:'#fff', color:'#111', borderRadius:'4px', padding:'1px 7px', fontSize:'11px', fontWeight:900 }}>S{sem}</span>
+                          <span style={{ fontSize:'13px', fontWeight:800, color:'#fff' }}>SEMANA {sem}</span>
+                          {dMin && dMax && <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.5)', marginLeft:'4px' }}>· DÍAS {dMin}–{dMax}</span>}
                         </div>
                       )}
-
-                      {/* Posts de la semana */}
                       {semItems.map((p, idx) => {
                         const isExpanded = expandedId === p.id
                         const pilarI = PILARES_CONTENIDO.find(x => x.value === p.pilar)
                         const est    = PARRILLA_ESTADOS.find(x => x.value === p.estado)
                         const instrLines = (p.instrucciones ?? '').split('\n').filter(Boolean)
                         const hasCopy = !!(p.caption || p.hashtags)
-
                         return (
-                          <div key={p.id} style={{ borderBottom: '1px solid #F3F4F6' }}>
-                            {/* ── Fila principal ── */}
-                            <div
-                              onClick={() => setExpandedId(isExpanded ? null : p.id)}
-                              style={{
-                                display: 'grid', gridTemplateColumns: '52px 1fr 120px 160px',
-                                gap: '0', alignItems: 'center',
-                                padding: '14px 16px',
-                                background: isExpanded ? '#F9FAFB' : idx % 2 === 0 ? '#fff' : '#FAFAFA',
-                                cursor: 'pointer',
-                                transition: 'background 0.1s',
-                              }}
-                            >
-                              {/* Día # */}
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                                <span style={{ fontSize: '18px', fontWeight: 900, color: '#111', lineHeight: 1 }}>
-                                  {p.dia_num ? String(p.dia_num).padStart(2, '0') : '—'}
-                                </span>
-                                {est && (
-                                  <span style={{ padding: '1px 5px', borderRadius: '4px', background: est.bg, color: est.color, fontSize: '9px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                    {est.label}
-                                  </span>
-                                )}
+                          <div key={p.id} style={{ borderBottom:'1px solid #F3F4F6' }}>
+                            <div onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                              style={{ display:'grid', gridTemplateColumns:'52px 1fr 120px 160px', gap:'0', alignItems:'center', padding:'14px 16px', background: isExpanded ? '#F9FAFB' : idx % 2 === 0 ? '#fff' : '#FAFAFA', cursor:'pointer', transition:'background 0.1s' }}>
+                              <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'4px' }}>
+                                <span style={{ fontSize:'18px', fontWeight:900, color:'#111', lineHeight:1 }}>{p.dia_num ? String(p.dia_num).padStart(2,'0') : '—'}</span>
+                                {est && <span style={{ padding:'1px 5px', borderRadius:'4px', background:est.bg, color:est.color, fontSize:'9px', fontWeight:700, whiteSpace:'nowrap' }}>{est.label}</span>}
                               </div>
-
-                              {/* Contenido */}
-                              <div style={{ paddingRight: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                                  <span style={{ padding: '2px 7px', borderRadius: '4px', background: '#111', color: '#fff', fontSize: '10px', fontWeight: 800, letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
-                                    {p.tipo.toUpperCase()}{p.duracion ? ` · ${p.duracion.toUpperCase()}` : ''}
-                                  </span>
-                                  <span style={{ fontSize: '10px', color: '#9CA3AF' }}>{p.red}</span>
-                                  {p.link && (
-                                    <a href={p.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize: '10px', color: P, fontWeight: 700, textDecoration: 'none' }}>🔗 Ver post</a>
-                                  )}
+                              <div style={{ paddingRight:'12px' }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'4px', flexWrap:'wrap' }}>
+                                  <span style={{ padding:'2px 7px', borderRadius:'4px', background:'#111', color:'#fff', fontSize:'10px', fontWeight:800, letterSpacing:'0.3px', whiteSpace:'nowrap' }}>{p.tipo.toUpperCase()}{p.duracion ? ` · ${p.duracion.toUpperCase()}` : ''}</span>
+                                  <span style={{ fontSize:'10px', color:'#9CA3AF' }}>{p.red}</span>
+                                  {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize:'10px', color:P, fontWeight:700, textDecoration:'none' }}>🔗 Ver post</a>}
                                 </div>
-                                <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 800, color: '#111', lineHeight: 1.3 }}>{p.descripcion}</p>
-                                {p.subtitulo && <p style={{ margin: 0, fontSize: '12px', color: '#9CA3AF' }}>{p.subtitulo}</p>}
+                                <p style={{ margin:'0 0 2px', fontSize:'14px', fontWeight:800, color:'#111', lineHeight:1.3 }}>{p.descripcion}</p>
+                                {p.subtitulo && <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>{p.subtitulo}</p>}
                               </div>
-
-                              {/* Pilar */}
-                              <div>
-                                {pilarI ? (
-                                  <span style={{ padding: '3px 9px', borderRadius: '6px', background: pilarI.bg, color: pilarI.color, fontSize: '11px', fontWeight: 800, whiteSpace: 'nowrap' }}>
-                                    {pilarI.label.toUpperCase()}
-                                  </span>
-                                ) : <span style={{ fontSize: '11px', color: '#E5E7EB' }}>—</span>}
-                              </div>
-
-                              {/* CTA */}
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                {p.cta ? (
-                                  <span style={{ padding: '5px 12px', borderRadius: '8px', background: '#D97706', color: '#fff', fontSize: '11.5px', fontWeight: 800, whiteSpace: 'nowrap' }}>
-                                    {p.cta} ▶
-                                  </span>
-                                ) : <span style={{ fontSize: '11px', color: '#E5E7EB' }}>—</span>}
-                                <span style={{ marginLeft: 'auto', fontSize: '14px', color: '#9CA3AF', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>▾</span>
+                              <div>{pilarI ? <span style={{ padding:'3px 9px', borderRadius:'6px', background:pilarI.bg, color:pilarI.color, fontSize:'11px', fontWeight:800, whiteSpace:'nowrap' }}>{pilarI.label.toUpperCase()}</span> : <span style={{ fontSize:'11px', color:'#E5E7EB' }}>—</span>}</div>
+                              <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                                {p.cta ? <span style={{ padding:'5px 12px', borderRadius:'8px', background:'#D97706', color:'#fff', fontSize:'11.5px', fontWeight:800, whiteSpace:'nowrap' }}>{p.cta} ▶</span> : <span style={{ fontSize:'11px', color:'#E5E7EB' }}>—</span>}
+                                <span style={{ marginLeft:'auto', fontSize:'14px', color:'#9CA3AF', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)', transition:'transform 0.2s' }}>▾</span>
                               </div>
                             </div>
-
-                            {/* ── Panel expandido ── */}
                             {isExpanded && (
-                              <div style={{ background: '#FAFAFA', borderTop: '1px solid #F0F0F0', borderBottom: '1px solid #E5E7EB' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0' }}>
-
-                                  {/* Concepto visual */}
-                                  <div style={{ padding: '20px', borderRight: '1px solid #E5E7EB' }}>
-                                    <p style={{ margin: '0 0 12px', fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Concepto visual</p>
-                                    {p.concepto_visual ? (
-                                      <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{p.concepto_visual}</p>
-                                    ) : (
-                                      <p style={{ margin: 0, fontSize: '12px', color: '#D1D5DB' }}>Sin concepto visual aún.</p>
-                                    )}
+                              <div style={{ background:'#FAFAFA', borderTop:'1px solid #F0F0F0', borderBottom:'1px solid #E5E7EB' }}>
+                                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0' }}>
+                                  <div style={{ padding:'20px', borderRight:'1px solid #E5E7EB' }}>
+                                    <p style={{ margin:'0 0 12px', fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Concepto visual</p>
+                                    {p.concepto_visual ? <p style={{ margin:0, fontSize:'13px', color:'#374151', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{p.concepto_visual}</p> : <p style={{ margin:0, fontSize:'12px', color:'#D1D5DB' }}>Sin concepto visual aún.</p>}
                                   </div>
-
-                                  {/* Caption */}
-                                  <div style={{ padding: '20px', borderRight: '1px solid #E5E7EB' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                      <p style={{ margin: 0, fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Caption completo</p>
-                                      {hasCopy && (
-                                        <button
-                                          onClick={e => { e.stopPropagation(); copyCaption(p) }}
-                                          style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #E5E7EB', background: copiedId === p.id ? '#059669' : '#fff', color: copiedId === p.id ? '#fff' : '#374151', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}
-                                        >
-                                          {copiedId === p.id ? '✓ Copiado' : '📋 Copiar'}
-                                        </button>
-                                      )}
+                                  <div style={{ padding:'20px', borderRight:'1px solid #E5E7EB' }}>
+                                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}>
+                                      <p style={{ margin:0, fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Caption completo</p>
+                                      {hasCopy && <button onClick={e => { e.stopPropagation(); copyCaption(p) }} style={{ padding:'4px 10px', borderRadius:'6px', border:'1px solid #E5E7EB', background: copiedId === p.id ? '#059669' : '#fff', color: copiedId === p.id ? '#fff' : '#374151', fontSize:'11px', fontWeight:700, cursor:'pointer', transition:'all 0.2s' }}>{copiedId === p.id ? '✓ Copiado' : '📋 Copiar'}</button>}
                                     </div>
                                     {p.caption ? (
-                                      <div style={{ background: '#111', borderRadius: '10px', padding: '14px 16px' }}>
-                                        <p style={{ margin: '0 0 10px', fontSize: '13px', color: '#E5E7EB', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{p.caption}</p>
-                                        {p.hashtags && (
-                                          <p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: 1.6 }}>{p.hashtags}</p>
-                                        )}
+                                      <div style={{ background:'#111', borderRadius:'10px', padding:'14px 16px' }}>
+                                        <p style={{ margin:'0 0 10px', fontSize:'13px', color:'#E5E7EB', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{p.caption}</p>
+                                        {p.hashtags && <p style={{ margin:0, fontSize:'12px', color:'#6B7280', lineHeight:1.6 }}>{p.hashtags}</p>}
                                       </div>
-                                    ) : (
-                                      <p style={{ margin: 0, fontSize: '12px', color: '#D1D5DB' }}>Caption pendiente.</p>
-                                    )}
+                                    ) : <p style={{ margin:0, fontSize:'12px', color:'#D1D5DB' }}>Caption pendiente.</p>}
                                   </div>
-
-                                  {/* Instrucciones */}
-                                  <div style={{ padding: '20px' }}>
-                                    <p style={{ margin: '0 0 12px', fontSize: '10px', fontWeight: 900, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '1px' }}>Instrucciones de publicación</p>
+                                  <div style={{ padding:'20px' }}>
+                                    <p style={{ margin:'0 0 12px', fontSize:'10px', fontWeight:900, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Instrucciones de publicación</p>
                                     {instrLines.length > 0 ? (
-                                      <ul style={{ margin: '0 0 12px', paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        {instrLines.map((line, i) => (
-                                          <li key={i} style={{ fontSize: '12.5px', color: '#374151', lineHeight: 1.5 }}>{line}</li>
-                                        ))}
+                                      <ul style={{ margin:'0 0 12px', paddingLeft:'16px', display:'flex', flexDirection:'column', gap:'6px' }}>
+                                        {instrLines.map((line, i) => <li key={i} style={{ fontSize:'12.5px', color:'#374151', lineHeight:1.5 }}>{line}</li>)}
                                       </ul>
-                                    ) : (
-                                      <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#D1D5DB' }}>Sin instrucciones aún.</p>
-                                    )}
+                                    ) : <p style={{ margin:'0 0 12px', fontSize:'12px', color:'#D1D5DB' }}>Sin instrucciones aún.</p>}
                                     {p.story_del_dia && (
-                                      <div style={{ background: '#FEF9C3', borderRadius: '8px', padding: '10px 12px', marginTop: '8px' }}>
-                                        <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📱 Story del día</p>
-                                        <p style={{ margin: 0, fontSize: '12px', color: '#78350F', lineHeight: 1.5 }}>{p.story_del_dia}</p>
+                                      <div style={{ background:'#FEF9C3', borderRadius:'8px', padding:'10px 12px', marginTop:'8px' }}>
+                                        <p style={{ margin:'0 0 4px', fontSize:'10px', fontWeight:800, color:'#92400E', textTransform:'uppercase', letterSpacing:'0.5px' }}>📱 Story del día</p>
+                                        <p style={{ margin:0, fontSize:'12px', color:'#78350F', lineHeight:1.5 }}>{p.story_del_dia}</p>
                                       </div>
                                     )}
-                                    {/* Métricas inline si están publicado */}
                                     {p.estado === 'publicado' && p.metricas && Object.values(p.metricas).some(v => v != null && v > 0) && (
-                                      <div style={{ background: 'rgba(107,33,168,0.06)', borderRadius: '8px', padding: '10px 12px', marginTop: '10px' }}>
-                                        <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 800, color: P, textTransform: 'uppercase', letterSpacing: '0.5px' }}>📊 Métricas</p>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                          {p.metricas.alcance    ? <span style={{ fontSize: '12px' }}>👁️ {p.metricas.alcance.toLocaleString()}</span> : null}
-                                          {p.metricas.likes      ? <span style={{ fontSize: '12px' }}>❤️ {p.metricas.likes.toLocaleString()}</span> : null}
-                                          {p.metricas.comentarios ? <span style={{ fontSize: '12px' }}>💬 {p.metricas.comentarios.toLocaleString()}</span> : null}
-                                          {p.metricas.guardados  ? <span style={{ fontSize: '12px' }}>🔖 {p.metricas.guardados.toLocaleString()}</span> : null}
-                                          {p.metricas.engagement ? <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>📈 {p.metricas.engagement}%</span> : null}
+                                      <div style={{ background:'rgba(107,33,168,0.06)', borderRadius:'8px', padding:'10px 12px', marginTop:'10px' }}>
+                                        <p style={{ margin:'0 0 6px', fontSize:'10px', fontWeight:800, color:P, textTransform:'uppercase', letterSpacing:'0.5px' }}>📊 Métricas</p>
+                                        <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>
+                                          {p.metricas.alcance     ? <span style={{ fontSize:'12px' }}>👁️ {p.metricas.alcance.toLocaleString()}</span>     : null}
+                                          {p.metricas.likes       ? <span style={{ fontSize:'12px' }}>❤️ {p.metricas.likes.toLocaleString()}</span>       : null}
+                                          {p.metricas.comentarios ? <span style={{ fontSize:'12px' }}>💬 {p.metricas.comentarios.toLocaleString()}</span>  : null}
+                                          {p.metricas.guardados   ? <span style={{ fontSize:'12px' }}>🔖 {p.metricas.guardados.toLocaleString()}</span>    : null}
+                                          {p.metricas.engagement  ? <span style={{ fontSize:'12px', color:'#059669', fontWeight:700 }}>📈 {p.metricas.engagement}%</span> : null}
                                         </div>
                                       </div>
                                     )}
                                   </div>
                                 </div>
-
-                                {/* Story del día como fila separada si no hay instrucciones */}
                               </div>
                             )}
-
-                            {/* ── Story del día (fila separada) ── */}
                             {p.story_del_dia && !isExpanded && (
-                              <div style={{ background: '#FFFBEB', borderTop: '1px dashed #FDE68A', padding: '9px 16px 9px 68px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 800, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}>📱 Story del día {p.dia_num ?? ''}:</span>
-                                <span style={{ fontSize: '12px', color: '#78350F', fontStyle: 'italic' }}>{p.story_del_dia}</span>
+                              <div style={{ background:'#FFFBEB', borderTop:'1px dashed #FDE68A', padding:'9px 16px 9px 68px', display:'flex', gap:'8px', alignItems:'center' }}>
+                                <span style={{ fontSize:'11px', fontWeight:800, color:'#92400E', textTransform:'uppercase', letterSpacing:'0.5px', flexShrink:0 }}>📱 Story del día {p.dia_num ?? ''}:</span>
+                                <span style={{ fontSize:'12px', color:'#78350F', fontStyle:'italic' }}>{p.story_del_dia}</span>
                               </div>
                             )}
                           </div>
                         )
                       })}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ── ACCESOS ── */}
+        {tab === 'accesos' && (() => {
+          const accesos = data.accesos ?? []
+
+          // Mapa de plataformas → color + emoji
+          const PLAT: Record<string, { color: string; bg: string; icon: string }> = {
+            instagram:  { color: '#E1306C', bg: 'rgba(225,48,108,0.1)',  icon: '📸' },
+            facebook:   { color: '#1877F2', bg: 'rgba(24,119,242,0.1)',  icon: '👥' },
+            tiktok:     { color: '#010101', bg: 'rgba(0,0,0,0.08)',      icon: '🎵' },
+            youtube:    { color: '#FF0000', bg: 'rgba(255,0,0,0.1)',     icon: '▶️' },
+            twitter:    { color: '#1DA1F2', bg: 'rgba(29,161,242,0.1)',  icon: '🐦' },
+            x:          { color: '#000',    bg: 'rgba(0,0,0,0.08)',      icon: '✖️' },
+            linkedin:   { color: '#0A66C2', bg: 'rgba(10,102,194,0.1)', icon: '💼' },
+            google:     { color: '#4285F4', bg: 'rgba(66,133,244,0.1)', icon: '🔍' },
+            gmail:      { color: '#EA4335', bg: 'rgba(234,67,53,0.1)',  icon: '📧' },
+            canva:      { color: '#00C4CC', bg: 'rgba(0,196,204,0.1)',  icon: '🎨' },
+            wordpress:  { color: '#21759B', bg: 'rgba(33,117,155,0.1)', icon: '🌐' },
+            shopify:    { color: '#96BF48', bg: 'rgba(150,191,72,0.1)', icon: '🛒' },
+            mailchimp:  { color: '#FFE01B', bg: 'rgba(255,224,27,0.12)',icon: '📨' },
+            whatsapp:   { color: '#25D366', bg: 'rgba(37,211,102,0.1)', icon: '💬' },
+            pinterest:  { color: '#E60023', bg: 'rgba(230,0,35,0.1)',   icon: '📌' },
+          }
+          function getPlatStyle(nombre: string) {
+            const key = nombre.toLowerCase().replace(/\s/g, '')
+            return PLAT[key] ?? { color: P, bg: 'rgba(107,33,168,0.1)', icon: '🔑' }
+          }
+
+          if (accesos.length === 0) return (
+            <div style={{ textAlign:'center', padding:'60px 20px' }}>
+              <p style={{ fontSize:'40px', margin:'0 0 12px' }}>🔐</p>
+              <p style={{ color:'#6B7280', fontSize:'15px' }}>No hay accesos configurados aún.</p>
+            </div>
+          )
+
+          return (
+            <div>
+              <div style={{ marginBottom:'24px' }}>
+                <p style={{ margin:'0 0 4px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Credenciales seguras</p>
+                <h2 style={{ margin:0, fontSize:'24px', fontWeight:900, color:'#111', letterSpacing:'-0.5px' }}>Tus accesos 🔐</h2>
+                <p style={{ margin:'6px 0 0', fontSize:'13px', color:'#6B7280' }}>Usa el botón 👁 para revelar la contraseña. Mantén esta información confidencial.</p>
+              </div>
+
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'14px' }}>
+                {accesos.map(acc => {
+                  const plat   = getPlatStyle(acc.plataforma)
+                  const visible = visiblePasswords.has(acc.id)
+                  const togglePwd = () => setVisiblePasswords(prev => {
+                    const next = new Set(prev)
+                    if (next.has(acc.id)) next.delete(acc.id)
+                    else next.add(acc.id)
+                    return next
+                  })
+
+                  return (
+                    <div key={acc.id} style={{ background:'#fff', borderRadius:'16px', border:`1px solid #E5E7EB`, boxShadow:'0 2px 10px rgba(0,0,0,0.06)', overflow:'hidden' }}>
+                      {/* Header plataforma */}
+                      <div style={{ padding:'14px 16px', background: plat.bg, borderBottom:'1px solid rgba(0,0,0,0.05)', display:'flex', alignItems:'center', gap:'10px' }}>
+                        <div style={{ width:'36px', height:'36px', borderRadius:'10px', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', flexShrink:0, boxShadow:'0 1px 4px rgba(0,0,0,0.1)' }}>
+                          {plat.icon}
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ margin:0, fontSize:'14px', fontWeight:800, color: plat.color, lineHeight:1.2 }}>{acc.plataforma}</p>
+                          {acc.url && (
+                            <a href={acc.url} target="_blank" rel="noopener noreferrer" style={{ fontSize:'11px', color:'#6B7280', textDecoration:'none', display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                              {acc.url.replace(/^https?:\/\//, '')} ↗
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Body */}
+                      <div style={{ padding:'14px 16px', display:'flex', flexDirection:'column', gap:'10px' }}>
+                        {/* Usuario */}
+                        <div>
+                          <p style={{ margin:'0 0 3px', fontSize:'10px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Usuario / Email</p>
+                          <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'#F9FAFB', borderRadius:'8px', padding:'8px 12px' }}>
+                            <span style={{ fontSize:'13px', fontWeight:600, color:'#374151', flex:1, wordBreak:'break-all' }}>{acc.usuario}</span>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(acc.usuario)}
+                              title="Copiar usuario"
+                              style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity:0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
+                            >📋</button>
+                          </div>
+                        </div>
+
+                        {/* Contraseña */}
+                        <div>
+                          <p style={{ margin:'0 0 3px', fontSize:'10px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Contraseña</p>
+                          <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'#F9FAFB', borderRadius:'8px', padding:'8px 12px', border: visible ? `1px solid ${plat.color}40` : '1px solid transparent' }}>
+                            <span style={{ fontSize: visible ? '13px' : '16px', fontWeight:600, color: visible ? '#374151' : '#9CA3AF', flex:1, letterSpacing: visible ? 'normal' : '3px', wordBreak:'break-all', lineHeight:1.4 }}>
+                              {visible ? acc.password : '••••••••••'}
+                            </span>
+                            {visible && (
+                              <button
+                                onClick={() => navigator.clipboard.writeText(acc.password)}
+                                title="Copiar contraseña"
+                                style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity:0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
+                              >📋</button>
+                            )}
+                            <button
+                              onClick={togglePwd}
+                              title={visible ? 'Ocultar' : 'Mostrar contraseña'}
+                              style={{ background: visible ? plat.bg : '#F0F0F0', border:'none', cursor:'pointer', fontSize:'14px', borderRadius:'6px', padding:'4px 7px', flexShrink:0, lineHeight:1, transition:'all 0.15s' }}
+                            >
+                              {visible ? '🙈' : '👁'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Notas */}
+                        {acc.notas && (
+                          <p style={{ margin:0, fontSize:'12px', color:'#6B7280', background:'#FFFBEB', borderRadius:'7px', padding:'7px 10px', border:'1px solid #FDE68A', lineHeight:1.5 }}>
+                            💡 {acc.notas}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -1198,12 +1448,13 @@ export default function ClientePortal() {
 
       {/* ══ MODAL solicitud ════════════════════════════════════ */}
       {showSolForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{
-            background: '#fff', borderRadius: '20px 20px 0 0',
-            padding: '28px 24px 36px',
-            width: '100%', maxWidth: '540px',
+            background: '#fff', borderRadius: '20px',
+            padding: '28px 24px 32px',
+            width: '100%', maxWidth: '520px',
             maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.22)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#111' }}>Nueva solicitud</h3>
