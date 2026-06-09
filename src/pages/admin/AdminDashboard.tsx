@@ -368,78 +368,6 @@ export default function AdminDashboard() {
         {/* ══ CONTENIDO ════════════════════════════════════════════ */}
         <div style={{ padding: isMobile ? '24px 16px' : '32px 40px', maxWidth:'1200px' }}>
 
-          {/* ── Sección Página Web ── */}
-          <SectionTitle icon="🌐" label="Página Web" />
-          <div style={{
-            display:'grid',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: isMobile ? '10px' : '16px',
-            marginBottom:'36px',
-          }}>
-            {webCards.map(c => <StatCardComp key={c.to} c={c} isMobile={isMobile} />)}
-          </div>
-
-          {/* ── Módulos de Negocio ── */}
-          <SectionTitle icon="💼" label="Módulos de Negocio" />
-          <div style={{
-            display:'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: isMobile ? '10px' : '16px',
-            marginBottom:'36px',
-          }}>
-            {BIZ_MODULES.map(m => {
-              const isActive = m.badge === 'Activo'
-              return (
-                <div key={m.to} style={{
-                  background: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
-                  borderRadius:'16px',
-                  padding: isMobile ? '18px' : '22px',
-                  border:`1px solid ${isActive ? '#EDE9FE' : '#E5E7EB'}`,
-                  boxShadow: isActive ? '0 2px 12px rgba(107,33,168,0.07)' : 'none',
-                  display:'flex', flexDirection:'column', gap:0,
-                  opacity: isActive ? 1 : 0.65,
-                }}>
-                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'12px' }}>
-                    <div style={{
-                      width:'44px', height:'44px', borderRadius:'12px',
-                      background: isActive ? `${m.color}12` : '#F3F4F6',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:'22px',
-                    }}>{m.icon}</div>
-                    <span style={{
-                      background: isActive ? `${m.color}15` : '#F9FAFB',
-                      color: isActive ? m.color : '#9CA3AF',
-                      fontSize:'10px', fontWeight:800,
-                      padding:'3px 9px', borderRadius:'20px',
-                      letterSpacing:'0.5px', textTransform:'uppercase',
-                      border: isActive ? 'none' : '1px solid #E5E7EB',
-                    }}>{m.badge}</span>
-                  </div>
-                  <p style={{ fontSize:'15px', fontWeight:800, color: isActive ? '#0F0A1E' : '#6B7280', margin:'0 0 5px' }}>{m.title}</p>
-                  <p style={{ fontSize:'12px', color:'#6B7280', margin:'0 0 18px', lineHeight:1.55, flex:1 }}>{m.desc}</p>
-                  <Link
-                    to={m.to}
-                    style={{
-                      display:'inline-flex', alignItems:'center', gap:'5px',
-                      padding:'8px 16px',
-                      background: isActive ? `linear-gradient(135deg, ${m.color}, ${m.color}CC)` : '#F3F4F6',
-                      color: isActive ? '#fff' : '#6B7280',
-                      borderRadius:'9px', textDecoration:'none',
-                      fontSize:'12px', fontWeight:700,
-                      alignSelf:'flex-start',
-                      boxShadow: isActive ? `0 2px 10px ${m.color}30` : 'none',
-                      transition:'opacity 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                  >
-                    {m.cta} →
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-
           {/* ══ ANALYTICS ════════════════════════════════════════ */}
           <SectionTitle icon="📈" label="Analytics del Sitio" />
 
@@ -537,10 +465,9 @@ export default function AdminDashboard() {
                   onClick={async () => {
                     setSavingLooker(true)
                     setLookerUrl(lookerInput)
-                    // Persistir en Firestore
                     try {
                       if (db) await updateDoc(doc(db, 'config', 'site'), { looker_studio_url: lookerInput })
-                    } catch { /* silencioso si el doc no existe aún */ }
+                    } catch { /* silencioso */ }
                     setSavingLooker(false)
                     setEditingLooker(false)
                   }}
@@ -554,7 +481,7 @@ export default function AdminDashboard() {
                   {savingLooker ? 'Guardando...' : 'Guardar'}
                 </button>
                 <p style={{ width:'100%', margin:0, fontSize:'10px', color:'#9CA3AF', lineHeight:1.5 }}>
-                  💡 Para URL permanente, agrega <code style={{ background:'#F3F4F6', padding:'1px 5px', borderRadius:'4px', fontSize:'10px' }}>VITE_LOOKER_STUDIO_URL</code> en las variables de entorno de Vercel.
+                  💡 Para URL permanente agrega <code style={{ background:'#F3F4F6', padding:'1px 5px', borderRadius:'4px', fontSize:'10px' }}>VITE_LOOKER_STUDIO_URL</code> en Vercel.
                 </p>
               </div>
             )}
@@ -578,9 +505,9 @@ export default function AdminDashboard() {
                   </p>
                   {[
                     { n:'1', title:'Activa Analytics en Firebase Console', desc:'Firebase Console → tu proyecto → Analytics → "Comenzar" → esto crea una propiedad GA4 automáticamente.' },
-                    { n:'2', title:'Agrega el Measurement ID', desc:'En GA4 → Admin → Flujos de datos → copia el ID (G-XXXXXXXXXX) → ponlo en Vercel como variable de entorno VITE_FIREBASE_MEASUREMENT_ID.' },
-                    { n:'3', title:'Crea el informe en Looker Studio', desc:'Ve a lookerstudio.google.com → nuevo informe → conecta tu propiedad GA4 → diseña las métricas que quieras ver.' },
-                    { n:'4', title:'Copia el enlace de embed', desc:'En Looker Studio: Archivo → Configurar informe → acceso de visualización → "Cualquier persona con el enlace" → copiar enlace de incrustación.' },
+                    { n:'2', title:'Agrega el Measurement ID', desc:'En GA4 → Admin → Flujos de datos → copia el ID (G-XXXXXXXXXX) → ponlo en Vercel como VITE_FIREBASE_MEASUREMENT_ID.' },
+                    { n:'3', title:'Crea el informe en Looker Studio', desc:'Ve a lookerstudio.google.com → nuevo informe → conecta tu propiedad GA4.' },
+                    { n:'4', title:'Copia el enlace de embed y pégalo arriba', desc:'Looker Studio → Archivo → Incorporar informe → habilitar → copiar URL.' },
                   ].map(step => (
                     <div key={step.n} style={{ display:'flex', gap:'12px', marginBottom:'14px', alignItems:'flex-start' }}>
                       <div style={{ width:'26px', height:'26px', borderRadius:'50%', background:`${P}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:900, color: P, flexShrink:0, marginTop:'1px' }}>
@@ -606,6 +533,78 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* ── Sección Página Web ── */}
+          <SectionTitle icon="🌐" label="Página Web" />
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: isMobile ? '10px' : '16px',
+            marginBottom:'36px',
+          }}>
+            {webCards.map(c => <StatCardComp key={c.to} c={c} isMobile={isMobile} />)}
+          </div>
+
+          {/* ── Módulos de Negocio ── */}
+          <SectionTitle icon="💼" label="Módulos de Negocio" />
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: isMobile ? '10px' : '16px',
+            marginBottom:'36px',
+          }}>
+            {BIZ_MODULES.map(m => {
+              const isActive = m.badge === 'Activo'
+              return (
+                <div key={m.to} style={{
+                  background: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
+                  borderRadius:'16px',
+                  padding: isMobile ? '18px' : '22px',
+                  border:`1px solid ${isActive ? '#EDE9FE' : '#E5E7EB'}`,
+                  boxShadow: isActive ? '0 2px 12px rgba(107,33,168,0.07)' : 'none',
+                  display:'flex', flexDirection:'column', gap:0,
+                  opacity: isActive ? 1 : 0.65,
+                }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'12px' }}>
+                    <div style={{
+                      width:'44px', height:'44px', borderRadius:'12px',
+                      background: isActive ? `${m.color}12` : '#F3F4F6',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:'22px',
+                    }}>{m.icon}</div>
+                    <span style={{
+                      background: isActive ? `${m.color}15` : '#F9FAFB',
+                      color: isActive ? m.color : '#9CA3AF',
+                      fontSize:'10px', fontWeight:800,
+                      padding:'3px 9px', borderRadius:'20px',
+                      letterSpacing:'0.5px', textTransform:'uppercase',
+                      border: isActive ? 'none' : '1px solid #E5E7EB',
+                    }}>{m.badge}</span>
+                  </div>
+                  <p style={{ fontSize:'15px', fontWeight:800, color: isActive ? '#0F0A1E' : '#6B7280', margin:'0 0 5px' }}>{m.title}</p>
+                  <p style={{ fontSize:'12px', color:'#6B7280', margin:'0 0 18px', lineHeight:1.55, flex:1 }}>{m.desc}</p>
+                  <Link
+                    to={m.to}
+                    style={{
+                      display:'inline-flex', alignItems:'center', gap:'5px',
+                      padding:'8px 16px',
+                      background: isActive ? `linear-gradient(135deg, ${m.color}, ${m.color}CC)` : '#F3F4F6',
+                      color: isActive ? '#fff' : '#6B7280',
+                      borderRadius:'9px', textDecoration:'none',
+                      fontSize:'12px', fontWeight:700,
+                      alignSelf:'flex-start',
+                      boxShadow: isActive ? `0 2px 10px ${m.color}30` : 'none',
+                      transition:'opacity 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                  >
+                    {m.cta} →
+                  </Link>
+                </div>
+              )
+            })}
           </div>
 
           {/* ── Acciones rápidas ── */}
