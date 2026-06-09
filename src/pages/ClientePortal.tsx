@@ -127,7 +127,7 @@ export default function ClientePortal() {
     { key: 'inicio',      label: '🏠 Inicio' },
     { key: 'parrilla',    label: `📅 Parrilla` },
     { key: 'plan',        label: '📦 Plan del mes' },
-    { key: 'marca',       label: '🎨 Análisis' },
+    { key: 'marca',       label: '🎨 Marca' },
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
     ...((data.accesos ?? []).length > 0 ? [{ key: 'accesos' as PortalTab, label: '🔐 Accesos' }] : []),
   ]
@@ -332,6 +332,17 @@ export default function ClientePortal() {
           const conMet     = publicados.filter(p => p.metricas && Object.values(p.metricas).some(v => v != null && (v as number) > 0))
           const pendSol    = (data.solicitudes ?? []).filter(s => s.estado === 'pendiente').length
 
+          // Parrilla del mes actual (tablero Trello) — para el acceso directo
+          const today           = new Date()
+          const mesActualStr    = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+          const parrillaMeses   = data.parrilla_meses ?? []
+          const htmlsLegacy     = data.parrilla_htmls ?? []
+          const tieneParrilla   = parrillaMeses.length > 0 || htmlsLegacy.length > 0
+          const mesBoardActual  = parrillaMeses.find(m => m.mes === mesActualStr)
+          const tituloMesActual = mesBoardActual?.html_titulo
+            ?? htmlsLegacy.find(h => h.mes === mesActualStr)?.titulo
+            ?? mesBoardActual?.label
+
           // Métricas agregadas desde metricas_historico (admin) o derivadas de parrilla
           const histAdmin = [...(data.metricas_historico ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
           const mesActual = histAdmin[0]
@@ -353,6 +364,41 @@ export default function ClientePortal() {
 
           return (
             <div style={{ display:'flex', flexDirection:'column', gap:'22px', animation:'fadeUp 0.35s ease' }}>
+
+              {/* ══ TU PARRILLA DE CONTENIDO — acceso directo al tablero ══ */}
+              <div
+                onClick={() => setTab('parrilla')}
+                style={{
+                  background:'linear-gradient(135deg, #1E0547, #3B0C87)',
+                  borderRadius:'20px', padding:'22px 26px',
+                  display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'16px',
+                  position:'relative', overflow:'hidden', cursor:'pointer',
+                }}
+              >
+                <div style={{ position:'absolute', right:'-20px', top:'-20px', width:'120px', height:'120px', borderRadius:'50%', background:'rgba(255,255,255,0.04)' }} />
+                <div style={{ display:'flex', alignItems:'center', gap:'14px', position:'relative', zIndex:1, minWidth:0 }}>
+                  <div style={{ width:'44px', height:'44px', borderRadius:'12px', background:'rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'20px', flexShrink:0 }}>📅</div>
+                  <div style={{ minWidth:0 }}>
+                    <p style={{ fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.45)', textTransform:'uppercase', letterSpacing:'1px', margin:'0 0 4px' }}>Tu parrilla de contenido</p>
+                    <p style={{ fontSize:'15px', fontWeight:900, color:'#fff', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {tieneParrilla
+                        ? (tituloMesActual ?? 'Estrategia y materiales del mes listos')
+                        : 'Tu equipo está preparando tu primer mes'}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className="portal-action-btn"
+                  style={{
+                    padding:'12px 24px', borderRadius:'12px',
+                    background:'rgba(255,255,255,0.95)', color:P,
+                    fontWeight:800, fontSize:'14px',
+                    transition:'opacity 0.2s, transform 0.15s', flexShrink:0, position:'relative', zIndex:1,
+                  }}
+                >
+                  Ver tablero →
+                </span>
+              </div>
 
               {/* ══ 4 STAT CARDS GRANDES ══ */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))', gap:'14px' }}>
