@@ -886,8 +886,20 @@ export default function ClientePortal() {
             )
           }
 
-          // ── Tablero Trello ──
-          if (parrillaMeses.length > 0) {
+          // ── Tablero Trello (siempre visible — placeholders si no hay meses) ──
+          if (parrillaMeses.length > 0 || htmlsLegacy.length === 0) {
+            const boardIsPlaceholder = parrillaMeses.length === 0
+            const now = new Date()
+            const placeholderCols: typeof parrillaMeses = boardIsPlaceholder
+              ? Array.from({ length: 3 }, (_, i) => {
+                  const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+                  const mesStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+                  const label  = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+                  return { id: `ph-${mesStr}`, mes: mesStr, label: label.charAt(0).toUpperCase() + label.slice(1) }
+                })
+              : []
+            const columnas = boardIsPlaceholder ? placeholderCols : parrillaMeses
+
             return (
               <div style={{
                 width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px',
@@ -902,11 +914,17 @@ export default function ClientePortal() {
                     Tablero de contenido
                   </p>
                   <div style={{ flex:1, height:'1px', background:'rgba(255,255,255,0.07)' }} />
+                  {parrillaMeses.length === 0 && (
+                    <span style={{ fontSize:'10px', fontWeight:700, color:'rgba(255,193,7,0.7)', background:'rgba(255,193,7,0.1)', border:'1px solid rgba(255,193,7,0.2)', borderRadius:'20px', padding:'3px 10px', whiteSpace:'nowrap' }}>
+                      ✦ En preparación
+                    </span>
+                  )}
                 </div>
 
                 {/* Columnas */}
                 <div style={{ display:'flex', gap:'16px', overflowX:'auto', alignItems:'flex-start', paddingBottom:'16px' }}>
-                  {parrillaMeses.map(mes => {
+                  {columnas.map(mes => {
+                    const isPlaceholder = boardIsPlaceholder
                     const hasHtml   = !!mes.html_contenido
                     const hasDrive  = !!(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels)
                     const hasExtras = (mes.extras ?? []).length > 0
@@ -1007,9 +1025,16 @@ export default function ClientePortal() {
 
                         {/* Empty column */}
                         {!hasHtml && !hasDrive && !hasExtras && (
-                          <div style={{ padding:'20px 14px', background:'rgba(255,255,255,0.04)', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.12)', textAlign:'center' }}>
-                            <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', margin:0 }}>Sin contenido aún</p>
-                          </div>
+                          isPlaceholder ? (
+                            <div style={{ padding:'24px 14px', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.15)', textAlign:'center', display:'flex', flexDirection:'column', gap:'8px', alignItems:'center' }}>
+                              <div style={{ width:'32px', height:'32px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}>📝</div>
+                              <p style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.25)', margin:0, lineHeight:1.5 }}>Tu estrategia de<br/>contenido estará aquí</p>
+                            </div>
+                          ) : (
+                            <div style={{ padding:'20px 14px', background:'rgba(255,255,255,0.04)', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.12)', textAlign:'center' }}>
+                              <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', margin:0 }}>Sin contenido aún</p>
+                            </div>
+                          )
                         )}
                       </div>
                     )
