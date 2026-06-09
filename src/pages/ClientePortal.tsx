@@ -904,7 +904,7 @@ export default function ClientePortal() {
                 width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px',
                 background:'linear-gradient(160deg, #0E0322 0%, #1A0640 55%, #2D0C72 100%)',
                 minHeight:'calc(100vh - 96px)',
-                padding:'20px 24px 32px',
+                padding:'24px 40px 40px',
                 animation:'fadeUp 0.35s ease',
               }}>
                 {/* Título del tablero */}
@@ -921,7 +921,7 @@ export default function ClientePortal() {
                   {htmlsLegacy.length > 0 && (
                     <button onClick={() => setActiveHtmlId(htmlsLegacy[0].id)}
                       style={{ fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.4)', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'20px', padding:'3px 10px', cursor:'pointer', whiteSpace:'nowrap' }}>
-                      Ver parrilla clásica →
+                      Ver parrilla del mes actual →
                     </button>
                   )}
                 </div>
