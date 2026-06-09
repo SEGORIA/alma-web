@@ -117,6 +117,7 @@ export default function FinanzasAdmin() {
   }, [tab])
 
   async function loadClients() {
+    if (!db) return
     setLoadingCl(true)
     try {
       const snap = await getDocs(collection(db, 'clientes'))
@@ -156,7 +157,7 @@ export default function FinanzasAdmin() {
     else { setForm({}); setEditKey(null) }
   }
   async function saveMetric() {
-    if (!selectedId || !selectedClient) return
+    if (!selectedId || !selectedClient || !db) return
     setSaving(true)
     try {
       const hist = [...(selectedClient.metricas_historico ?? [])]
@@ -170,7 +171,7 @@ export default function FinanzasAdmin() {
     finally { setSaving(false) }
   }
   async function deleteMetric(mes: string, plat: string) {
-    if (!selectedId || !selectedClient) return
+    if (!selectedId || !selectedClient || !db) return
     if (!window.confirm('¿Eliminar métricas de este mes para esta plataforma?')) return
     const hist = (selectedClient.metricas_historico ?? []).filter(m => !(m.mes === mes && m.plataforma === plat))
     await updateDoc(doc(db, 'clientes', selectedId), { metricas_historico: hist, updatedAt: new Date().toISOString() })
