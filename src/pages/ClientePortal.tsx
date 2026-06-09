@@ -863,24 +863,26 @@ export default function ClientePortal() {
             )
           }
 
-          // ── Vista HTML legacy (parrilla_htmls) si no hay tablero nuevo ──
-          if (parrillaMeses.length === 0 && htmlsLegacy.length > 0) {
+          // ── Vista HTML legacy (accedida vía botón desde el tablero) ──
+          if (activeHtmlId && htmlsLegacy.length > 0) {
             const current = htmlsLegacy.find(h => h.id === activeHtmlId) ?? htmlsLegacy[0]
             const injected = data.logo_url
               ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
               : current.contenido
             return (
               <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', animation:'fadeUp 0.35s ease' }}>
-                {htmlsLegacy.length > 1 && (
-                  <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', padding:'16px 20px 12px' }}>
-                    {htmlsLegacy.map(h => (
-                      <button key={h.id} onClick={() => setActiveHtmlId(h.id)}
-                        style={{ padding:'7px 18px', borderRadius:'20px', cursor:'pointer', border:`1.5px solid ${current.id === h.id ? P : '#E5E7EB'}`, background: current.id === h.id ? P : '#fff', color: current.id === h.id ? '#fff' : '#6B7280', fontSize:'12.5px', fontWeight:700, transition:'all 0.15s' }}>
-                        {h.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
+                  <button onClick={() => setActiveHtmlId(null)}
+                    style={{ padding:'6px 14px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.08)', color:'#fff', cursor:'pointer', fontWeight:700, fontSize:'12px' }}>
+                    ← Tablero
+                  </button>
+                  {htmlsLegacy.length > 1 && htmlsLegacy.map(h => (
+                    <button key={h.id} onClick={() => setActiveHtmlId(h.id)}
+                      style={{ padding:'5px 14px', borderRadius:'20px', cursor:'pointer', border:`1.5px solid ${current.id === h.id ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)'}`, background: current.id === h.id ? 'rgba(255,255,255,0.15)' : 'transparent', color:'rgba(255,255,255,0.7)', fontSize:'12px', fontWeight:700 }}>
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
                 <iframe key={current.id} srcDoc={injected} style={{ width:'100%', height:'calc(100vh - 96px)', minHeight:'700px', border:'none', display:'block' }} title={current.label} sandbox="allow-scripts" />
               </div>
             )
@@ -918,6 +920,12 @@ export default function ClientePortal() {
                     <span style={{ fontSize:'10px', fontWeight:700, color:'rgba(255,193,7,0.7)', background:'rgba(255,193,7,0.1)', border:'1px solid rgba(255,193,7,0.2)', borderRadius:'20px', padding:'3px 10px', whiteSpace:'nowrap' }}>
                       ✦ En preparación
                     </span>
+                  )}
+                  {htmlsLegacy.length > 0 && (
+                    <button onClick={() => setActiveHtmlId(htmlsLegacy[0].id)}
+                      style={{ fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.4)', background:'transparent', border:'1px solid rgba(255,255,255,0.12)', borderRadius:'20px', padding:'3px 10px', cursor:'pointer', whiteSpace:'nowrap' }}>
+                      Ver parrilla clásica →
+                    </button>
                   )}
                 </div>
 
