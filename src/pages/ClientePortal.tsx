@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal, updateEntregableEnPortal } from '../lib/db'
+import { trackPortalVisit } from '../lib/analytics'
 import type { Cliente, Solicitud, ParrillaItem, ComentarioContenido } from '../data/clientes'
 import {
   ENTREGABLE_CATEGORIAS, PARRILLA_ESTADOS, PILARES_CONTENIDO,
@@ -86,6 +87,7 @@ export default function ClientePortal() {
     getPortalByToken(token).then(d => {
       setData(d)
       setLoading(false)
+      if (d) trackPortalVisit(token)
     })
   }, [token])
 

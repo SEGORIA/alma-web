@@ -4,6 +4,7 @@ import { db, firebaseReady } from '../lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getBriefFormConfig } from '../lib/db'
 import type { BriefFormConfig } from '../data/briefs'
+import { trackBriefSubmit } from '../lib/analytics'
 
 /* ── Config ─────────────────────────────────────────────────── */
 const V   = '#6E2DFF'  // violet
@@ -344,6 +345,7 @@ export default function BriefPage() {
       }).catch(err => console.warn('[brief] email API:', err))
 
       setSubmitted(true)
+      trackBriefSubmit(form.email_direccion || undefined)
       showToast('✅ ¡Briefing enviado! Te contactaremos pronto.', 'success')
     } catch (err) {
       console.error('[brief] submit error:', err)

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { Routes, Route, Link as RouterLink, useLocation } from 'react-router-dom'
-import { trackPageView } from './lib/analytics'
+import { trackPageView, trackEvent } from './lib/analytics'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import './index.css'
@@ -296,11 +296,21 @@ function Landing() {
 
   useEffect(() => {
     const ids = NAV_LINKS.map(l => l.id)
+    const firedSections = new Set<string>()
+    const TRACKED = ['academia', 'servicios', 'portafolio']
     const observers = ids.map(id => {
       const el = document.getElementById(id)
       if (!el) return null
       const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveSection(id) },
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id)
+            if (TRACKED.includes(id) && !firedSections.has(id)) {
+              firedSections.add(id)
+              trackEvent('section_view', { section: id })
+            }
+          }
+        },
         { threshold: 0.35 }
       )
       obs.observe(el)
@@ -565,6 +575,12 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
+/* ── Brief subdomain wrapper: registra page_view en GA4 ─── */
+function BriefSubdomain() {
+  useEffect(() => { trackPageView('/brief', 'Brief de Proyecto') }, [])
+  return <BriefPageDirect />
+}
+
 /* ── Route tracker: registra page_view en GA4 ───────────── */
 function RouteTracker() {
   const location = useLocation()
@@ -580,7 +596,7 @@ export default function App() {
   if (window.location.hostname === 'brief.almaagenciacreativa.com') {
     return (
       <Suspense fallback={<PageLoader />}>
-        <BriefPageDirect />
+        <BriefSubdomain />
       </Suspense>
     )
   }

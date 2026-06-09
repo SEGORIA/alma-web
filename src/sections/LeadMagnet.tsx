@@ -7,6 +7,7 @@ import { contactoDefault, leadMagnetDefault } from '../data/config'
 import type { LeadMagnetConfig } from '../data/config'
 import type { KitArchivo } from '../data/leads'
 import { tipoIcono } from '../data/leads'
+import { trackLeadSubmit } from '../lib/analytics'
 
 /* ── Icons ─────────────────────────────────────────────────── */
 const PhoneIcon = () => (
@@ -182,6 +183,7 @@ export default function LeadMagnet() {
     }
     setSending(false)
     setSent(true)
+    trackLeadSubmit('kit_gratuito')
   }
 
   const openWhatsApp = () => {
