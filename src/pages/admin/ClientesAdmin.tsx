@@ -1604,12 +1604,12 @@ export default function ClientesAdmin() {
                                           <input value={mes.drive_links?.post ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, post: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
                                         </label>
                                         <label style={labelStyle}>
-                                          CARRUSEL — URL Drive
-                                          <input value={mes.drive_links?.carrusel ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, carrusel: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
-                                        </label>
-                                        <label style={labelStyle}>
                                           REELS — URL Drive
                                           <input value={mes.drive_links?.reels ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, reels: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
+                                        </label>
+                                        <label style={labelStyle}>
+                                          HISTORIAS — URL Drive
+                                          <input value={mes.drive_links?.historias ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, historias: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
                                         </label>
                                       </div>
                                     </div>

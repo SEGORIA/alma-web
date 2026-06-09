@@ -135,9 +135,10 @@ export type ParrillaHtml = {
 // ── Tablero Trello por meses ──────────────────────────────
 
 export type ParrillaDriveLinks = {
-  post?:     string   // URL Google Drive — POSTs
-  carrusel?: string   // URL Google Drive — Carruseles
-  reels?:    string   // URL Google Drive — Reels
+  post?:      string   // URL Google Drive — POSTs
+  reels?:     string   // URL Google Drive — Reels
+  historias?: string   // URL Google Drive — Historias
+  carrusel?:  string   // URL Google Drive — Carruseles (legacy)
 }
 
 export type ParrillaExtraItem = {

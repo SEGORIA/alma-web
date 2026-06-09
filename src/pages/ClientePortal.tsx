@@ -931,7 +931,6 @@ export default function ClientePortal() {
                   {columnas.map(mes => {
                     const isPlaceholder = boardIsPlaceholder
                     const hasHtml   = !!mes.html_contenido
-                    const hasDrive  = !!(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels)
                     const hasExtras = (mes.extras ?? []).length > 0
                     const [y, mo]   = mes.mes.split('-')
                     const mesNombre = new Date(+y, +mo - 1, 1).toLocaleDateString('es-CO', { month:'long', year:'numeric' })
@@ -962,46 +961,36 @@ export default function ClientePortal() {
                           </div>
                         )}
 
-                        {/* Card 2: Accesos Drive */}
-                        {hasDrive && (
-                          <div style={{ background:'#fff', borderRadius:'10px', padding:'14px', border:'1px solid #E5E7EB', boxShadow:'0 2px 8px rgba(0,0,0,0.08)' }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
-                              <div style={{ width:'26px', height:'26px', borderRadius:'6px', background:'rgba(5,150,105,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'13px' }}>🗂️</div>
-                              <p style={{ margin:0, fontSize:'10px', fontWeight:800, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Accesos Drive</p>
-                            </div>
-                            <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
-                              {mes.drive_links?.post && (
-                                <a href={mes.drive_links.post} target="_blank" rel="noopener noreferrer"
-                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#F0FDF4', border:'1px solid #BBF7D0', textDecoration:'none' }}
-                                  onClick={e => e.stopPropagation()}>
-                                  <span style={{ fontSize:'15px' }}>📄</span>
-                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#065F46', flex:1 }}>POST</span>
-                                  <span style={{ fontSize:'11px', color:'#6EE7B7' }}>↗</span>
-                                </a>
-                              )}
-                              {mes.drive_links?.carrusel && (
-                                <a href={mes.drive_links.carrusel} target="_blank" rel="noopener noreferrer"
-                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#EFF6FF', border:'1px solid #BFDBFE', textDecoration:'none' }}
-                                  onClick={e => e.stopPropagation()}>
-                                  <span style={{ fontSize:'15px' }}>🎠</span>
-                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#1E40AF', flex:1 }}>CARRUSEL</span>
-                                  <span style={{ fontSize:'11px', color:'#93C5FD' }}>↗</span>
-                                </a>
-                              )}
-                              {mes.drive_links?.reels && (
-                                <a href={mes.drive_links.reels} target="_blank" rel="noopener noreferrer"
-                                  style={{ display:'flex', alignItems:'center', gap:'8px', padding:'9px 12px', borderRadius:'8px', background:'#FDF4FF', border:'1px solid #E9D5FF', textDecoration:'none' }}
-                                  onClick={e => e.stopPropagation()}>
-                                  <span style={{ fontSize:'15px' }}>🎬</span>
-                                  <span style={{ fontSize:'13px', fontWeight:700, color:'#7E22CE', flex:1 }}>REELS</span>
-                                  <span style={{ fontSize:'11px', color:'#D8B4FE' }}>↗</span>
-                                </a>
-                              )}
-                            </div>
+                        {/* Tarjetas de contenido: Post · Reels · Historias (siempre visibles) */}
+                        {!isPlaceholder && [
+                          { key:'post',      label:'Post',      emoji:'📄', url: mes.drive_links?.post,      activeBg:'#F0FDF4', activeBorder:'#BBF7D0', activeColor:'#065F46' },
+                          { key:'reels',     label:'Reels',     emoji:'🎬', url: mes.drive_links?.reels,     activeBg:'#FDF4FF', activeBorder:'#E9D5FF', activeColor:'#7E22CE' },
+                          { key:'historias', label:'Historias', emoji:'📱', url: mes.drive_links?.historias, activeBg:'#EFF6FF', activeBorder:'#BFDBFE', activeColor:'#1E40AF' },
+                        ].map(ct => ct.url ? (
+                          <a key={ct.key} href={ct.url} target="_blank" rel="noopener noreferrer"
+                            style={{ display:'flex', alignItems:'center', gap:'10px', background:'#fff', borderRadius:'10px', padding:'13px 14px', border:'1px solid #E5E7EB', boxShadow:'0 2px 8px rgba(0,0,0,0.06)', textDecoration:'none' }}
+                            onClick={e => e.stopPropagation()}>
+                            <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:ct.activeBg, border:`1px solid ${ct.activeBorder}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'14px' }}>{ct.emoji}</div>
+                            <span style={{ fontSize:'13px', fontWeight:800, color:ct.activeColor, flex:1 }}>{ct.label}</span>
+                            <span style={{ fontSize:'11px', color:ct.activeColor, fontWeight:700 }}>Abrir ↗</span>
+                          </a>
+                        ) : (
+                          <div key={ct.key} style={{ display:'flex', alignItems:'center', gap:'10px', background:'rgba(255,255,255,0.04)', borderRadius:'10px', padding:'13px 14px', border:'1px dashed rgba(255,255,255,0.12)' }}>
+                            <div style={{ width:'28px', height:'28px', borderRadius:'7px', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'14px', opacity:0.5 }}>{ct.emoji}</div>
+                            <span style={{ fontSize:'13px', fontWeight:600, color:'rgba(255,255,255,0.25)', flex:1 }}>{ct.label}</span>
+                            <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.18)' }}>Próximamente</span>
+                          </div>
+                        ))}
+
+                        {/* Placeholder column */}
+                        {isPlaceholder && (
+                          <div style={{ padding:'24px 14px', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.15)', textAlign:'center', display:'flex', flexDirection:'column', gap:'8px', alignItems:'center' }}>
+                            <div style={{ width:'32px', height:'32px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}>📝</div>
+                            <p style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.25)', margin:0, lineHeight:1.5 }}>Tu estrategia de<br/>contenido estará aquí</p>
                           </div>
                         )}
 
-                        {/* Card 3: Extras */}
+                        {/* Extras (si existen) */}
                         {hasExtras && (
                           <div style={{ background:'#fff', borderRadius:'10px', padding:'14px', border:'1px solid #E5E7EB', boxShadow:'0 2px 8px rgba(0,0,0,0.08)' }}>
                             <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px' }}>
@@ -1026,20 +1015,6 @@ export default function ClientePortal() {
                               ))}
                             </div>
                           </div>
-                        )}
-
-                        {/* Empty column */}
-                        {!hasHtml && !hasDrive && !hasExtras && (
-                          isPlaceholder ? (
-                            <div style={{ padding:'24px 14px', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.15)', textAlign:'center', display:'flex', flexDirection:'column', gap:'8px', alignItems:'center' }}>
-                              <div style={{ width:'32px', height:'32px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}>📝</div>
-                              <p style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.25)', margin:0, lineHeight:1.5 }}>Tu estrategia de<br/>contenido estará aquí</p>
-                            </div>
-                          ) : (
-                            <div style={{ padding:'20px 14px', background:'rgba(255,255,255,0.04)', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.12)', textAlign:'center' }}>
-                              <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.3)', margin:0 }}>Sin contenido aún</p>
-                            </div>
-                          )
                         )}
                       </div>
                     )
