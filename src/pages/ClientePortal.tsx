@@ -932,6 +932,8 @@ export default function ClientePortal() {
                     const isPlaceholder = boardIsPlaceholder
                     const hasHtml   = !!mes.html_contenido
                     const hasExtras = (mes.extras ?? []).length > 0
+                    // Para columnas placeholder, buscar si hay HTML legacy del mismo mes
+                    const matchingHtml = isPlaceholder ? htmlsLegacy.find(h => h.mes === mes.mes) : null
                     const [y, mo]   = mes.mes.split('-')
                     const mesNombre = new Date(+y, +mo - 1, 1).toLocaleDateString('es-CO', { month:'long', year:'numeric' })
 
@@ -961,8 +963,26 @@ export default function ClientePortal() {
                           </div>
                         )}
 
-                        {/* Tarjetas de contenido: Post · Reels · Historias (siempre visibles) */}
-                        {!isPlaceholder && [
+                        {/* Estrategia legacy en columna placeholder */}
+                        {isPlaceholder && matchingHtml && (
+                          <div
+                            onClick={() => setActiveHtmlId(matchingHtml.id)}
+                            className="portal-card"
+                            style={{ background:'#fff', borderRadius:'10px', padding:'14px 14px 12px', border:'1px solid #E5E7EB', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.08)', transition:'transform 0.15s, box-shadow 0.15s' }}
+                          >
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px' }}>
+                              <div style={{ width:'26px', height:'26px', borderRadius:'6px', background:PL, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:'13px' }}>📋</div>
+                              <p style={{ margin:0, fontSize:'10px', fontWeight:800, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Estrategia del mes</p>
+                            </div>
+                            {matchingHtml.titulo && (
+                              <p style={{ margin:'0 0 8px', fontSize:'13.5px', color:'#111', fontWeight:700, lineHeight:1.3 }}>{matchingHtml.titulo}</p>
+                            )}
+                            <span style={{ fontSize:'12px', color:P, fontWeight:700 }}>Ver estrategia completa →</span>
+                          </div>
+                        )}
+
+                        {/* Tarjetas de contenido: Post · Reels · Historias */}
+                        {(!isPlaceholder || matchingHtml) && [
                           { key:'post',      label:'Post',      emoji:'📄', url: mes.drive_links?.post,      activeBg:'#F0FDF4', activeBorder:'#BBF7D0', activeColor:'#065F46' },
                           { key:'reels',     label:'Reels',     emoji:'🎬', url: mes.drive_links?.reels,     activeBg:'#FDF4FF', activeBorder:'#E9D5FF', activeColor:'#7E22CE' },
                           { key:'historias', label:'Historias', emoji:'📱', url: mes.drive_links?.historias, activeBg:'#EFF6FF', activeBorder:'#BFDBFE', activeColor:'#1E40AF' },
@@ -982,8 +1002,8 @@ export default function ClientePortal() {
                           </div>
                         ))}
 
-                        {/* Placeholder column */}
-                        {isPlaceholder && (
+                        {/* Sin datos — columna placeholder pura */}
+                        {isPlaceholder && !matchingHtml && (
                           <div style={{ padding:'24px 14px', borderRadius:'10px', border:'1px dashed rgba(255,255,255,0.15)', textAlign:'center', display:'flex', flexDirection:'column', gap:'8px', alignItems:'center' }}>
                             <div style={{ width:'32px', height:'32px', borderRadius:'8px', background:'rgba(255,255,255,0.06)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px' }}>📝</div>
                             <p style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.25)', margin:0, lineHeight:1.5 }}>Tu estrategia de<br/>contenido estará aquí</p>
