@@ -656,7 +656,7 @@ export default function ClientePortal() {
                 ? injectLogo(mes.html_contenido, data.logo_url, data.marca ?? '')
                 : mes.html_contenido
               return (
-                <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px' }}>
+                <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px' }}>
                   {/* Barra de retorno */}
                   <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
                     <button
@@ -698,7 +698,7 @@ export default function ClientePortal() {
               ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
               : current.contenido
             return (
-              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', animation:'fadeUp 0.35s ease' }}>
+              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', animation:'fadeUp 0.35s ease' }}>
                 <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
                   <button onClick={() => setActiveHtmlId(null)}
                     style={{ padding:'6px 14px', borderRadius:'8px', border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.08)', color:'#fff', cursor:'pointer', fontWeight:700, fontSize:'12px' }}>
@@ -732,7 +732,7 @@ export default function ClientePortal() {
 
             return (
               <div style={{
-                width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px',
+                width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px',
                 background:'linear-gradient(160deg, #0E0322 0%, #1A0640 55%, #2D0C72 100%)',
                 minHeight:'calc(100vh - 96px)',
                 padding:'24px 40px 40px',
