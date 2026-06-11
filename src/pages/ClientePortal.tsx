@@ -7,6 +7,7 @@ import {
   PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
 } from '../data/clientes'
+import { contactoDefault } from '../data/config'
 
 /* ── Brand tokens ───────────────────────────────────────── */
 const P  = '#6B21A8'
@@ -39,7 +40,7 @@ function NotFound() {
       <p style={{ fontSize: '14px', color: '#6B7280', maxWidth: '360px', lineHeight: 1.6 }}>
         Este enlace no es válido o ha expirado. Contacta a Alma Agencia Creativa para obtener tu acceso.
       </p>
-      <a href="https://wa.me/573001234567" style={{ padding: '11px 24px', borderRadius: '12px', background: P, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '14px' }}>
+      <a href={`https://wa.me/${contactoDefault.whatsapp}`} style={{ padding: '11px 24px', borderRadius: '12px', background: P, color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: '14px' }}>
         Contactar Alma
       </a>
     </div>
@@ -72,6 +73,14 @@ export default function ClientePortal() {
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
   const [visiblePasswords,    setVisiblePasswords]    = useState<Set<string>>(new Set())
+  const [copiedKey,           setCopiedKey]           = useState<string | null>(null)
+
+  function copyToClipboard(key: string, value: string) {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopiedKey(key)
+      setTimeout(() => setCopiedKey(k => (k === key ? null : k)), 1500)
+    }).catch(() => {})
+  }
 
   useEffect(() => {
     if (!token) { setLoading(false); return }
@@ -918,7 +927,7 @@ export default function ClientePortal() {
               <div style={{ marginBottom:'24px' }}>
                 <p style={{ margin:'0 0 4px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'1px' }}>Credenciales seguras</p>
                 <h2 style={{ margin:0, fontSize:'24px', fontWeight:900, color:'#111', letterSpacing:'-0.5px' }}>Tus accesos 🔐</h2>
-                <p style={{ margin:'6px 0 0', fontSize:'13px', color:'#6B7280' }}>Usa el botón 👁 para revelar la contraseña. Mantén esta información confidencial.</p>
+                <p style={{ margin:'6px 0 0', fontSize:'13px', color:'#6B7280' }}>Usa el botón 👁 para revelar la contraseña y 📋 para copiarla. Solo tú y el equipo de Alma pueden ver esta información.</p>
               </div>
 
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'14px' }}>
@@ -957,10 +966,10 @@ export default function ClientePortal() {
                           <div style={{ display:'flex', alignItems:'center', gap:'8px', background:'#F9FAFB', borderRadius:'8px', padding:'8px 12px' }}>
                             <span style={{ fontSize:'13px', fontWeight:600, color:'#374151', flex:1, wordBreak:'break-all' }}>{acc.usuario}</span>
                             <button
-                              onClick={() => navigator.clipboard.writeText(acc.usuario)}
+                              onClick={() => copyToClipboard(`${acc.id}-user`, acc.usuario)}
                               title="Copiar usuario"
-                              style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity:0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
-                            >📋</button>
+                              style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity: copiedKey === `${acc.id}-user` ? 1 : 0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
+                            >{copiedKey === `${acc.id}-user` ? '✅' : '📋'}</button>
                           </div>
                         </div>
 
@@ -973,10 +982,10 @@ export default function ClientePortal() {
                             </span>
                             {visible && (
                               <button
-                                onClick={() => navigator.clipboard.writeText(acc.password)}
+                                onClick={() => copyToClipboard(`${acc.id}-pwd`, acc.password)}
                                 title="Copiar contraseña"
-                                style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity:0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
-                              >📋</button>
+                                style={{ background:'none', border:'none', cursor:'pointer', fontSize:'13px', opacity: copiedKey === `${acc.id}-pwd` ? 1 : 0.5, flexShrink:0, padding:'0 2px', lineHeight:1 }}
+                              >{copiedKey === `${acc.id}-pwd` ? '✅' : '📋'}</button>
                             )}
                             <button
                               onClick={togglePwd}
@@ -1146,8 +1155,11 @@ export default function ClientePortal() {
 
       {/* ══ MODAL solicitud ════════════════════════════════════ */}
       {showSolForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{
+        <div
+          onClick={() => { if (!sending) setShowSolForm(false) }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{
             background: '#fff', borderRadius: '20px',
             padding: '28px 24px 32px',
             width: '100%', maxWidth: '520px',
