@@ -5,6 +5,7 @@ import { getArticulos, deleteArticulo } from '../../lib/db'
 import { P, Y } from '../../tokens'
 import type { Articulo } from '../../data/articulos'
 import { confirmar } from '../../components/admin/Feedback'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 export default function BlogAdmin() {
   const [articulos, setArticulos] = useState<Articulo[]>([])
@@ -54,9 +55,7 @@ export default function BlogAdmin() {
 
         {/* Lista */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280', fontSize: '15px' }}>
-            Cargando artículos…
-          </div>
+          <ListSkeleton rows={4} />
         ) : articulos.length === 0 ? (
           <div style={{
             background: '#fff', borderRadius: '16px', padding: '48px',

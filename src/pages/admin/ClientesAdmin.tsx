@@ -11,19 +11,20 @@ import {
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
   ENTREGABLE_REVISION_ESTADOS,
 } from '../../data/clientes'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
-const C1    = '#8A3FFC'                   // accent principal
-const C1_BG = 'rgba(138,63,252,0.12)'
-const BK    = '#08080B'                   // obsidian bg
-const DIM   = '#18181E'                   // card bg
-const BDR   = '#2A2A33'                   // border normal
-const BDR2  = '#3A3A44'                   // border hover / light
-const MUT   = '#606080'                   // texto apagado
-const WHT   = '#F1E8DA'                   // texto principal
-const ACC2  = '#A855F7'                   // violeta suave
-const ROSE  = '#FF4D8D'                   // danger
-const AMB   = '#FFB865'                   // amber / pausado
+const C1    = '#7C3AED'                   // accent principal
+const C1_BG = 'rgba(124,58,237,0.10)'
+const BK    = '#F7F5FC'                   // obsidian bg
+const DIM   = '#FFFFFF'                   // card bg
+const BDR   = '#EAE5F4'                   // border normal
+const BDR2  = '#D9D1EA'                   // border hover / light
+const MUT   = '#756E8C'                   // texto apagado
+const WHT   = '#221636'                   // texto principal
+const ACC2  = '#9333EA'                   // violeta suave
+const ROSE  = '#E11D48'                   // danger
+const AMB   = '#D97706'                   // amber / pausado
 
 /* ── Helpers ─────────────────────────────────────────────── */
 type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
@@ -435,7 +436,7 @@ export default function ClientesAdmin() {
           <button
             onClick={handleNew}
             style={{
-              background: 'linear-gradient(135deg, #6E2DFF, #A855F7)', color: WHT,
+              background: 'linear-gradient(135deg, #6E2DFF, #9333EA)', color: WHT,
               border: 'none', cursor: 'pointer',
               padding: '10px 22px', borderRadius: '4px', fontWeight: 700, fontSize: '12px',
               display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0,
@@ -449,7 +450,7 @@ export default function ClientesAdmin() {
         {/* ── Stats ── */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap: '14px', marginBottom: '16px' }}>
           {([
-            { lbl: 'Activos',     val: String(activos),            sub: `${pausados} paus. · ${prospectos} prosp.`, col: '#7ec8a0', ico: '✦' },
+            { lbl: 'Activos',     val: String(activos),            sub: `${pausados} paus. · ${prospectos} prosp.`, col: '#16A34A', ico: '✦' },
             { lbl: 'Total',       val: String(total),              sub: 'todos los estados',                         col: WHT,        ico: '◈' },
             { lbl: 'Con portal',  val: String(conPortal),          sub: `${total - conPortal} sin acceso`,           col: ACC2,       ico: '◎' },
             { lbl: 'Solicitudes', val: String(pendSol),            sub: 'solicitudes abiertas',                      col: pendSol > 0 ? ROSE : MUT, ico: '!' },
@@ -466,7 +467,7 @@ export default function ClientesAdmin() {
                 {m.val}
               </p>
               <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
-              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#1A1A22', lineHeight: 1, fontWeight: 300, userSelect: 'none', pointerEvents: 'none' }}>
+              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#F1ECFA', lineHeight: 1, fontWeight: 300, userSelect: 'none', pointerEvents: 'none' }}>
                 {m.ico}
               </span>
             </div>
@@ -478,7 +479,7 @@ export default function ClientesAdmin() {
           <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '12px 20px', marginBottom: '24px', display: 'flex', gap: isMobile ? '16px' : '28px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, flexShrink: 0 }}>Cartera</span>
             {([
-              { label: 'Activos',    val: activos,    col: '#7ec8a0' },
+              { label: 'Activos',    val: activos,    col: '#16A34A' },
               { label: 'Pausados',   val: pausados,   col: AMB },
               { label: 'Prospectos', val: prospectos, col: ACC2 },
             ] as { label: string; val: number; col: string }[]).map(({ label, val, col }) => (
@@ -515,7 +516,7 @@ export default function ClientesAdmin() {
 
         {/* ── Lista ── */}
         {loading ? (
-          <p style={{ color: MUT, fontSize: '13px', textAlign: 'center', padding: '60px 0', letterSpacing: '0.05em' }}>Cargando clientes…</p>
+          <ListSkeleton rows={6} />
         ) : visible.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 20px' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px', color: BDR }}>✦</div>
@@ -569,7 +570,7 @@ export default function ClientesAdmin() {
           <div style={{
             background: '#12121A', width: isMobile ? '100%' : '720px',
             maxWidth: '100%', display: 'flex', flexDirection: 'column',
-            boxShadow: '-8px 0 40px rgba(0,0,0,0.5)',
+            boxShadow: '-8px 0 40px rgba(34,22,54,0.18)',
             overflowY: 'auto',
           }}>
             {/* Modal header */}
@@ -697,7 +698,7 @@ export default function ClientesAdmin() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', width: '100%' }}>
                             <img
                               src={form.logo_url} alt="Logo"
-                              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '6px', background: '#1A1A22', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }}
+                              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '6px', background: '#FFFFFF', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }}
                             />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ margin: '0 0 4px', fontSize: '12px', color: WHT, fontWeight: 600 }}>Logo cargado ✓</p>
@@ -1568,7 +1569,7 @@ export default function ClientesAdmin() {
 
                                     {/* Bloque 1: HTML Estrategia */}
                                     <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
-                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#A78BFA', textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#7C3AED', textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
                                       <label style={labelStyle}>
                                         Título de la estrategia (opcional)
                                         <input value={mes.html_titulo ?? ''} onChange={e => updateTrelloMes(mes.id, { html_titulo: e.target.value })} style={inputStyle} placeholder="Estrategia Digital · Julio 2026" />
@@ -1870,10 +1871,10 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
   const pendSol = cliente.solicitudes.filter(s => s.estado === 'pendiente').length
 
   const statusStyle: React.CSSProperties =
-    cliente.estado === 'activo'     ? { background: '#1a0d36', color: '#A855F7', border: '0.5px solid #6E2DFF' } :
-    cliente.estado === 'pausado'    ? { background: '#2a1a10', color: '#FFB865', border: '0.5px solid #7a5e30' } :
+    cliente.estado === 'activo'     ? { background: '#F3EBFF', color: '#9333EA', border: '0.5px solid #6E2DFF' } :
+    cliente.estado === 'pausado'    ? { background: '#2a1a10', color: '#D97706', border: '0.5px solid #7a5e30' } :
     cliente.estado === 'prospecto'  ? { background: '#0d1e30', color: '#60c0e0', border: '0.5px solid #2060a0' } :
-    /* finalizado */                  { background: '#2a0d1a', color: '#FF4D8D', border: '0.5px solid #5a1a30' }
+    /* finalizado */                  { background: '#2a0d1a', color: '#E11D48', border: '0.5px solid #5a1a30' }
 
   const CLIENTE_ESTADOS_MAP: Record<string, string> = {
     activo: 'Activo', pausado: 'Pausado', prospecto: 'Prospecto', finalizado: 'Finalizado'
@@ -1891,7 +1892,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           {cliente.logo_url ? (
             <img src={cliente.logo_url} alt={cliente.marca} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'contain', background: '#0D0D14', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }} />
           ) : (
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #6E2DFF, #A855F7)', color: WHT, fontSize: '15px', fontWeight: 600, flexShrink: 0 }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #6E2DFF, #9333EA)', color: WHT, fontSize: '15px', fontWeight: 600, flexShrink: 0 }}>
               {cliente.marca.charAt(0).toUpperCase()}
             </div>
           )}
@@ -1926,7 +1927,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
       {cliente.servicios.length > 0 && (
         <div style={{ padding: '8px 16px', background: '#0D0D14', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {cliente.servicios.slice(0, 3).map(s => (
-            <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: '#1A1A22', border: `0.5px solid ${BDR}`, color: MUT }}>
+            <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: '#FFFFFF', border: `0.5px solid ${BDR}`, color: MUT }}>
               {s.length > 14 ? s.slice(0, 12) + '…' : s}
             </span>
           ))}
@@ -1950,7 +1951,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           <a
             href={`${portalBase}${cliente.access_token}`}
             target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: '#1a0d36', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: '#F3EBFF', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
             Portal
           </a>
@@ -1977,6 +1978,6 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   padding: '9px 12px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
-  fontSize: '13px', color: WHT, background: '#1A1A22', outline: 'none',
+  fontSize: '13px', color: WHT, background: '#FFFFFF', outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }

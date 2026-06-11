@@ -8,20 +8,21 @@ import {
 import type { Brief, BriefFormConfig, BriefFieldDef, BriefSectionDef } from '../../data/briefs'
 import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG } from '../../data/briefs'
 import { confirmar } from '../../components/admin/Feedback'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 /* ── Paleta oscura ─────────────────────────────────────────── */
-const BK   = '#08080B'
-const DIM  = '#18181E'
-const BDR  = '#2A2A33'
-const BDR2 = '#3A3A44'
-const MUT  = '#606080'
-const WHT  = '#F1E8DA'
-const ACC2 = '#A855F7'
-const C1   = '#8A3FFC'
-const AMB  = '#FFB865'
-const TEAL = '#2DD4BF'
-const GRN  = '#4ADE80'
-const BLUE = '#60A5FA'
+const BK   = '#F7F5FC'
+const DIM  = '#FFFFFF'
+const BDR  = '#EAE5F4'
+const BDR2 = '#D9D1EA'
+const MUT  = '#756E8C'
+const WHT  = '#221636'
+const ACC2 = '#9333EA'
+const C1   = '#7C3AED'
+const AMB  = '#D97706'
+const TEAL = '#0D9488'
+const GRN  = '#16A34A'
+const BLUE = '#2563EB'
 
 /* ── helpers ───────────────────────────────────────────────── */
 function fmtDate(ts: unknown): string {
@@ -733,14 +734,14 @@ export default function BriefAdmin() {
                 >
                   <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{e.label}</p>
                   <p style={{ fontSize: '28px', fontWeight: 300, color: e.color, margin: '0 0 2px', lineHeight: 1 }}>{counts[e.value] ?? 0}</p>
-                  <span style={{ position: 'absolute', bottom: 0, right: '8px', fontSize: '42px', color: '#1A1A22', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>◈</span>
+                  <span style={{ position: 'absolute', bottom: 0, right: '8px', fontSize: '42px', color: '#F1ECFA', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>◈</span>
                 </button>
               ))}
             </div>
 
             {/* Lista */}
             {loading ? (
-              <p style={{ textAlign: 'center', padding: '60px 0', color: MUT, fontSize: '13px' }}>Cargando briefings…</p>
+              <ListSkeleton rows={5} />
             ) : displayed.length === 0 ? (
               <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '48px', textAlign: 'center' }}>
                 <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>📭</span>

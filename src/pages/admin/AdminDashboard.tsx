@@ -4,14 +4,12 @@ import AdminLayout from './AdminLayout'
 import {
   getArticulos, getProyectos, getPlanes, getExtras,
   getTestimonios, getFaqs, getPasos, getEquipo, getLeads,
-  seedArticulos, seedPortafolio, seedPrecios, seedConfig,
 } from '../../lib/db'
 import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore'
 import type { Cliente } from '../../data/clientes'
 import { P, PL, Y } from '../../tokens'
 import { useIsMobile } from '../../hooks/useIsMobile'
-import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta del dashboard ───────────────────────────────── */
 const DARK   = '#0D0220'
@@ -188,8 +186,6 @@ export default function AdminDashboard() {
   const [nEquipo,         setNEquipo]         = useState<number | null>(null)
   const [nLeads,          setNLeads]          = useState<number | null>(null)
   const [nLeadsNuevos,    setNLeadsNuevos]    = useState<number | null>(null)
-  const [seeding,         setSeeding]         = useState(false)
-  const [seeded,          setSeeded]          = useState(false)
   // Analytics — clientes
   const [nClientesActivos,  setNClientesActivos]  = useState<number | null>(null)
   const [nPortalesActivos,  setNPortalesActivos]  = useState<number | null>(null)
@@ -249,24 +245,7 @@ export default function AdminDashboard() {
         }).catch(() => {})
       }
     }
-  }, [seeded])
-
-  const handleSeed = async () => {
-    if (!(await confirmar('¿Migrar los datos estáticos a Firestore?'))) return
-    setSeeding(true)
-    try {
-      await seedArticulos()
-      await seedPortafolio()
-      await seedPrecios()
-      await seedConfig()
-      setSeeded(s => !s)
-      toast.ok('Datos migrados correctamente')
-    } catch (err) {
-      toast.err('Error al migrar: ' + err)
-    } finally {
-      setSeeding(false)
-    }
-  }
+  }, [])
 
   const hora = new Date().getHours()
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'
@@ -655,7 +634,7 @@ export default function AdminDashboard() {
                 Publicar nuevo contenido
               </p>
               <p style={{ fontSize:'12.5px', color:'rgba(255,255,255,0.45)', margin:'0 0 20px' }}>
-                Accesos rápidos para crear o inicializar datos.
+                Accesos rápidos para crear contenido.
               </p>
               <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
                 <Link to="/admin/blog/nuevo" style={{
@@ -676,22 +655,6 @@ export default function AdminDashboard() {
                 }}>
                   🖼️ Nuevo proyecto
                 </Link>
-                <button
-                  onClick={handleSeed}
-                  disabled={seeding}
-                  style={{
-                    display:'inline-flex', alignItems:'center', gap:'6px',
-                    background: seeding ? 'rgba(255,255,255,0.05)' : `rgba(250,204,21,0.12)`,
-                    color: seeding ? 'rgba(255,255,255,0.3)' : Y,
-                    border:`1px solid ${seeding ? 'rgba(255,255,255,0.08)' : 'rgba(250,204,21,0.35)'}`,
-                    padding:'10px 20px', borderRadius:'10px',
-                    fontWeight:700, fontSize:'13px',
-                    cursor: seeding ? 'not-allowed' : 'pointer',
-                    transition:'all 0.2s',
-                  }}
-                >
-                  {seeding ? 'Migrando...' : '🌱 Migrar datos a Firestore'}
-                </button>
               </div>
             </div>
           </div>

@@ -10,6 +10,7 @@ import { categoriasEstaticas, fmtPrecio } from '../../data/precios'
 import type { Plan, Extra, ServicioCategoria } from '../../data/precios'
 import { P, Y } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 /* ── helpers ────────────────────────────────────────────────── */
 const emptyPlan = (tabId: string): Omit<Plan, '_id'> => ({
@@ -437,7 +438,7 @@ export default function PreciosAdmin() {
 
 
         {loading && (
-          <p style={{ color: '#9CA3AF', fontSize: '14px' }}>Cargando precios…</p>
+          <ListSkeleton rows={4} />
         )}
 
         {!loading && (

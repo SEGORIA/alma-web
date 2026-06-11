@@ -5,6 +5,7 @@ import { getProyectos, deleteProyecto } from '../../lib/db'
 import { P } from '../../tokens'
 import type { Proyecto } from '../../data/portafolio'
 import { confirmar } from '../../components/admin/Feedback'
+import { CardGridSkeleton } from '../../components/admin/Loading'
 
 export default function PortafolioAdmin() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
@@ -54,7 +55,7 @@ export default function PortafolioAdmin() {
 
         {/* Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280' }}>Cargando proyectos…</div>
+          <CardGridSkeleton cards={6} />
         ) : proyectos.length === 0 ? (
           <div style={{
             background: '#fff', borderRadius: '16px', padding: '48px',

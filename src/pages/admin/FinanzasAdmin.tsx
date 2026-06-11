@@ -5,18 +5,19 @@ import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
 import type { Cliente, MetricaMes } from '../../data/clientes'
 import { confirmar } from '../../components/admin/Feedback'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 /* ── Paleta ─────────────────────────────────────────────── */
-const BK   = '#08080B'
-const DIM  = '#18181E'
-const BDR  = '#2A2A33'
-const BDR2 = '#3A3A44'
-const MUT  = '#606080'
-const WHT  = '#F1E8DA'
-const C1   = '#8A3FFC'
-const ACC2 = '#A855F7'
-const ROSE = '#FF4D8D'
-const AMB  = '#FFB865'
+const BK   = '#F7F5FC'
+const DIM  = '#FFFFFF'
+const BDR  = '#EAE5F4'
+const BDR2 = '#D9D1EA'
+const MUT  = '#756E8C'
+const WHT  = '#221636'
+const C1   = '#7C3AED'
+const ACC2 = '#9333EA'
+const ROSE = '#E11D48'
+const AMB  = '#D97706'
 
 /* ── Plataformas ─────────────────────────────────────────── */
 const PLATFORMS = [
@@ -46,13 +47,13 @@ const ESTADO_META: Record<string, { label: string; color: string; bg: string }> 
   activo:     { label: 'Activo',     color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
   pausado:    { label: 'Pausado',    color: AMB,       bg: 'rgba(251,191,36,0.12)' },
   finalizado: { label: 'Finalizado', color: MUT,       bg: 'rgba(96,96,128,0.12)'  },
-  prospecto:  { label: 'Prospecto',  color: '#60A5FA', bg: 'rgba(96,165,250,0.12)' },
+  prospecto:  { label: 'Prospecto',  color: '#2563EB', bg: 'rgba(96,165,250,0.12)' },
 }
 
 type FinTab = 'finanzas' | 'clientes' | 'metricas'
 
 const inputSt: React.CSSProperties = {
-  width: '100%', background: '#0F0F15', border: `1px solid ${BDR2}`,
+  width: '100%', background: '#FFFFFF', border: `1px solid ${BDR2}`,
   borderRadius: '8px', color: WHT, fontSize: '13px',
   padding: '8px 10px', outline: 'none', fontFamily: 'inherit',
 }
@@ -266,7 +267,7 @@ export default function FinanzasAdmin() {
           <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '24px 32px' }}>
 
             {loadingCl ? (
-              <p style={{ color: MUT, textAlign: 'center', padding: '40px', fontSize: '14px' }}>Cargando clientes...</p>
+              <ListSkeleton rows={5} />
             ) : (
               <>
                 {/* ─ KPI cards ─ */}
@@ -276,7 +277,7 @@ export default function FinanzasAdmin() {
                     { label: 'Ticket promedio',      value: fmtCOP(ticketProm),       sub: 'Clientes activos',              color: AMB  },
                     { label: 'Clientes activos',     value: String(activos.length),   sub: 'En servicio ahora',             color: '#10B981' },
                     { label: 'Pausados',             value: String(pausados.length),  sub: 'Sin facturación activa',        color: AMB  },
-                    { label: 'Prospectos',           value: String(prospectos.length),sub: 'En proceso de cierre',          color: '#60A5FA' },
+                    { label: 'Prospectos',           value: String(prospectos.length),sub: 'En proceso de cierre',          color: '#2563EB' },
                   ].map(k => (
                     <div key={k.label} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '16px 18px', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: k.color, opacity: 0.6 }} />
@@ -336,7 +337,7 @@ export default function FinanzasAdmin() {
                         display: 'grid', gridTemplateColumns: '2fr 1fr 1.2fr 1fr 1fr',
                         gap: '0', padding: '12px 18px',
                         borderBottom: i < clFiltered.length - 1 ? `0.5px solid ${BDR}` : 'none',
-                        background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
+                        background: i % 2 === 0 ? 'transparent' : 'rgba(107,33,168,0.025)',
                         alignItems: 'center',
                       }}>
                         {/* Marca */}
@@ -431,7 +432,7 @@ export default function FinanzasAdmin() {
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
                 {loadingCl ? (
-                  <p style={{ padding: '20px', color: MUT, fontSize: '12px', textAlign: 'center' }}>Cargando...</p>
+                  <ListSkeleton rows={3} />
                 ) : filteredMClients.length === 0 ? (
                   <p style={{ padding: '20px', color: MUT, fontSize: '12px', textAlign: 'center' }}>Sin resultados</p>
                 ) : filteredMClients.map(c => {

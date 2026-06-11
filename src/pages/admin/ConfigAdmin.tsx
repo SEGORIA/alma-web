@@ -4,7 +4,7 @@ import {
   getConfig, updateConfig,
   getTestimonios, createTestimonio, updateTestimonio, deleteTestimonio,
   getFaqs, createFaq, updateFaq, deleteFaq,
-  seedConfig,
+  seedConfig, seedArticulos, seedPortafolio, seedPrecios,
 } from '../../lib/db'
 import {
   seccionesInfo, seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
@@ -525,12 +525,21 @@ export default function ConfigAdmin() {
   const [seeding, setSeeding] = useState(false)
 
   async function handleSeed() {
-    if (!(await confirmar('¿Migrar los datos de configuración, testimonios y FAQ a Firestore?'))) return
+    const ok = await confirmar({
+      titulo:  'Migrar datos estáticos',
+      mensaje: 'Esto migra blog, portafolio, precios, configuración, testimonios y FAQ a Firestore. Úsalo solo en la configuración inicial del sitio.',
+      accion:  'Migrar todo',
+      peligro: false,
+    })
+    if (!ok) return
     setSeeding(true)
     try {
+      await seedArticulos()
+      await seedPortafolio()
+      await seedPrecios()
       await seedConfig()
       toast.ok('Datos migrados correctamente a Firestore')
-    } catch (err) { toast.err('Error: ' + err) }
+    } catch (err) { toast.err('Error al migrar: ' + err) }
     setSeeding(false)
   }
 

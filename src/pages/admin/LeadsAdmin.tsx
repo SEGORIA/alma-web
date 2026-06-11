@@ -7,6 +7,7 @@ import type { Lead } from '../../data/leads'
 import { LEAD_ESTADOS } from '../../data/leads'
 import { P } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
+import { ListSkeleton } from '../../components/admin/Loading'
 
 /* ── helpers ─────────────────────────────────────────────── */
 function formatFecha(ts: unknown): string {
@@ -131,7 +132,7 @@ export default function LeadsAdmin() {
 
         {/* Tabla */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280' }}>Cargando leads…</div>
+          <ListSkeleton rows={5} />
         ) : filtered.length === 0 ? (
           <div style={{
             background: '#fff', borderRadius: '16px', padding: '48px',

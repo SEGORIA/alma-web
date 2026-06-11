@@ -2,25 +2,25 @@ import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
 /* ── Paleta ─────────────────────────────────────────────── */
-const BK   = '#08080B'
-const DIM  = '#18181E'
-const BDR  = '#2A2A33'
-const BDR2 = '#3A3A44'
-const MUT  = '#606080'
-const WHT  = '#F1E8DA'
-const ACC2 = '#A855F7'
-const C1   = '#8A3FFC'
-const AMB  = '#FFB865'
-const ROSE = '#FF4D8D'
-const TEAL = '#2DD4BF'
+const BK   = '#F7F5FC'
+const DIM  = '#FFFFFF'
+const BDR  = '#EAE5F4'
+const BDR2 = '#D9D1EA'
+const MUT  = '#756E8C'
+const WHT  = '#221636'
+const ACC2 = '#9333EA'
+const C1   = '#7C3AED'
+const AMB  = '#D97706'
+const ROSE = '#E11D48'
+const TEAL = '#0D9488'
 
 const FEATURES = [
   { icon: '🎬', title: 'Cursos en video',          color: ROSE, desc: 'Sube módulos con videos, textos y recursos descargables organizados por curso.' },
   { icon: '👩‍🎓', title: 'Estudiantes y accesos',    color: ACC2, desc: 'Gestiona quién tiene acceso a cada curso: libre, de pago o por invitación.' },
   { icon: '📊', title: 'Progreso del estudiante',   color: TEAL, desc: 'Ve cuánto ha avanzado cada estudiante en tiempo real desde el admin.' },
   { icon: '🏆', title: 'Certificados',              color: AMB,  desc: 'Emite certificados de finalización con el logo de Alma al completar el curso.' },
-  { icon: '💳', title: 'Cursos de pago',            color: '#4ADE80', desc: 'Integra pagos para cursos premium con PSE, tarjeta o Nequi.' },
-  { icon: '📱', title: 'Optimizado para móvil',     color: '#60A5FA', desc: 'Los estudiantes pueden tomar los cursos desde cualquier dispositivo.' },
+  { icon: '💳', title: 'Cursos de pago',            color: '#16A34A', desc: 'Integra pagos para cursos premium con PSE, tarjeta o Nequi.' },
+  { icon: '📱', title: 'Optimizado para móvil',     color: '#2563EB', desc: 'Los estudiantes pueden tomar los cursos desde cualquier dispositivo.' },
 ]
 
 const COURSE_CATEGORIES = [
@@ -65,13 +65,13 @@ export default function AcademiaAdmin() {
             { lbl: 'Cursos',       val: 0, sub: 'publicados',  col: ACC2, ico: '🎬' },
             { lbl: 'Estudiantes',  val: 0, sub: 'inscritos',   col: TEAL, ico: '👩‍🎓' },
             { lbl: 'Certificados', val: 0, sub: 'emitidos',    col: AMB,  ico: '🏆' },
-            { lbl: 'Ingresos',     val: '$0', sub: 'este mes', col: '#4ADE80', ico: '💳' },
+            { lbl: 'Ingresos',     val: '$0', sub: 'este mes', col: '#16A34A', ico: '💳' },
           ] as { lbl: string; val: number | string; sub: string; col: string; ico: string }[]).map(m => (
             <div key={m.lbl} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '18px 18px 14px', position: 'relative', overflow: 'hidden' }}>
               <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{m.lbl}</p>
               <p style={{ fontSize: typeof m.val === 'string' ? '20px' : '28px', fontWeight: 300, color: m.col, margin: '0 0 5px', lineHeight: 1 }}>{m.val}</p>
               <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
-              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '40px', color: '#1A1A22', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
+              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '40px', color: '#F1ECFA', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
             </div>
           ))}
         </div>
