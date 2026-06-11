@@ -4,6 +4,7 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
 import type { Cliente, MetricaMes } from '../../data/clientes'
+import { confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta ─────────────────────────────────────────────── */
 const BK   = '#08080B'
@@ -172,7 +173,7 @@ export default function FinanzasAdmin() {
   }
   async function deleteMetric(mes: string, plat: string) {
     if (!selectedId || !selectedClient || !db) return
-    if (!window.confirm('¿Eliminar métricas de este mes para esta plataforma?')) return
+    if (!(await confirmar('¿Eliminar métricas de este mes para esta plataforma?'))) return
     const hist = (selectedClient.metricas_historico ?? []).filter(m => !(m.mes === mes && m.plataforma === plat))
     await updateDoc(doc(db, 'clientes', selectedId), { metricas_historico: hist, updatedAt: new Date().toISOString() })
     setClientes(cs => cs.map(c => c._id === selectedId ? { ...c, metricas_historico: hist } : c))

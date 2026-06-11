@@ -3,10 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { P } from '../../tokens'
+import { FeedbackHost } from '../../components/admin/Feedback'
+import { getPendientes, type Pendientes } from '../../lib/pendientes'
 
 /* ── Nav data ─────────────────────────────────────────────── */
-const PAGINA_WEB = [
-  { label: '🎯 Leads',         to: '/admin/leads' },
+type NavEntry = { label: string; to: string; badgeKey?: keyof Pendientes }
+
+const PAGINA_WEB: NavEntry[] = [
+  { label: '🎯 Leads',         to: '/admin/leads', badgeKey: 'leadsNuevos' },
   { label: '✍️ Blog',          to: '/admin/blog' },
   { label: '🖼️ Portafolio',    to: '/admin/portafolio' },
   { label: '💰 Precios',       to: '/admin/precios' },
@@ -14,13 +18,15 @@ const PAGINA_WEB = [
   { label: '⚙️ Config',        to: '/admin/config' },
 ]
 
-const NEGOCIO = [
-  { label: '📋 Brief',              to: '/admin/brief' },
-  { label: '💼 Finanzas',           to: '/admin/finanzas' },
-  { label: '📑 Contratos',          to: '/admin/contratos' },
-  { label: '👥 Clientes',           to: '/admin/clientes' },
+/* Orden según el flujo comercial: brief → cotización → contrato
+   → cliente → cobro → finanzas. Academia al final. */
+const NEGOCIO: NavEntry[] = [
+  { label: '📋 Brief',              to: '/admin/brief', badgeKey: 'briefsNuevos' },
   { label: '📊 Cotizaciones',       to: '/admin/cotizaciones' },
+  { label: '📑 Contratos',          to: '/admin/contratos' },
+  { label: '👥 Clientes',           to: '/admin/clientes', badgeKey: 'solicitudesPend' },
   { label: '💳 Cuentas de Cobro',   to: '/admin/cuentas-cobro' },
+  { label: '💼 Finanzas',           to: '/admin/finanzas' },
   { label: '🎓 Academia',           to: '/admin/academia' },
 ]
 
@@ -48,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigate           = useNavigate()
   const isMobile           = useIsMobile()
   const [open, setOpen]    = useState(false)
+  const [pend, setPend]    = useState<Pendientes | null>(null)
 
   const onWebRoute = WEB_PREFIXES.some(p => location.pathname.startsWith(p))
   const [webOpen, setWebOpen] = useState(onWebRoute)
@@ -57,24 +64,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (onWebRoute) setWebOpen(true)
   }, [location.pathname, onWebRoute])
 
+  // Conteos para badges (cacheados 60s a nivel de módulo)
+  useEffect(() => {
+    getPendientes().then(setPend).catch(() => {})
+  }, [location.pathname])
+
   const handleLogout = async () => {
     await logout()
     navigate('/admin/login')
   }
 
   /* ── NavLink individual ── */
-  const NavItem = ({ label, to }: { label: string; to: string }) => {
+  const NavItem = ({ label, to, badgeKey }: NavEntry) => {
     const isExact = to === '/admin'
     const active  = isExact
       ? location.pathname === '/admin'
       : location.pathname.startsWith(to)
+    const badge = badgeKey && pend ? pend[badgeKey] : 0
 
     return (
       <Link
         to={to}
         onClick={() => setOpen(false)}
         style={{
-          display: 'block', padding: '9px 13px', borderRadius: '10px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '9px 13px', borderRadius: '10px',
           textDecoration: 'none', fontSize: '13.5px', fontWeight: active ? 700 : 500,
           color: active ? '#fff' : '#9CA3AF',
           background: active ? P : 'transparent',
@@ -83,7 +97,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
       >
-        {label}
+        <span>{label}</span>
+        {badge > 0 && (
+          <span style={{
+            minWidth: '19px', height: '19px', borderRadius: '10px',
+            background: active ? 'rgba(255,255,255,0.22)' : '#DC2626',
+            color: '#fff', fontSize: '10.5px', fontWeight: 800,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 5px', flexShrink: 0,
+          }}>
+            {badge > 99 ? '99+' : badge}
+          </span>
+        )}
       </Link>
     )
   }
@@ -145,18 +170,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }}
         >
           <span>🌐 Sitio web</span>
-          <span style={{
-            fontSize: '15px', lineHeight: 1, opacity: 0.5,
-            transform: webOpen ? 'rotate(90deg)' : 'rotate(0)',
-            transition: 'transform 0.22s ease',
-            display: 'inline-block',
-          }}>›</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+            {!webOpen && (pend?.leadsNuevos ?? 0) > 0 && (
+              <span style={{
+                minWidth: '19px', height: '19px', borderRadius: '10px',
+                background: '#DC2626', color: '#fff',
+                fontSize: '10.5px', fontWeight: 800,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 5px',
+              }}>
+                {pend!.leadsNuevos > 99 ? '99+' : pend!.leadsNuevos}
+              </span>
+            )}
+            <span style={{
+              fontSize: '15px', lineHeight: 1, opacity: 0.5,
+              transform: webOpen ? 'rotate(90deg)' : 'rotate(0)',
+              transition: 'transform 0.22s ease',
+              display: 'inline-block',
+            }}>›</span>
+          </span>
         </button>
 
         {webOpen && (
           <div style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {PAGINA_WEB.map(item => (
-              <NavItem key={item.to} label={item.label} to={item.to} />
+              <NavItem key={item.to} {...item} />
             ))}
           </div>
         )}
@@ -165,7 +203,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SectionLabel text="Negocio" />
 
         {NEGOCIO.map(item => (
-          <NavItem key={item.to} label={item.label} to={item.to} />
+          <NavItem key={item.to} {...item} />
         ))}
 
       </nav>
@@ -213,6 +251,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (isMobile) {
     return (
       <div style={{ minHeight: '100vh', background: '#F5F4FF' }}>
+        <FeedbackHost />
         {/* Top bar */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 50,
@@ -267,6 +306,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   /* ── Desktop ── */
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#F5F4FF' }}>
+      <FeedbackHost />
       <aside style={{
         width: '244px', flexShrink: 0,
         background: 'linear-gradient(180deg, #0D0220 0%, #1A0535 100%)',

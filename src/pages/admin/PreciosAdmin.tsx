@@ -9,6 +9,7 @@ import {
 import { categoriasEstaticas, fmtPrecio } from '../../data/precios'
 import type { Plan, Extra, ServicioCategoria } from '../../data/precios'
 import { P, Y } from '../../tokens'
+import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── helpers ────────────────────────────────────────────────── */
 const emptyPlan = (tabId: string): Omit<Plan, '_id'> => ({
@@ -284,17 +285,17 @@ export default function PreciosAdmin() {
       }
       setEditingPlanId(null); setAddingInTab(null)
       await reload()
-    } catch (err) { alert('Error al guardar: ' + err) }
+    } catch (err) { toast.err('Error al guardar: ' + err) }
     setSavingPlan(false)
   }
 
   async function handleDeletePlan(plan: Plan) {
     if (!plan._id) return
-    if (!confirm(`¿Eliminar el plan "${plan.nombre}"?`)) return
+    if (!(await confirmar(`¿Eliminar el plan "${plan.nombre}"?`))) return
     try {
       await deletePlan(plan._id)
       await reload()
-    } catch (err) { alert('Error al eliminar: ' + err) }
+    } catch (err) { toast.err('Error al eliminar: ' + err) }
   }
 
   /* ── Extra handlers ── */
@@ -308,17 +309,17 @@ export default function PreciosAdmin() {
       }
       setEditingExtraId(null); setAddingExtra(false)
       await reload()
-    } catch (err) { alert('Error al guardar: ' + err) }
+    } catch (err) { toast.err('Error al guardar: ' + err) }
     setSavingExtra(false)
   }
 
   async function handleDeleteExtra(extra: Extra) {
     if (!extra._id) return
-    if (!confirm(`¿Eliminar el extra "${extra.label}"?`)) return
+    if (!(await confirmar(`¿Eliminar el extra "${extra.label}"?`))) return
     try {
       await deleteExtra(extra._id)
       await reload()
-    } catch (err) { alert('Error al eliminar: ' + err) }
+    } catch (err) { toast.err('Error al eliminar: ' + err) }
   }
 
   /* ── Categoria handlers ── */
@@ -332,28 +333,28 @@ export default function PreciosAdmin() {
       }
       setEditingCatId(null); setAddingCat(false)
       await reload()
-    } catch (err) { alert('Error al guardar: ' + err) }
+    } catch (err) { toast.err('Error al guardar: ' + err) }
     setSavingCat(false)
   }
 
   async function handleDeleteCat(cat: ServicioCategoria) {
     if (!cat._id) return
-    if (!confirm(`¿Eliminar la categoría "${cat.label}"? Los planes con tabId="${cat.id}" quedarán huérfanos.`)) return
+    if (!(await confirmar(`¿Eliminar la categoría "${cat.label}"? Los planes con tabId="${cat.id}" quedarán huérfanos.`))) return
     try {
       await deleteCategoria(cat._id)
       await reload()
-    } catch (err) { alert('Error al eliminar: ' + err) }
+    } catch (err) { toast.err('Error al eliminar: ' + err) }
   }
 
   /* ── Seed ── */
   async function handleSeed() {
-    if (!confirm('¿Migrar los precios estáticos a Firestore? Esto creará los registros iniciales.')) return
+    if (!(await confirmar('¿Migrar los precios estáticos a Firestore? Esto creará los registros iniciales.'))) return
     setSeeding(true)
     try {
       await seedPrecios()
       await reload()
-      alert('✅ Precios migrados correctamente a Firestore')
-    } catch (err) { alert('Error al migrar: ' + err) }
+      toast.ok('Precios migrados correctamente a Firestore')
+    } catch (err) { toast.err('Error al migrar: ' + err) }
     setSeeding(false)
   }
 
@@ -388,7 +389,7 @@ export default function PreciosAdmin() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px', maxWidth: '900px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)', maxWidth: '900px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: isMigrated ? '32px' : '16px', flexWrap: 'wrap', gap: '12px' }}>

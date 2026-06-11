@@ -8,6 +8,7 @@ export default function AdminLogin() {
   const navigate               = useNavigate()
   const [email,    setEmail]   = useState('')
   const [password, setPassword]= useState('')
+  const [showPwd,  setShowPwd] = useState(false)
   const [error,    setError]   = useState('')
   const [loading,  setLoading] = useState(false)
 
@@ -81,21 +82,35 @@ export default function AdminLogin() {
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
               Contraseña
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              style={{
-                width: '100%', padding: '11px 14px', borderRadius: '10px',
-                border: `1.5px solid ${error ? '#EF4444' : '#E5E7EB'}`,
-                fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-                transition: 'border-color 0.2s',
-              }}
-              onFocus={e => (e.currentTarget.style.borderColor = P)}
-              onBlur={e => (e.currentTarget.style.borderColor = error ? '#EF4444' : '#E5E7EB')}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                style={{
+                  width: '100%', padding: '11px 42px 11px 14px', borderRadius: '10px',
+                  border: `1.5px solid ${error ? '#EF4444' : '#E5E7EB'}`,
+                  fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = P)}
+                onBlur={e => (e.currentTarget.style.borderColor = error ? '#EF4444' : '#E5E7EB')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd(s => !s)}
+                aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                style={{
+                  position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '15px', padding: '4px', lineHeight: 1, opacity: 0.55,
+                }}
+              >
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {error && (

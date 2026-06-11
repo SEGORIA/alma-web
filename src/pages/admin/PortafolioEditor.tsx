@@ -5,6 +5,7 @@ import { getProyectos, createProyecto, updateProyecto } from '../../lib/db'
 import { gradientesDisponibles, filtrosPortafolio } from '../../data/portafolio'
 import type { Proyecto } from '../../data/portafolio'
 import ImageUploader from '../../components/ImageUploader'
+import { toast } from '../../components/admin/Feedback'
 
 const CATS = filtrosPortafolio.filter(f => f !== 'Todos')
 
@@ -68,7 +69,7 @@ export default function PortafolioEditor() {
   }, [id, isNew])
 
   const handleSave = async () => {
-    if (!titulo.trim()) { alert('El título es obligatorio'); return }
+    if (!titulo.trim()) { toast.err('El título es obligatorio'); return }
     setSaving(true)
     try {
       const csResultadosClean = csResultados.map(r => r.trim()).filter(Boolean)
@@ -104,7 +105,7 @@ export default function PortafolioEditor() {
       }
       navigate('/admin/portafolio')
     } catch (err) {
-      alert('Error al guardar: ' + err)
+      toast.err('Error al guardar: ' + err)
     } finally {
       setSaving(false)
     }

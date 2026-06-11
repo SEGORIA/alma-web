@@ -7,6 +7,7 @@ import {
 } from '../../lib/db'
 import type { Brief, BriefFormConfig, BriefFieldDef, BriefSectionDef } from '../../data/briefs'
 import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG } from '../../data/briefs'
+import { confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta oscura ─────────────────────────────────────────── */
 const BK   = '#08080B'
@@ -632,7 +633,7 @@ export default function BriefAdmin() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar este briefing? Esta acción no se puede deshacer.')) return
+    if (!(await confirmar('¿Eliminar este briefing? Esta acción no se puede deshacer.'))) return
     setDeleting(id)
     await deleteBrief(id)
     setBriefs(prev => prev.filter(b => b._id !== id))

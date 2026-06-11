@@ -11,6 +11,7 @@ import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore'
 import type { Cliente } from '../../data/clientes'
 import { P, PL, Y } from '../../tokens'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta del dashboard ───────────────────────────────── */
 const DARK   = '#0D0220'
@@ -163,12 +164,16 @@ interface BizCard {
   badge: string
 }
 
+/* Orden según el flujo comercial: brief → cotización → contrato
+   → cliente → cobro → finanzas (mismo orden que el sidebar). */
 const BIZ_MODULES: BizCard[] = [
-  { icon:'📋', title:'Brief',     desc:'Recibe y gestiona los briefs de tus clientes en un solo lugar.', color:'#0EA5E9', to:'/admin/brief',        cta:'Abrir Brief',   badge:'Activo' },
-  { icon:'💼', title:'Finanzas',  desc:'Controla ingresos, gastos y rentabilidad de cada proyecto.',     color:'#16A34A', to:'/admin/finanzas',      cta:'Ver Finanzas',  badge:'Activo' },
-  { icon:'📑', title:'Contratos', desc:'Genera órdenes de servicio y contratos firmados digitalmente.',  color:'#2563EB', to:'/admin/contratos',     cta:'Ver Contratos', badge:'Activo' },
-  { icon:'👥', title:'Clientes',  desc:'Portal privado: avances, entregables y métricas por cliente.',  color:'#EA580C', to:'/admin/clientes',      cta:'Ver Clientes',  badge:'Activo' },
-  { icon:'🎓', title:'Academia',  desc:'Cursos y contenido educativo en edu.almaagenciacreativa.com.',  color:'#DB2777', to:'/admin/academia',      cta:'Ver Academia',  badge:'Activo' },
+  { icon:'📋', title:'Brief',            desc:'Recibe y gestiona los briefs de tus clientes en un solo lugar.',     color:'#0EA5E9', to:'/admin/brief',         cta:'Abrir Brief',       badge:'Activo' },
+  { icon:'📊', title:'Cotizaciones',     desc:'Crea y envía cotizaciones profesionales con PDF listo para imprimir.', color:'#7C3AED', to:'/admin/cotizaciones',  cta:'Ver Cotizaciones',  badge:'Activo' },
+  { icon:'📑', title:'Contratos',        desc:'Genera órdenes de servicio y contratos firmados digitalmente.',      color:'#2563EB', to:'/admin/contratos',     cta:'Ver Contratos',     badge:'Activo' },
+  { icon:'👥', title:'Clientes',         desc:'Portal privado: avances, entregables y métricas por cliente.',      color:'#EA580C', to:'/admin/clientes',      cta:'Ver Clientes',      badge:'Activo' },
+  { icon:'💳', title:'Cuentas de Cobro', desc:'Emite cuentas de cobro y haz seguimiento de pagos pendientes.',      color:'#0D9488', to:'/admin/cuentas-cobro', cta:'Ver Cuentas',       badge:'Activo' },
+  { icon:'💼', title:'Finanzas',         desc:'Controla ingresos, gastos y rentabilidad de cada proyecto.',         color:'#16A34A', to:'/admin/finanzas',      cta:'Ver Finanzas',      badge:'Activo' },
+  { icon:'🎓', title:'Academia',         desc:'Cursos y contenido educativo en edu.almaagenciacreativa.com.',      color:'#DB2777', to:'/admin/academia',      cta:'Ver Academia',      badge:'Activo' },
 ]
 
 /* ── Dashboard ───────────────────────────────────────────── */
@@ -196,6 +201,7 @@ export default function AdminDashboard() {
   const [editingLooker, setEditingLooker] = useState(false)
   const [lookerInput,   setLookerInput]   = useState(LOOKER_ENV ?? '')
   const [savingLooker,  setSavingLooker]  = useState(false)
+  const [guideOpen,     setGuideOpen]     = useState(false)
 
   const isMobile = useIsMobile()
 
@@ -246,7 +252,7 @@ export default function AdminDashboard() {
   }, [seeded])
 
   const handleSeed = async () => {
-    if (!confirm('¿Migrar los datos estáticos a Firestore?')) return
+    if (!(await confirmar('¿Migrar los datos estáticos a Firestore?'))) return
     setSeeding(true)
     try {
       await seedArticulos()
@@ -254,9 +260,9 @@ export default function AdminDashboard() {
       await seedPrecios()
       await seedConfig()
       setSeeded(s => !s)
-      alert('✅ Datos migrados correctamente')
+      toast.ok('Datos migrados correctamente')
     } catch (err) {
-      alert('Error al migrar: ' + err)
+      toast.err('Error al migrar: ' + err)
     } finally {
       setSeeding(false)
     }
@@ -494,12 +500,36 @@ export default function AdminDashboard() {
                 style={{ width:'100%', height: isMobile ? '420px' : '600px', border:'none', display:'block' }}
                 allowFullScreen
               />
+            ) : !guideOpen ? (
+              /* Estado compacto: no ocupar media pantalla con la guía */
+              <div style={{ padding: isMobile ? '20px' : '22px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px' }}>
+                <p style={{ margin:0, fontSize:'13px', color:'#6B7280', lineHeight:1.6, flex:1, minWidth:'220px' }}>
+                  El tracking ya está activo en el código. Conecta tu informe de Looker Studio para ver el tráfico aquí.
+                </p>
+                <button
+                  onClick={() => setGuideOpen(true)}
+                  style={{
+                    padding:'9px 18px', borderRadius:'10px', border:`1px solid ${P}30`,
+                    background:`${P}10`, color:P, fontWeight:700, fontSize:'12.5px', cursor:'pointer',
+                    flexShrink:0,
+                  }}
+                >
+                  Ver guía de configuración →
+                </button>
+              </div>
             ) : (
               <div style={{ padding: isMobile ? '28px 20px' : '40px 32px' }}>
                 <div style={{ maxWidth:'560px' }}>
-                  <p style={{ margin:'0 0 6px', fontSize:'15px', fontWeight:800, color:'#0F0A1E' }}>
-                    Conecta Google Analytics 4 en 4 pasos
-                  </p>
+                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'10px' }}>
+                    <p style={{ margin:'0 0 6px', fontSize:'15px', fontWeight:800, color:'#0F0A1E' }}>
+                      Conecta Google Analytics 4 en 4 pasos
+                    </p>
+                    <button
+                      onClick={() => setGuideOpen(false)}
+                      style={{ background:'none', border:'none', color:'#9CA3AF', fontSize:'18px', cursor:'pointer', lineHeight:1, padding:'2px' }}
+                      aria-label="Cerrar guía"
+                    >✕</button>
+                  </div>
                   <p style={{ margin:'0 0 20px', fontSize:'13px', color:'#6B7280', lineHeight:1.6 }}>
                     El tracking ya está activo en el código — solo necesitas crear el informe y pegar el enlace aquí.
                   </p>

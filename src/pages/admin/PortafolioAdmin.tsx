@@ -4,6 +4,7 @@ import AdminLayout from './AdminLayout'
 import { getProyectos, deleteProyecto } from '../../lib/db'
 import { P } from '../../tokens'
 import type { Proyecto } from '../../data/portafolio'
+import { confirmar } from '../../components/admin/Feedback'
 
 export default function PortafolioAdmin() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
@@ -19,14 +20,14 @@ export default function PortafolioAdmin() {
   useEffect(() => { load() }, [])
 
   const handleDelete = async (id: string, titulo: string) => {
-    if (!confirm(`¿Eliminar "${titulo}" del portafolio?`)) return
+    if (!(await confirmar(`¿Eliminar "${titulo}" del portafolio?`))) return
     await deleteProyecto(id)
     load()
   }
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>

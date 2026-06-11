@@ -6,6 +6,7 @@ import {
 } from '../../lib/db'
 import type { Cotizacion, CotizacionItem } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
+import { confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta ─────────────────────────────────────────────── */
 const C1   = '#8A3FFC'
@@ -161,7 +162,7 @@ export default function CotizacionesAdmin() {
 
   /* ── Eliminar ── */
   async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar esta cotización?')) return
+    if (!(await confirmar('¿Eliminar esta cotización?'))) return
     await deleteCotizacion(id)
     setCots(prev => prev.filter(c => c._id !== id))
   }

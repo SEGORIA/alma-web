@@ -6,6 +6,7 @@ import { P } from '../../tokens'
 import type { Bloque } from '../../data/articulos'
 import { categorias } from '../../data/articulos'
 import ImageUploader from '../../components/ImageUploader'
+import { toast } from '../../components/admin/Feedback'
 
 const GRADIENTS = [
   { label: 'Morado',   value: 'linear-gradient(135deg, #6B21A8 0%, #9333EA 100%)' },
@@ -256,7 +257,7 @@ export default function BlogEditor() {
 
   const handleSave = async () => {
     if (!titulo.trim() || !slug.trim()) {
-      alert('El título y el slug son obligatorios')
+      toast.err('El título y el slug son obligatorios')
       return
     }
     setSaving(true)
@@ -269,7 +270,7 @@ export default function BlogEditor() {
       }
       navigate('/admin/blog')
     } catch (err) {
-      alert('Error al guardar: ' + err)
+      toast.err('Error al guardar: ' + err)
     } finally {
       setSaving(false)
     }

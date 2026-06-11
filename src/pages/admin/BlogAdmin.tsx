@@ -4,6 +4,7 @@ import AdminLayout from './AdminLayout'
 import { getArticulos, deleteArticulo } from '../../lib/db'
 import { P, Y } from '../../tokens'
 import type { Articulo } from '../../data/articulos'
+import { confirmar } from '../../components/admin/Feedback'
 
 export default function BlogAdmin() {
   const [articulos, setArticulos] = useState<Articulo[]>([])
@@ -19,14 +20,14 @@ export default function BlogAdmin() {
   useEffect(() => { load() }, [])
 
   const handleDelete = async (id: string, titulo: string) => {
-    if (!confirm(`¿Eliminar el artículo "${titulo}"? Esta acción no se puede deshacer.`)) return
+    if (!(await confirmar(`¿Eliminar el artículo "${titulo}"? Esta acción no se puede deshacer.`))) return
     await deleteArticulo(id)
     load()
   }
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>

@@ -6,6 +6,7 @@ import { contactoDefault } from '../../data/config'
 import type { Lead } from '../../data/leads'
 import { LEAD_ESTADOS } from '../../data/leads'
 import { P } from '../../tokens'
+import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── helpers ─────────────────────────────────────────────── */
 function formatFecha(ts: unknown): string {
@@ -55,16 +56,16 @@ export default function LeadsAdmin() {
     try {
       await updateLeadEstado(lead._id, estado)
       setLeads(prev => prev.map(l => l._id === lead._id ? { ...l, estado } : l))
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setUpdating(null)
   }
 
   async function handleDelete(lead: Lead) {
-    if (!lead._id || !confirm(`¿Eliminar el lead de "${lead.email}"?`)) return
+    if (!lead._id || !(await confirmar(`¿Eliminar el lead de "${lead.email}"?`))) return
     try {
       await deleteLead(lead._id)
       setLeads(prev => prev.filter(l => l._id !== lead._id))
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
   }
 
   const openWhatsApp = (lead: Lead) => {
@@ -87,7 +88,7 @@ export default function LeadsAdmin() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>

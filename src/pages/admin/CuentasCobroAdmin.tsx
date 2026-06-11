@@ -6,6 +6,7 @@ import {
 } from '../../lib/db'
 import type { CuentaCobro, CuentaConcepto } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
+import { confirmar } from '../../components/admin/Feedback'
 
 /* ── Paleta ─────────────────────────────────────────────── */
 const C1   = '#8A3FFC'
@@ -148,7 +149,7 @@ export default function CuentasCobroAdmin() {
 
   /* ── Eliminar ── */
   async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar esta cuenta de cobro?')) return
+    if (!(await confirmar('¿Eliminar esta cuenta de cobro?'))) return
     await deleteCuentaCobro(id)
     setCuentas(prev => prev.filter(c => c._id !== id))
   }

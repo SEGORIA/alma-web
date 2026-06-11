@@ -23,6 +23,7 @@ import type { ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '.
 import type { KitArchivo } from '../../data/leads'
 import { tipoIcono, formatTamano } from '../../data/leads'
 import { P, Y } from '../../tokens'
+import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── helpers de estilo ──────────────────────────────────────── */
 const inp: React.CSSProperties = {
@@ -89,7 +90,7 @@ function TabHero() {
     try {
       await updateConfig({ heroSubtitulo: subtitulo, heroStats: stats })
       setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
@@ -154,7 +155,7 @@ function TabContacto() {
     try {
       await updateConfig({ contactoInfo: form })
       setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
@@ -249,13 +250,13 @@ function TabProceso() {
   useEffect(() => { reload() }, [])
 
   async function handleClean() {
-    if (!confirm('¿Limpiar pasos duplicados? Se conservará solo una copia de cada paso.')) return
+    if (!(await confirmar('¿Limpiar pasos duplicados? Se conservará solo una copia de cada paso.'))) return
     setCleaning(true)
     try {
       const deleted = await cleanDuplicatePasos()
       await reload()
-      alert(`✅ Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
-    } catch (err) { alert('Error: ' + err) }
+      toast.ok(`Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
+    } catch (err) { toast.err('Error: ' + err) }
     setCleaning(false)
   }
 
@@ -265,13 +266,13 @@ function TabProceso() {
       if (editingId) await updatePaso(editingId, data)
       else await createPaso({ ...data, orden: pasos.length })
       setEditingId(null); setAdding(false); await reload()
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
   async function handleDelete(p: PasoItem) {
-    if (!p._id || !confirm(`¿Eliminar el paso "${p.titulo}"?`)) return
-    try { await deletePaso(p._id); await reload() } catch (err) { alert('Error: ' + err) }
+    if (!p._id || !(await confirmar(`¿Eliminar el paso "${p.titulo}"?`))) return
+    try { await deletePaso(p._id); await reload() } catch (err) { toast.err('Error: ' + err) }
   }
 
   return (
@@ -421,13 +422,13 @@ function TabEquipo() {
   useEffect(() => { reload() }, [])
 
   async function handleClean() {
-    if (!confirm('¿Limpiar miembros duplicados del equipo? Se conservará solo una copia de cada persona.')) return
+    if (!(await confirmar('¿Limpiar miembros duplicados del equipo? Se conservará solo una copia de cada persona.'))) return
     setCleaning(true)
     try {
       const deleted = await cleanDuplicateEquipo()
       await reload()
-      alert(`✅ Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
-    } catch (err) { alert('Error: ' + err) }
+      toast.ok(`Limpieza completada. Se eliminaron ${deleted} documento${deleted !== 1 ? 's' : ''} duplicado${deleted !== 1 ? 's' : ''}.`)
+    } catch (err) { toast.err('Error: ' + err) }
     setCleaning(false)
   }
 
@@ -437,13 +438,13 @@ function TabEquipo() {
       if (editingId) await updateEquipoMember(editingId, data)
       else await createEquipoMember({ ...data, orden: equipo.length })
       setEditingId(null); setAdding(false); await reload()
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
   async function handleDelete(m: EquipoMember) {
-    if (!m._id || !confirm(`¿Eliminar a "${m.nombre}"?`)) return
-    try { await deleteEquipoMember(m._id); await reload() } catch (err) { alert('Error: ' + err) }
+    if (!m._id || !(await confirmar(`¿Eliminar a "${m.nombre}"?`))) return
+    try { await deleteEquipoMember(m._id); await reload() } catch (err) { toast.err('Error: ' + err) }
   }
 
   return (
@@ -530,7 +531,7 @@ function TabManifiesto() {
     try {
       await updatePrincipios(principios)
       setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
@@ -607,7 +608,7 @@ function TabLeadMagnet() {
     try {
       await updateLeadMagnetConfig(form)
       setSavedOk(true); setTimeout(() => setSavedOk(false), 2500)
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
@@ -619,15 +620,15 @@ function TabLeadMagnet() {
       setNewNombre('')
       setNewDesc('')
       setArchivos(await getKitArchivos())
-    } catch (err) { alert('Error al guardar el archivo: ' + err) }
+    } catch (err) { toast.err('Error al guardar el archivo: ' + err) }
   }
 
   async function handleDeleteArchivo(id: string, nombre: string) {
-    if (!confirm(`¿Eliminar "${nombre}" del kit?`)) return
+    if (!(await confirmar(`¿Eliminar "${nombre}" del kit?`))) return
     try {
       await deleteKitArchivo(id)
       setArchivos(prev => prev.filter(a => a._id !== id))
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
   }
 
   return (
@@ -762,18 +763,18 @@ export default function ContenidoAdmin() {
   const [seeding, setSeeding] = useState(false)
 
   async function handleSeed() {
-    if (!confirm('¿Migrar todos los datos de contenido a Firestore? (Hero, Contacto, Proceso, Equipo, Testimonios, FAQ, Clientes)')) return
+    if (!(await confirmar('¿Migrar todos los datos de contenido a Firestore? (Hero, Contacto, Proceso, Equipo, Testimonios, FAQ, Clientes)'))) return
     setSeeding(true)
     try {
       await seedConfig()
-      alert('✅ Contenido migrado correctamente a Firestore')
-    } catch (err) { alert('Error: ' + err) }
+      toast.ok('Contenido migrado correctamente a Firestore')
+    } catch (err) { toast.err('Error: ' + err) }
     setSeeding(false)
   }
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px', maxWidth: '860px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)', maxWidth: '860px' }}>
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>

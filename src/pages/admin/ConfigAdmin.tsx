@@ -11,6 +11,7 @@ import {
 } from '../../data/config'
 import type { SeccionesConfig, Testimonio, FaqItem } from '../../data/config'
 import { P, Y } from '../../tokens'
+import { toast, confirmar } from '../../components/admin/Feedback'
 
 /* ── pequeños helpers de estilo ─────────────────────────────── */
 const inputStyle: React.CSSProperties = {
@@ -56,7 +57,7 @@ function TabSecciones() {
       await updateConfig({ secciones: next })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch (err) { alert('Error al guardar: ' + err) }
+    } catch (err) { toast.err('Error al guardar: ' + err) }
     setSaving(false)
   }
 
@@ -145,7 +146,7 @@ function TabClientes() {
       await updateConfig({ clientes: lista })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch (err) { alert('Error al guardar: ' + err) }
+    } catch (err) { toast.err('Error al guardar: ' + err) }
     setSaving(false)
   }
 
@@ -331,14 +332,14 @@ function TabTestimonios() {
       if (editingId) await updateTestimonio(editingId, data)
       else await createTestimonio({ ...data, orden: testimonios.length })
       setEditingId(null); setAdding(false); await reload()
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
   async function handleDelete(t: Testimonio) {
-    if (!t._id || !confirm(`¿Eliminar el testimonio de "${t.nombre}"?`)) return
+    if (!t._id || !(await confirmar(`¿Eliminar el testimonio de "${t.nombre}"?`))) return
     try { await deleteTestimonio(t._id); await reload() }
-    catch (err) { alert('Error: ' + err) }
+    catch (err) { toast.err('Error: ' + err) }
   }
 
   const emptyTestimonio: Omit<Testimonio, '_id'> = {
@@ -451,14 +452,14 @@ function TabFaq() {
       if (editingId) await updateFaq(editingId, data)
       else await createFaq({ ...data, orden: faqs.length })
       setEditingId(null); setAdding(false); await reload()
-    } catch (err) { alert('Error: ' + err) }
+    } catch (err) { toast.err('Error: ' + err) }
     setSaving(false)
   }
 
   async function handleDelete(f: FaqItem) {
-    if (!f._id || !confirm(`¿Eliminar la pregunta "${f.q}"?`)) return
+    if (!f._id || !(await confirmar(`¿Eliminar la pregunta "${f.q}"?`))) return
     try { await deleteFaq(f._id); await reload() }
-    catch (err) { alert('Error: ' + err) }
+    catch (err) { toast.err('Error: ' + err) }
   }
 
   return (
@@ -524,18 +525,18 @@ export default function ConfigAdmin() {
   const [seeding, setSeeding] = useState(false)
 
   async function handleSeed() {
-    if (!confirm('¿Migrar los datos de configuración, testimonios y FAQ a Firestore?')) return
+    if (!(await confirmar('¿Migrar los datos de configuración, testimonios y FAQ a Firestore?'))) return
     setSeeding(true)
     try {
       await seedConfig()
-      alert('✅ Datos migrados correctamente a Firestore')
-    } catch (err) { alert('Error: ' + err) }
+      toast.ok('Datos migrados correctamente a Firestore')
+    } catch (err) { toast.err('Error: ' + err) }
     setSeeding(false)
   }
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px 32px', maxWidth: '860px' }}>
+      <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)', maxWidth: '860px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
