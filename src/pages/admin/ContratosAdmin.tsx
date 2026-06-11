@@ -6,23 +6,15 @@ import type { LegalDocUrl } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
 import { CLIENTE_ESTADOS } from '../../data/clientes'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, TEAL, GRN, BLUE, INPUT_BG, GHOST, SOFT } = ADM
 
 /* ── Paleta oscura ───────────────────────────────────────── */
-const C1   = '#7C3AED'
-const BK   = '#F7F5FC'
-const DIM  = '#FFFFFF'
-const BDR  = '#EAE5F4'
-const BDR2 = '#D9D1EA'
-const MUT  = '#756E8C'
-const WHT  = '#221636'
-const ACC2 = '#9333EA'
-const AMB  = '#D97706'
-const ROSE = '#E11D48'
-const TEAL = '#0D9488'
 
 const inputStyle: React.CSSProperties = {
   padding: '9px 12px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
-  fontSize: '13px', color: WHT, background: '#FFFFFF', outline: 'none',
+  fontSize: '13px', color: WHT, background: INPUT_BG, outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }
 
@@ -30,12 +22,12 @@ const inputStyle: React.CSSProperties = {
 const LEGAL_DOCS: { key: string; num: string; titulo: string; desc: string; icon: string; color: string }[] = [
   { key: 'acuerdo_marco',   num: 'I',    icon: '📋', color: ACC2,  titulo: 'Acuerdo Marco de Servicios Digitales',      desc: 'Regula la relación comercial, operativa y jurídica entre ALMA y el cliente.' },
   { key: 'condiciones_gral',num: 'II',   icon: '📜', color: TEAL,  titulo: 'Condiciones Generales de Contratación',     desc: 'Cláusulas de alcance, revisiones, modificaciones y actualización de políticas.' },
-  { key: 'datos_personales',num: 'III',  icon: '🔒', color: '#2563EB', titulo: 'Política de Tratamiento de Datos Personales', desc: 'Conforme a Ley 1581 de 2012. Habeas Data, finalidades y medidas de seguridad.' },
+  { key: 'datos_personales',num: 'III',  icon: '🔒', color: BLUE, titulo: 'Política de Tratamiento de Datos Personales', desc: 'Conforme a Ley 1581 de 2012. Habeas Data, finalidades y medidas de seguridad.' },
   { key: 'cookies',         num: 'IV',   icon: '🍪', color: AMB,   titulo: 'Política de Cookies y Tecnologías de Rastreo', desc: 'Tipos de cookies, bases legales y gestión del consentimiento.' },
   { key: 'nda',             num: 'V',    icon: '🤫', color: ROSE,  titulo: 'Acuerdo de Confidencialidad (NDA)',          desc: 'NDA unilateral y bilateral para protección de información confidencial.' },
   { key: 'clausulas_esp',   num: 'VI',   icon: '⚡', color: '#DB2777', titulo: 'Cláusulas Especiales por Línea de Servicio', desc: 'Pauta, branding, diseño web, fotografía, IA y automatización.' },
   { key: 'propiedad_int',   num: 'VII',  icon: '©️',  color: '#059669', titulo: 'Régimen de Propiedad Intelectual',           desc: 'Titularidad, cesión patrimonial, licencias y uso publicitario de ALMA.' },
-  { key: 'firma_elect',     num: 'VIII', icon: '✍️',  color: '#7C3AED', titulo: 'Firma Electrónica y Mensajes de Datos',      desc: 'Validez jurídica conforme a Ley 527 de 1999. Formatos de aceptación digital.' },
+  { key: 'firma_elect',     num: 'VIII', icon: '✍️',  color: C1, titulo: 'Firma Electrónica y Mensajes de Datos',      desc: 'Validez jurídica conforme a Ley 527 de 1999. Formatos de aceptación digital.' },
   { key: 'anexo_a',         num: 'A',    icon: '📝', color: ACC2,  titulo: 'Anexo A — Orden de Servicio',                desc: 'Formato oficial para contratar proyectos: alcance, entregables y valor.' },
   { key: 'anexo_b',         num: 'B',    icon: '🔄', color: AMB,   titulo: 'Anexo B — Solicitud de Cambio (CR)',         desc: 'Formato para gestionar cambios de alcance durante la ejecución.' },
   { key: 'anexo_c',         num: 'C',    icon: '✅', color: TEAL,  titulo: 'Anexo C — Acta de Entrega',                  desc: 'Registro formal de entrega y recibo a satisfacción de los entregables.' },
@@ -142,7 +134,7 @@ export default function ContratosAdmin() {
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '14px', marginBottom: '24px' }}>
               {([
                 { lbl: 'Total',        val: clientes.length,    sub: 'registrados',             col: WHT,  ico: '◈' },
-                { lbl: 'Activos',      val: activos.length,     sub: 'en curso',                col: '#16A34A', ico: '✦' },
+                { lbl: 'Activos',      val: activos.length,     sub: 'en curso',                col: GRN, ico: '✦' },
                 { lbl: 'Con contrato', val: conContrato.length, sub: 'URL cargada',             col: ACC2, ico: '📑' },
                 { lbl: 'Sin contrato', val: sinContrato.length, sub: 'pendiente',               col: sinContrato.length > 0 ? AMB : MUT, ico: '!' },
               ] as { lbl: string; val: number; sub: string; col: string; ico: string }[]).map(m => (
@@ -150,7 +142,7 @@ export default function ContratosAdmin() {
                   <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{m.lbl}</p>
                   <p style={{ fontSize: '28px', fontWeight: 300, color: m.col, margin: '0 0 5px', lineHeight: 1 }}>{m.val}</p>
                   <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
-                  <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#F1ECFA', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
+                  <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: GHOST, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
                 </div>
               ))}
             </div>
@@ -159,7 +151,7 @@ export default function ContratosAdmin() {
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar…" style={{ flex: 1, minWidth: '200px', padding: '9px 14px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, fontSize: '13px', outline: 'none', background: DIM, color: WHT }} />
               {(['todos', 'con', 'sin'] as const).map(t => (
-                <button key={t} onClick={() => setFilterTab(t)} style={{ padding: '8px 16px', borderRadius: '4px', border: `0.5px solid ${filterTab === t ? C1 : BDR2}`, background: filterTab === t ? 'rgba(124,58,237,0.10)' : 'transparent', color: filterTab === t ? ACC2 : MUT, fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                <button key={t} onClick={() => setFilterTab(t)} style={{ padding: '8px 16px', borderRadius: '4px', border: `0.5px solid ${filterTab === t ? C1 : BDR2}`, background: filterTab === t ? C1_BG : 'transparent', color: filterTab === t ? ACC2 : MUT, fontSize: '11px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   {t === 'todos' ? 'Todos' : t === 'con' ? '✓ Con URL' : '⚠ Sin URL'}
                 </button>
               ))}
@@ -212,7 +204,7 @@ export default function ContratosAdmin() {
                       {/* Acciones */}
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         {hasUrl && !isEditing && (
-                          <a href={c.contrato_url} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', borderRadius: '3px', border: `0.5px solid #6E2DFF`, background: '#F3EBFF', color: ACC2, fontSize: '10px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.1em', textTransform: 'uppercase' }}>📑 Ver</a>
+                          <a href={c.contrato_url} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', borderRadius: '3px', border: `0.5px solid #6E2DFF`, background: SOFT, color: ACC2, fontSize: '10px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.1em', textTransform: 'uppercase' }}>📑 Ver</a>
                         )}
                         <button onClick={() => { setEditingId(c._id!); setEditUrl(c.contrato_url ?? '') }} style={{ padding: '6px 12px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', transition: 'all .15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = ACC2; e.currentTarget.style.color = ACC2 }} onMouseLeave={e => { e.currentTarget.style.borderColor = BDR2; e.currentTarget.style.color = MUT }}>
                           {hasUrl ? 'Editar' : '+ URL'}
@@ -306,6 +298,6 @@ function DocCard({ doc, url, isEditing, editUrl, saving, onEdit, onSave, onCance
 
 const inputStyleLocal: React.CSSProperties = {
   padding: '8px 11px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
-  fontSize: '12px', color: WHT, background: '#FFFFFF', outline: 'none',
+  fontSize: '12px', color: WHT, background: INPUT_BG, outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }

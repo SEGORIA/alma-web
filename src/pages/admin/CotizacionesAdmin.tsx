@@ -8,20 +8,11 @@ import type { Cotizacion, CotizacionItem } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, ACC2, ROSE, AMB, TEAL, GRN, INPUT_BG, GHOST } = ADM
 
 /* ── Paleta ─────────────────────────────────────────────── */
-const C1   = '#7C3AED'
-const BK   = '#F7F5FC'
-const DIM  = '#FFFFFF'
-const BDR  = '#EAE5F4'
-const BDR2 = '#D9D1EA'
-const MUT  = '#756E8C'
-const WHT  = '#221636'
-const ACC2 = '#9333EA'
-const AMB  = '#D97706'
-const ROSE = '#E11D48'
-const TEAL = '#0D9488'
-const GRN  = '#16A34A'
 
 /* ── Helpers ────────────────────────────────────────────── */
 const fmtCOP = (n: number) =>
@@ -44,7 +35,7 @@ const estadoLabel = (e: Cotizacion['estado']) => ESTADOS.find(x => x.key === e)?
 
 const iStyle: React.CSSProperties = {
   padding: '9px 12px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
-  fontSize: '13px', color: WHT, background: '#FFFFFF', outline: 'none',
+  fontSize: '13px', color: WHT, background: INPUT_BG, outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }
 const lbStyle: React.CSSProperties = {
@@ -294,7 +285,7 @@ export default function CotizacionesAdmin() {
                   <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{m.lbl}</p>
                   <p style={{ fontSize: typeof m.val === 'string' ? '16px' : '28px', fontWeight: 300, color: m.col, margin: '0 0 5px', lineHeight: 1 }}>{m.val}</p>
                   <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
-                  <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#F1ECFA', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
+                  <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: GHOST, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{m.ico}</span>
                 </div>
               ))}
             </div>
@@ -337,7 +328,7 @@ export default function CotizacionesAdmin() {
                         <p style={{ margin: 0, fontSize: '10px', color: MUT }}>Vence: {c.validaHasta}</p>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0, flexWrap: 'wrap' }}>
-                        <select value={c.estado} onChange={e => changeEstado(c._id!, e.target.value as Cotizacion['estado'])} style={{ padding: '5px 8px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: '#FFFFFF', color: MUT, fontSize: '10px', cursor: 'pointer', outline: 'none' }}>
+                        <select value={c.estado} onChange={e => changeEstado(c._id!, e.target.value as Cotizacion['estado'])} style={{ padding: '5px 8px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: INPUT_BG, color: MUT, fontSize: '10px', cursor: 'pointer', outline: 'none' }}>
                           {ESTADOS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                         </select>
                         <button onClick={() => printCot(c)} title="PDF" style={{ padding: '5px 10px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: TEAL, cursor: 'pointer', fontSize: '12px' }}>🖨️</button>

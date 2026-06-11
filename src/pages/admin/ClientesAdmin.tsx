@@ -12,19 +12,11 @@ import {
   ENTREGABLE_REVISION_ESTADOS,
 } from '../../data/clientes'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, INPUT_BG, GHOST, SOFT } = ADM
 
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
-const C1    = '#7C3AED'                   // accent principal
-const C1_BG = 'rgba(124,58,237,0.10)'
-const BK    = '#F7F5FC'                   // obsidian bg
-const DIM   = '#FFFFFF'                   // card bg
-const BDR   = '#EAE5F4'                   // border normal
-const BDR2  = '#D9D1EA'                   // border hover / light
-const MUT   = '#756E8C'                   // texto apagado
-const WHT   = '#221636'                   // texto principal
-const ACC2  = '#9333EA'                   // violeta suave
-const ROSE  = '#E11D48'                   // danger
-const AMB   = '#D97706'                   // amber / pausado
 
 /* ── Helpers ─────────────────────────────────────────────── */
 type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
@@ -450,7 +442,7 @@ export default function ClientesAdmin() {
         {/* ── Stats ── */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)', gap: '14px', marginBottom: '16px' }}>
           {([
-            { lbl: 'Activos',     val: String(activos),            sub: `${pausados} paus. · ${prospectos} prosp.`, col: '#16A34A', ico: '✦' },
+            { lbl: 'Activos',     val: String(activos),            sub: `${pausados} paus. · ${prospectos} prosp.`, col: GRN, ico: '✦' },
             { lbl: 'Total',       val: String(total),              sub: 'todos los estados',                         col: WHT,        ico: '◈' },
             { lbl: 'Con portal',  val: String(conPortal),          sub: `${total - conPortal} sin acceso`,           col: ACC2,       ico: '◎' },
             { lbl: 'Solicitudes', val: String(pendSol),            sub: 'solicitudes abiertas',                      col: pendSol > 0 ? ROSE : MUT, ico: '!' },
@@ -467,7 +459,7 @@ export default function ClientesAdmin() {
                 {m.val}
               </p>
               <p style={{ fontSize: '10px', color: MUT, margin: 0 }}>{m.sub}</p>
-              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: '#F1ECFA', lineHeight: 1, fontWeight: 300, userSelect: 'none', pointerEvents: 'none' }}>
+              <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '44px', color: GHOST, lineHeight: 1, fontWeight: 300, userSelect: 'none', pointerEvents: 'none' }}>
                 {m.ico}
               </span>
             </div>
@@ -479,7 +471,7 @@ export default function ClientesAdmin() {
           <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '12px 20px', marginBottom: '24px', display: 'flex', gap: isMobile ? '16px' : '28px', flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, flexShrink: 0 }}>Cartera</span>
             {([
-              { label: 'Activos',    val: activos,    col: '#16A34A' },
+              { label: 'Activos',    val: activos,    col: GRN },
               { label: 'Pausados',   val: pausados,   col: AMB },
               { label: 'Prospectos', val: prospectos, col: ACC2 },
             ] as { label: string; val: number; col: string }[]).map(({ label, val, col }) => (
@@ -698,7 +690,7 @@ export default function ClientesAdmin() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', width: '100%' }}>
                             <img
                               src={form.logo_url} alt="Logo"
-                              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '6px', background: '#FFFFFF', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }}
+                              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '6px', background: INPUT_BG, padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }}
                             />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ margin: '0 0 4px', fontSize: '12px', color: WHT, fontWeight: 600 }}>Logo cargado ✓</p>
@@ -1569,7 +1561,7 @@ export default function ClientesAdmin() {
 
                                     {/* Bloque 1: HTML Estrategia */}
                                     <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
-                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#7C3AED', textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:C1, textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
                                       <label style={labelStyle}>
                                         Título de la estrategia (opcional)
                                         <input value={mes.html_titulo ?? ''} onChange={e => updateTrelloMes(mes.id, { html_titulo: e.target.value })} style={inputStyle} placeholder="Estrategia Digital · Julio 2026" />
@@ -1871,7 +1863,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
   const pendSol = cliente.solicitudes.filter(s => s.estado === 'pendiente').length
 
   const statusStyle: React.CSSProperties =
-    cliente.estado === 'activo'     ? { background: '#F3EBFF', color: '#9333EA', border: '0.5px solid #6E2DFF' } :
+    cliente.estado === 'activo'     ? { background: SOFT, color: ACC2, border: '0.5px solid #6E2DFF' } :
     cliente.estado === 'pausado'    ? { background: '#2a1a10', color: '#D97706', border: '0.5px solid #7a5e30' } :
     cliente.estado === 'prospecto'  ? { background: '#0d1e30', color: '#60c0e0', border: '0.5px solid #2060a0' } :
     /* finalizado */                  { background: '#2a0d1a', color: '#E11D48', border: '0.5px solid #5a1a30' }
@@ -1927,7 +1919,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
       {cliente.servicios.length > 0 && (
         <div style={{ padding: '8px 16px', background: '#0D0D14', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {cliente.servicios.slice(0, 3).map(s => (
-            <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: '#FFFFFF', border: `0.5px solid ${BDR}`, color: MUT }}>
+            <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: INPUT_BG, border: `0.5px solid ${BDR}`, color: MUT }}>
               {s.length > 14 ? s.slice(0, 12) + '…' : s}
             </span>
           ))}
@@ -1951,7 +1943,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           <a
             href={`${portalBase}${cliente.access_token}`}
             target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: '#F3EBFF', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: SOFT, cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
             Portal
           </a>
@@ -1978,6 +1970,6 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   padding: '9px 12px', borderRadius: '4px', border: `0.5px solid ${BDR2}`,
-  fontSize: '13px', color: WHT, background: '#FFFFFF', outline: 'none',
+  fontSize: '13px', color: WHT, background: INPUT_BG, outline: 'none',
   width: '100%', boxSizing: 'border-box',
 }

@@ -12,6 +12,10 @@ import {
 import type { SeccionesConfig, Testimonio, FaqItem } from '../../data/config'
 import { P, Y } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
+import {
+  getAdminThemeMode, setAdminThemeMode, ADM_LIGHT, ADM_DARK,
+  type AdminThemeMode,
+} from '../../lib/adminTheme'
 
 /* ── pequeños helpers de estilo ─────────────────────────────── */
 const inputStyle: React.CSSProperties = {
@@ -512,12 +516,102 @@ function TabFaq() {
   )
 }
 
+/* ══ Tab 5 — Apariencia ══════════════════════════════════════ */
+function TabApariencia() {
+  const actual = getAdminThemeMode()
+  const [aplicando, setAplicando] = useState<AdminThemeMode | null>(null)
+
+  function aplicar(modo: AdminThemeMode) {
+    if (modo === actual || aplicando) return
+    setAdminThemeMode(modo)
+    setAplicando(modo)
+    toast.ok(`Aplicando tema ${modo === 'dark' ? 'oscuro' : 'claro'}…`)
+    setTimeout(() => window.location.reload(), 600)
+  }
+
+  const OPCIONES: { modo: AdminThemeMode; nombre: string; desc: string; pal: typeof ADM_LIGHT }[] = [
+    { modo: 'light', nombre: '☀️ Claro premium',  desc: 'Fondo lavanda y cards blancas. Mayor descanso visual en jornadas largas.', pal: ADM_LIGHT },
+    { modo: 'dark',  nombre: '🌙 Oscuro premium', desc: 'Obsidiana con texto crema. Estilo original de los módulos de negocio.',    pal: ADM_DARK },
+  ]
+
+  return (
+    <div>
+      <div style={{ marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>Tema de los módulos de Negocio</h2>
+        <p style={{ fontSize: '13px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+          Aplica a Brief, Cotizaciones, Contratos, Clientes, Cuentas de Cobro, Finanzas y Academia.
+          La preferencia se guarda en este navegador.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px', maxWidth: '600px' }}>
+        {OPCIONES.map(op => {
+          const activo = actual === op.modo
+          return (
+            <button
+              key={op.modo}
+              onClick={() => aplicar(op.modo)}
+              disabled={!!aplicando}
+              style={{
+                textAlign: 'left', padding: 0, borderRadius: '16px', overflow: 'hidden',
+                border: activo ? `2px solid ${P}` : '1.5px solid #E5E7EB',
+                boxShadow: activo ? `0 4px 20px ${P}25` : '0 2px 8px rgba(0,0,0,0.04)',
+                background: '#fff', cursor: activo ? 'default' : 'pointer',
+                transition: 'all 0.2s ease', position: 'relative',
+                opacity: aplicando && aplicando !== op.modo ? 0.5 : 1,
+              }}
+            >
+              {/* Mini preview del tema */}
+              <div style={{ background: op.pal.BK, padding: '16px', display: 'flex', gap: '8px', height: '96px', boxSizing: 'border-box' }}>
+                {/* Sidebar siempre oscuro */}
+                <div style={{ width: '22%', borderRadius: '6px', background: 'linear-gradient(180deg, #0D0220, #1A0535)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '4px', padding: '6px 5px' }}>
+                  <div style={{ height: '6px', borderRadius: '3px', background: op.pal.C1 }} />
+                  <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.18)', width: '80%' }} />
+                  <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.12)', width: '65%' }} />
+                </div>
+                {/* Cards de contenido */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ flex: 1, borderRadius: '6px', background: op.pal.DIM, border: `1px solid ${op.pal.BDR}`, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' }}>
+                    <div style={{ height: '6px', width: '45%', borderRadius: '3px', background: op.pal.WHT, opacity: 0.85 }} />
+                    <div style={{ height: '5px', width: '70%', borderRadius: '3px', background: op.pal.MUT, opacity: 0.55 }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', height: '20px' }}>
+                    <div style={{ flex: 1, borderRadius: '5px', background: op.pal.C1 }} />
+                    <div style={{ flex: 1, borderRadius: '5px', background: op.pal.DIM, border: `1px solid ${op.pal.BDR2}`, boxSizing: 'border-box' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                <div>
+                  <p style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: '#111827' }}>{op.nombre}</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>{op.desc}</p>
+                </div>
+                {activo && (
+                  <span style={{
+                    flexShrink: 0, padding: '3px 10px', borderRadius: '20px',
+                    background: `${P}12`, color: P, fontSize: '11px', fontWeight: 800,
+                  }}>
+                    ✓ Activo
+                  </span>
+                )}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 /* ══ Página principal ════════════════════════════════════════ */
 const TABS = [
   { id: 'secciones',    label: '🔲 Secciones' },
   { id: 'clientes',     label: '🏢 Clientes' },
   { id: 'testimonios',  label: '💬 Testimonios' },
   { id: 'faq',          label: '❓ FAQ' },
+  { id: 'apariencia',   label: '🌗 Apariencia' },
 ]
 
 export default function ConfigAdmin() {
@@ -554,7 +648,7 @@ export default function ConfigAdmin() {
               Configuración
             </h1>
             <p style={{ fontSize: '14px', color: '#6B7280' }}>
-              Visibilidad de secciones · Clientes · Testimonios · FAQ
+              Visibilidad de secciones · Clientes · Testimonios · FAQ · Apariencia
             </p>
           </div>
           <button
@@ -592,6 +686,7 @@ export default function ConfigAdmin() {
         {tab === 'clientes'    && <TabClientes />}
         {tab === 'testimonios' && <TabTestimonios />}
         {tab === 'faq'         && <TabFaq />}
+        {tab === 'apariencia'  && <TabApariencia />}
 
       </div>
     </AdminLayout>

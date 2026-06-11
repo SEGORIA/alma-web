@@ -9,20 +9,11 @@ import type { Brief, BriefFormConfig, BriefFieldDef, BriefSectionDef } from '../
 import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG } from '../../data/briefs'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, ACC2, AMB, TEAL, GRN, BLUE, GHOST } = ADM
 
 /* ── Paleta oscura ─────────────────────────────────────────── */
-const BK   = '#F7F5FC'
-const DIM  = '#FFFFFF'
-const BDR  = '#EAE5F4'
-const BDR2 = '#D9D1EA'
-const MUT  = '#756E8C'
-const WHT  = '#221636'
-const ACC2 = '#9333EA'
-const C1   = '#7C3AED'
-const AMB  = '#D97706'
-const TEAL = '#0D9488'
-const GRN  = '#16A34A'
-const BLUE = '#2563EB'
 
 /* ── helpers ───────────────────────────────────────────────── */
 function fmtDate(ts: unknown): string {
@@ -734,7 +725,7 @@ export default function BriefAdmin() {
                 >
                   <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: MUT, margin: '0 0 10px' }}>{e.label}</p>
                   <p style={{ fontSize: '28px', fontWeight: 300, color: e.color, margin: '0 0 2px', lineHeight: 1 }}>{counts[e.value] ?? 0}</p>
-                  <span style={{ position: 'absolute', bottom: 0, right: '8px', fontSize: '42px', color: '#F1ECFA', lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>◈</span>
+                  <span style={{ position: 'absolute', bottom: 0, right: '8px', fontSize: '42px', color: GHOST, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>◈</span>
                 </button>
               ))}
             </div>

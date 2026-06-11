@@ -6,18 +6,11 @@ import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
 import type { Cliente, MetricaMes } from '../../data/clientes'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, ACC2, ROSE, AMB, BLUE, INPUT_BG, ZEBRA } = ADM
 
 /* ── Paleta ─────────────────────────────────────────────── */
-const BK   = '#F7F5FC'
-const DIM  = '#FFFFFF'
-const BDR  = '#EAE5F4'
-const BDR2 = '#D9D1EA'
-const MUT  = '#756E8C'
-const WHT  = '#221636'
-const C1   = '#7C3AED'
-const ACC2 = '#9333EA'
-const ROSE = '#E11D48'
-const AMB  = '#D97706'
 
 /* ── Plataformas ─────────────────────────────────────────── */
 const PLATFORMS = [
@@ -47,13 +40,13 @@ const ESTADO_META: Record<string, { label: string; color: string; bg: string }> 
   activo:     { label: 'Activo',     color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
   pausado:    { label: 'Pausado',    color: AMB,       bg: 'rgba(251,191,36,0.12)' },
   finalizado: { label: 'Finalizado', color: MUT,       bg: 'rgba(96,96,128,0.12)'  },
-  prospecto:  { label: 'Prospecto',  color: '#2563EB', bg: 'rgba(96,165,250,0.12)' },
+  prospecto:  { label: 'Prospecto',  color: BLUE, bg: 'rgba(96,165,250,0.12)' },
 }
 
 type FinTab = 'finanzas' | 'clientes' | 'metricas'
 
 const inputSt: React.CSSProperties = {
-  width: '100%', background: '#FFFFFF', border: `1px solid ${BDR2}`,
+  width: '100%', background: INPUT_BG, border: `1px solid ${BDR2}`,
   borderRadius: '8px', color: WHT, fontSize: '13px',
   padding: '8px 10px', outline: 'none', fontFamily: 'inherit',
 }
@@ -277,7 +270,7 @@ export default function FinanzasAdmin() {
                     { label: 'Ticket promedio',      value: fmtCOP(ticketProm),       sub: 'Clientes activos',              color: AMB  },
                     { label: 'Clientes activos',     value: String(activos.length),   sub: 'En servicio ahora',             color: '#10B981' },
                     { label: 'Pausados',             value: String(pausados.length),  sub: 'Sin facturación activa',        color: AMB  },
-                    { label: 'Prospectos',           value: String(prospectos.length),sub: 'En proceso de cierre',          color: '#2563EB' },
+                    { label: 'Prospectos',           value: String(prospectos.length),sub: 'En proceso de cierre',          color: BLUE },
                   ].map(k => (
                     <div key={k.label} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '16px 18px', position: 'relative', overflow: 'hidden' }}>
                       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: k.color, opacity: 0.6 }} />
@@ -337,7 +330,7 @@ export default function FinanzasAdmin() {
                         display: 'grid', gridTemplateColumns: '2fr 1fr 1.2fr 1fr 1fr',
                         gap: '0', padding: '12px 18px',
                         borderBottom: i < clFiltered.length - 1 ? `0.5px solid ${BDR}` : 'none',
-                        background: i % 2 === 0 ? 'transparent' : 'rgba(107,33,168,0.025)',
+                        background: i % 2 === 0 ? 'transparent' : ZEBRA,
                         alignItems: 'center',
                       }}>
                         {/* Marca */}
