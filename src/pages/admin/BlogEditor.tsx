@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { getArticulos, createArticulo, updateArticulo } from '../../lib/db'
-import { P } from '../../tokens'
+/* tokens P/PL ahora vienen del tema ADM */
 import type { Bloque } from '../../data/articulos'
 import { categorias } from '../../data/articulos'
 import ImageUploader from '../../components/ImageUploader'
 import { toast } from '../../components/admin/Feedback'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, MUT, WHT, INPUT_BG } = ADM
+const P  = ADM.C1
 
 const GRADIENTS = [
   { label: 'Morado',   value: 'linear-gradient(135deg, #6B21A8 0%, #9333EA 100%)' },
@@ -33,7 +37,7 @@ function BloqueEditor({
 }) {
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 12px', borderRadius: '8px',
-    border: '1.5px solid #E5E7EB', fontSize: '14px',
+    border: `1.5px solid ${BDR}`, fontSize: '14px',
     outline: 'none', resize: 'vertical' as const, boxSizing: 'border-box',
     fontFamily: 'inherit',
   }
@@ -41,7 +45,7 @@ function BloqueEditor({
   const renderEditor = () => {
     if (b.tipo === 'separador') {
       return (
-        <div style={{ textAlign: 'center', color: '#9CA3AF', fontSize: '13px', padding: '8px 0' }}>
+        <div style={{ textAlign: 'center', color: MUT, fontSize: '13px', padding: '8px 0' }}>
           ─── separador ───
         </div>
       )
@@ -137,25 +141,25 @@ function BloqueEditor({
 
   return (
     <div style={{
-      background: '#fff', borderRadius: '12px',
-      border: '1.5px solid #E5E7EB', overflow: 'hidden',
+      background: DIM, borderRadius: '12px',
+      border: `1.5px solid ${BDR}`, overflow: 'hidden',
     }}>
       {/* Header del bloque */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 14px', background: '#F9FAFB',
-        borderBottom: '1px solid #E5E7EB',
+        padding: '10px 14px', background: INPUT_BG,
+        borderBottom: `1px solid ${BDR}`,
       }}>
-        <span style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 700, color: MUT, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           {tipoLabel[b.tipo] ?? b.tipo}
         </span>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button onClick={() => onMove(-1)} disabled={index === 0}
-            style={{ background: 'none', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: '#374151', opacity: index === 0 ? 0.3 : 1 }}>↑</button>
+            style={{ background: 'none', border: `1px solid ${BDR}`, borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: WHT, opacity: index === 0 ? 0.3 : 1 }}>↑</button>
           <button onClick={() => onMove(1)} disabled={index === total - 1}
-            style={{ background: 'none', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: '#374151', opacity: index === total - 1 ? 0.3 : 1 }}>↓</button>
+            style={{ background: 'none', border: `1px solid ${BDR}`, borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: WHT, opacity: index === total - 1 ? 0.3 : 1 }}>↓</button>
           <button onClick={onDelete}
-            style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: '#EF4444', fontWeight: 700 }}>× Eliminar</button>
+            style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '6px', padding: '3px 8px', cursor: 'pointer', fontSize: '12px', color: '#EF4444', fontWeight: 700 }}>× Eliminar</button>
         </div>
       </div>
       {/* Content */}
@@ -278,14 +282,14 @@ export default function BlogEditor() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', borderRadius: '10px',
-    border: '1.5px solid #E5E7EB', fontSize: '14px',
+    border: `1.5px solid ${BDR}`, fontSize: '14px',
     outline: 'none', boxSizing: 'border-box',
     fontFamily: 'inherit',
   }
 
   if (loading) return (
     <AdminLayout>
-      <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>Cargando…</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: MUT }}>Cargando…</div>
     </AdminLayout>
   )
 
@@ -296,10 +300,10 @@ export default function BlogEditor() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#111827', marginBottom: '4px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 900, color: WHT, marginBottom: '4px' }}>
               {isNew ? '+ Nuevo artículo' : 'Editar artículo'}
             </h1>
-            <p style={{ fontSize: '13px', color: '#9CA3AF' }}>
+            <p style={{ fontSize: '13px', color: MUT }}>
               {isNew ? 'Completa los campos y guarda para publicar' : `Editando: ${titulo}`}
             </p>
           </div>
@@ -308,8 +312,8 @@ export default function BlogEditor() {
               onClick={() => navigate('/admin/blog')}
               style={{
                 padding: '10px 20px', borderRadius: '10px',
-                border: '1.5px solid #E5E7EB', background: '#fff',
-                color: '#374151', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                border: `1.5px solid ${BDR}`, background: DIM,
+                color: WHT, fontWeight: 600, fontSize: '14px', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -319,7 +323,7 @@ export default function BlogEditor() {
               disabled={saving}
               style={{
                 padding: '10px 24px', borderRadius: '10px',
-                background: saving ? '#9CA3AF' : P,
+                background: saving ? MUT : P,
                 color: '#fff', border: 'none',
                 fontWeight: 700, fontSize: '14px', cursor: saving ? 'not-allowed' : 'pointer',
               }}
@@ -332,67 +336,67 @@ export default function BlogEditor() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Metadatos */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Información del artículo
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Título *</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Título *</label>
                 <input type="text" value={titulo} onChange={e => handleTitulo(e.target.value)} style={inputStyle} placeholder="Título del artículo…" />
               </div>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   Slug (URL) *
                 </label>
-                <input type="text" value={slug} onChange={e => setSlug(e.target.value)} style={{ ...inputStyle, fontFamily: 'monospace', background: '#F9FAFB' }} placeholder="url-del-articulo" />
-                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
+                <input type="text" value={slug} onChange={e => setSlug(e.target.value)} style={{ ...inputStyle, fontFamily: 'monospace', background: INPUT_BG }} placeholder="url-del-articulo" />
+                <p style={{ fontSize: '12px', color: MUT, marginTop: '4px' }}>
                   Se accederá en: /blog/{slug || 'url-del-articulo'}
                 </p>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Categoría</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Categoría</label>
                 <select value={cat} onChange={e => setCat(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                   {CATS.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Fecha</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Fecha</label>
                 <input type="text" value={fecha} onChange={e => setFecha(e.target.value)} style={inputStyle} placeholder="May 2026" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Minutos de lectura</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Minutos de lectura</label>
                 <input type="number" min={1} max={30} value={minutos} onChange={e => setMinutos(+e.target.value)} style={{ ...inputStyle, width: '80px' }} />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>¿Artículo destacado?</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>¿Artículo destacado?</label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)}
                     style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: P }} />
-                  <span style={{ fontSize: '14px', color: '#374151' }}>Mostrar como destacado en la landing</span>
+                  <span style={{ fontSize: '14px', color: WHT }}>Mostrar como destacado en la landing</span>
                 </label>
               </div>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Extracto (resumen breve)</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Extracto (resumen breve)</label>
                 <textarea rows={2} value={excerpt} onChange={e => setExcerpt(e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Descripción corta que aparece en las tarjetas del blog…" />
               </div>
             </div>
           </div>
 
           {/* Visual */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Apariencia visual
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '20px', alignItems: 'start' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Emoji representativo</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '8px' }}>Emoji representativo</label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {EMOJIS.map(e => (
                     <button key={e} onClick={() => setEmoji(e)}
                       style={{
                         fontSize: '22px', padding: '8px', borderRadius: '10px', cursor: 'pointer',
-                        border: `2px solid ${emoji === e ? P : '#E5E7EB'}`,
+                        border: `2px solid ${emoji === e ? P : BDR}`,
                         background: emoji === e ? `${P}15` : '#fff',
                         transition: 'all 0.15s ease',
                       }}>
@@ -400,7 +404,7 @@ export default function BlogEditor() {
                     </button>
                   ))}
                 </div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', margin: '16px 0 8px' }}>Color de fondo</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, margin: '16px 0 8px' }}>Color de fondo</label>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   {GRADIENTS.map(g => (
                     <button key={g.value} onClick={() => setGradient(g.value)}
@@ -418,7 +422,7 @@ export default function BlogEditor() {
               </div>
               {/* Preview */}
               <div>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Preview</p>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '8px' }}>Preview</p>
                 <div style={{
                   width: '120px', height: '120px', borderRadius: '16px',
                   background: gradient,
@@ -433,9 +437,9 @@ export default function BlogEditor() {
           </div>
 
           {/* Contenido */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+              <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
                 Contenido del artículo
               </h2>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -443,12 +447,12 @@ export default function BlogEditor() {
                   <button key={tipo} onClick={() => addBloque(tipo)}
                     style={{
                       padding: '5px 12px', borderRadius: '8px', cursor: 'pointer',
-                      border: '1px solid #E5E7EB', background: '#F9FAFB',
-                      color: '#374151', fontSize: '12px', fontWeight: 600,
+                      border: `1px solid ${BDR}`, background: INPUT_BG,
+                      color: WHT, fontSize: '12px', fontWeight: 600,
                       transition: 'all 0.15s ease',
                     }}
                     onMouseEnter={e => { e.currentTarget.style.background = `${P}15`; e.currentTarget.style.borderColor = P; e.currentTarget.style.color = P }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#F9FAFB'; e.currentTarget.style.borderColor = '#E5E7EB'; e.currentTarget.style.color = '#374151' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = INPUT_BG; e.currentTarget.style.borderColor = BDR; e.currentTarget.style.color = WHT }}
                   >
                     {tipo === 'imagen' ? '🖼️ imagen' : `+ ${tipo === 'p' ? 'párrafo' : tipo === 'h2' ? 'H2' : tipo === 'h3' ? 'H3' : tipo}`}
                   </button>
@@ -457,7 +461,7 @@ export default function BlogEditor() {
             </div>
 
             {bloques.length === 0 && (
-              <p style={{ color: '#9CA3AF', fontSize: '14px', textAlign: 'center', padding: '32px' }}>
+              <p style={{ color: MUT, fontSize: '14px', textAlign: 'center', padding: '32px' }}>
                 Agrega bloques de contenido usando los botones de arriba.
               </p>
             )}
@@ -480,8 +484,8 @@ export default function BlogEditor() {
               onClick={() => navigate('/admin/blog')}
               style={{
                 padding: '12px 24px', borderRadius: '12px',
-                border: '1.5px solid #E5E7EB', background: '#fff',
-                color: '#374151', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                border: `1.5px solid ${BDR}`, background: DIM,
+                color: WHT, fontWeight: 600, fontSize: '14px', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -491,7 +495,7 @@ export default function BlogEditor() {
               disabled={saving}
               style={{
                 padding: '12px 28px', borderRadius: '12px',
-                background: saving ? '#9CA3AF' : P,
+                background: saving ? MUT : P,
                 color: '#fff', border: 'none',
                 fontWeight: 700, fontSize: '15px', cursor: saving ? 'not-allowed' : 'pointer',
               }}

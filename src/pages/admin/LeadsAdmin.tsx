@@ -5,9 +5,13 @@ import { getConfig } from '../../lib/db'
 import { contactoDefault } from '../../data/config'
 import type { Lead } from '../../data/leads'
 import { LEAD_ESTADOS } from '../../data/leads'
-import { P } from '../../tokens'
+/* tokens P/PL ahora vienen del tema ADM */
 import { toast, confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, MUT, WHT, INPUT_BG } = ADM
+const P  = ADM.C1
 
 /* ── helpers ─────────────────────────────────────────────── */
 function formatFecha(ts: unknown): string {
@@ -94,10 +98,11 @@ export default function LeadsAdmin() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#111827', marginBottom: '4px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '24px', fontWeight: 900, color: WHT, marginBottom: '4px', letterSpacing: '-0.5px' }}>
               🎯 Leads — Kit Gratuito
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               Personas que descargaron el kit. {leads.length} lead{leads.length !== 1 ? 's' : ''} en total.
             </p>
           </div>
@@ -111,7 +116,7 @@ export default function LeadsAdmin() {
         {/* Filtros + contadores */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
           {([
-            { key: 'todos',      label: `Todos (${contadores.todos})`,                color: '#374151', bg: '#F3F4F6' },
+            { key: 'todos',      label: `Todos (${contadores.todos})`,                color: WHT, bg: INPUT_BG },
             { key: 'nuevo',      label: `Nuevos (${contadores.nuevo})`,               color: LEAD_ESTADOS[0].color, bg: LEAD_ESTADOS[0].bg },
             { key: 'contactado', label: `Contactados (${contadores.contactado})`,     color: LEAD_ESTADOS[1].color, bg: LEAD_ESTADOS[1].bg },
             { key: 'cerrado',    label: `Cerrados (${contadores.cerrado})`,           color: LEAD_ESTADOS[2].color, bg: LEAD_ESTADOS[2].bg },
@@ -119,8 +124,8 @@ export default function LeadsAdmin() {
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{
                 background: filter === f.key ? f.bg : '#fff',
-                color: filter === f.key ? f.color : '#6B7280',
-                border: `1.5px solid ${filter === f.key ? f.color : '#E5E7EB'}`,
+                color: filter === f.key ? f.color : MUT,
+                border: `1.5px solid ${filter === f.key ? f.color : BDR}`,
                 padding: '7px 16px', borderRadius: '10px',
                 fontWeight: filter === f.key ? 700 : 500, fontSize: '13px', cursor: 'pointer',
                 transition: 'all 0.15s ease',
@@ -135,14 +140,14 @@ export default function LeadsAdmin() {
           <ListSkeleton rows={5} />
         ) : filtered.length === 0 ? (
           <div style={{
-            background: '#fff', borderRadius: '16px', padding: '48px',
-            textAlign: 'center', border: '1px solid #E5E7EB',
+            background: DIM, borderRadius: '16px', padding: '48px',
+            textAlign: 'center', border: `1px solid ${BDR}`,
           }}>
             <span style={{ fontSize: '40px', display: 'block', marginBottom: '12px' }}>🎯</span>
-            <p style={{ fontSize: '15px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>
+            <p style={{ fontSize: '15px', fontWeight: 700, color: WHT, marginBottom: '6px' }}>
               {filter === 'todos' ? 'Aún no hay leads' : `No hay leads con estado "${filter}"`}
             </p>
-            <p style={{ fontSize: '13px', color: '#9CA3AF' }}>
+            <p style={{ fontSize: '13px', color: MUT }}>
               Cuando alguien pida el kit gratuito, aparecerá aquí.
             </p>
           </div>
@@ -150,8 +155,8 @@ export default function LeadsAdmin() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {filtered.map(lead => (
               <div key={lead._id} style={{
-                background: '#fff', borderRadius: '14px',
-                border: '1px solid #E5E7EB', padding: '14px 18px',
+                background: DIM, borderRadius: '14px',
+                border: `1px solid ${BDR}`, padding: '14px 18px',
                 display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
               }}>
@@ -167,16 +172,16 @@ export default function LeadsAdmin() {
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: '160px' }}>
-                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: WHT, margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {lead.email}
                   </p>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                     {lead.telefono && (
-                      <span style={{ fontSize: '11px', color: '#15803D', fontWeight: 600, background: 'rgba(37,211,102,0.08)', padding: '1px 7px', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '11px', color: ADM.GRN, fontWeight: 600, background: 'rgba(37,211,102,0.08)', padding: '1px 7px', borderRadius: '10px' }}>
                         📱 {lead.telefono}
                       </span>
                     )}
-                    <span style={{ fontSize: '11px', color: '#9CA3AF' }}>
+                    <span style={{ fontSize: '11px', color: MUT }}>
                       {formatFecha(lead.createdAt)}
                     </span>
                   </div>
@@ -192,8 +197,8 @@ export default function LeadsAdmin() {
                   onChange={e => handleEstado(lead, e.target.value as Lead['estado'])}
                   style={{
                     padding: '6px 10px', borderRadius: '8px',
-                    border: '1px solid #E5E7EB', fontSize: '12px',
-                    color: '#374151', cursor: 'pointer', outline: 'none',
+                    border: `1px solid ${BDR}`, fontSize: '12px',
+                    color: WHT, cursor: 'pointer', outline: 'none',
                     opacity: updating === lead._id ? 0.5 : 1,
                   }}
                 >
@@ -208,7 +213,7 @@ export default function LeadsAdmin() {
                     onClick={() => openWhatsApp(lead)}
                     title="Contactar por WhatsApp"
                     style={{
-                      background: 'rgba(37,211,102,0.1)', color: '#15803D',
+                      background: 'rgba(37,211,102,0.1)', color: ADM.GRN,
                       border: '1px solid rgba(37,211,102,0.25)',
                       padding: '7px 12px', borderRadius: '8px',
                       fontSize: '12px', fontWeight: 700, cursor: 'pointer',

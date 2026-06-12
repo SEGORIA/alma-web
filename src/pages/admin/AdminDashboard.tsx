@@ -8,8 +8,13 @@ import {
 import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore'
 import type { Cliente } from '../../data/clientes'
-import { P, PL, Y } from '../../tokens'
+import { Y } from '../../tokens'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { ADM } from '../../lib/adminTheme'
+
+const { BK, DIM, BDR, BDR2, MUT, WHT, INPUT_BG } = ADM
+const P  = ADM.C1
+const PL = ADM.ACC2
 
 /* ── Paleta del dashboard ───────────────────────────────── */
 const DARK   = '#0D0220'
@@ -66,12 +71,12 @@ function StatCardComp({ c, isMobile }: { c: StatCard; isMobile: boolean }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff',
+        background: DIM,
         borderRadius: '16px',
         padding: isMobile ? '16px 14px' : '20px 22px',
         border: c.highlight
           ? `2px solid ${c.color}`
-          : `1px solid ${hovered ? `${c.color}40` : '#EDE9FE'}`,
+          : `1px solid ${hovered ? `${c.color}40` : BDR}`,
         boxShadow: c.highlight
           ? `0 4px 24px ${c.color}28`
           : hovered
@@ -103,7 +108,7 @@ function StatCardComp({ c, isMobile }: { c: StatCard; isMobile: boolean }) {
         </div>
         {c.tag && (
           <span style={{
-            background: c.highlight ? `${c.color}18` : '#F5F3FF',
+            background: c.highlight ? `${c.color}18` : BK,
             color: c.highlight ? c.color : PL,
             fontSize: '10px', fontWeight: 800,
             padding: '3px 9px', borderRadius: '20px',
@@ -116,7 +121,7 @@ function StatCardComp({ c, isMobile }: { c: StatCard; isMobile: boolean }) {
 
       <p style={{
         fontSize: isMobile ? '28px' : '34px',
-        fontWeight: 900, color: '#0F0A1E',
+        fontWeight: 900, color: WHT,
         margin: '0 0 3px', lineHeight: 1,
         letterSpacing: '-1px',
       }}>
@@ -124,7 +129,7 @@ function StatCardComp({ c, isMobile }: { c: StatCard; isMobile: boolean }) {
       </p>
       <p style={{
         fontSize: isMobile ? '11px' : '12px',
-        color: '#6B7280', margin: '0 0 16px', lineHeight: 1.4,
+        color: MUT, margin: '0 0 16px', lineHeight: 1.4,
       }}>
         {c.label}
       </p>
@@ -271,7 +276,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div style={{ background: '#F5F3FF', minHeight: '100vh' }}>
+      <div style={{ background: BK, minHeight: '100vh' }}>
 
         {/* ══ HERO BANNER ══════════════════════════════════════════ */}
         <div style={{
@@ -370,18 +375,18 @@ export default function AdminDashboard() {
               { icon:'📩', label:'Solicitudes pendientes', value: nSolicitudesPend,  color:'#F59E0B', sub:'Sin respuesta' },
             ].map(k => (
               <div key={k.label} style={{
-                background: '#fff', borderRadius: '14px',
-                border: '1px solid #EDE9FE',
+                background: DIM, borderRadius: '14px',
+                border: `1px solid ${BDR}`,
                 padding: isMobile ? '14px' : '18px 20px',
                 boxShadow: '0 2px 8px rgba(107,33,168,0.05)',
                 position: 'relative', overflow: 'hidden',
               }}>
                 <div style={{ position:'absolute', top:0, left:0, right:0, height:'3px', background: `linear-gradient(90deg, ${k.color}, ${k.color}80)` }} />
                 <div style={{ fontSize: isMobile ? '22px' : '26px', marginBottom:'6px' }}>{k.icon}</div>
-                <p style={{ margin:'0 0 2px', fontSize: isMobile ? '26px' : '32px', fontWeight:900, color:'#0F0A1E', lineHeight:1, letterSpacing:'-1px' }}>
+                <p style={{ margin:'0 0 2px', fontSize: isMobile ? '26px' : '32px', fontWeight:900, color:WHT, lineHeight:1, letterSpacing:'-1px' }}>
                   {k.value ?? '…'}
                 </p>
-                <p style={{ margin:0, fontSize:'11px', color:'#6B7280', lineHeight:1.3 }}>{k.label}</p>
+                <p style={{ margin:0, fontSize:'11px', color:MUT, lineHeight:1.3 }}>{k.label}</p>
                 <p style={{ margin:'2px 0 0', fontSize:'10px', color: k.color, fontWeight:700 }}>{k.sub}</p>
               </div>
             ))}
@@ -389,22 +394,22 @@ export default function AdminDashboard() {
 
           {/* Looker Studio / GA4 embed */}
           <div style={{
-            background:'#fff', borderRadius:'16px',
-            border:'1px solid #EDE9FE',
+            background: DIM, borderRadius:'16px',
+            border:`1px solid ${BDR}`,
             boxShadow:'0 2px 12px rgba(107,33,168,0.07)',
             overflow:'hidden', marginBottom:'36px',
           }}>
             {/* Header del panel */}
             <div style={{
               padding: isMobile ? '14px 16px' : '16px 24px',
-              borderBottom:'1px solid #F3F4F6',
+              borderBottom:`1px solid ${BDR}`,
               display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'10px',
             }}>
               <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                <div style={{ width:'32px', height:'32px', borderRadius:'8px', background:'#F5F3FF', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px' }}>📊</div>
+                <div style={{ width:'32px', height:'32px', borderRadius:'8px', background: BK, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'17px' }}>📊</div>
                 <div>
-                  <p style={{ margin:0, fontSize:'13px', fontWeight:800, color:'#0F0A1E' }}>Google Analytics 4 / Looker Studio</p>
-                  <p style={{ margin:0, fontSize:'11px', color:'#9CA3AF' }}>
+                  <p style={{ margin:0, fontSize:'13px', fontWeight:800, color:WHT }}>Google Analytics 4 / Looker Studio</p>
+                  <p style={{ margin:0, fontSize:'11px', color:MUT }}>
                     {lookerUrl ? 'Dashboard de tráfico embebido' : 'Pendiente de configuración'}
                   </p>
                 </div>
@@ -423,7 +428,7 @@ export default function AdminDashboard() {
                   style={{
                     fontSize:'11px', fontWeight:700, cursor:'pointer',
                     padding:'5px 12px', borderRadius:'7px', border:'none',
-                    background: editingLooker ? '#F3F4F6' : `${P}15`, color: editingLooker ? '#6B7280' : P,
+                    background: editingLooker ? INPUT_BG : `${P}15`, color: editingLooker ? MUT : P,
                   }}
                 >
                   {editingLooker ? '✕ Cancelar' : '✎ Configurar URL'}
@@ -433,16 +438,16 @@ export default function AdminDashboard() {
 
             {/* URL editor */}
             {editingLooker && (
-              <div style={{ padding:'16px 24px', borderBottom:'1px solid #F3F4F6', background:'#FAFAFA', display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center' }}>
+              <div style={{ padding:'16px 24px', borderBottom:`1px solid ${BDR}`, background:INPUT_BG, display:'flex', gap:'10px', flexWrap:'wrap', alignItems:'center' }}>
                 <input
                   value={lookerInput}
                   onChange={e => setLookerInput(e.target.value)}
                   placeholder="https://lookerstudio.google.com/embed/reporting/..."
                   style={{
                     flex:1, minWidth:'280px', padding:'8px 12px',
-                    border:'1px solid #DDD6FE', borderRadius:'8px',
-                    fontSize:'12px', outline:'none', color:'#374151',
-                    background:'#fff',
+                    border:`1px solid ${BDR2}`, borderRadius:'8px',
+                    fontSize:'12px', outline:'none', color:WHT,
+                    background: DIM,
                   }}
                 />
                 <button
@@ -465,8 +470,8 @@ export default function AdminDashboard() {
                 >
                   {savingLooker ? 'Guardando...' : 'Guardar'}
                 </button>
-                <p style={{ width:'100%', margin:0, fontSize:'10px', color:'#9CA3AF', lineHeight:1.5 }}>
-                  💡 Para URL permanente agrega <code style={{ background:'#F3F4F6', padding:'1px 5px', borderRadius:'4px', fontSize:'10px' }}>VITE_LOOKER_STUDIO_URL</code> en Vercel.
+                <p style={{ width:'100%', margin:0, fontSize:'10px', color:MUT, lineHeight:1.5 }}>
+                  💡 Para URL permanente agrega <code style={{ background:INPUT_BG, padding:'1px 5px', borderRadius:'4px', fontSize:'10px' }}>VITE_LOOKER_STUDIO_URL</code> en Vercel.
                 </p>
               </div>
             )}
@@ -482,7 +487,7 @@ export default function AdminDashboard() {
             ) : !guideOpen ? (
               /* Estado compacto: no ocupar media pantalla con la guía */
               <div style={{ padding: isMobile ? '20px' : '22px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px' }}>
-                <p style={{ margin:0, fontSize:'13px', color:'#6B7280', lineHeight:1.6, flex:1, minWidth:'220px' }}>
+                <p style={{ margin:0, fontSize:'13px', color:MUT, lineHeight:1.6, flex:1, minWidth:'220px' }}>
                   El tracking ya está activo en el código. Conecta tu informe de Looker Studio para ver el tráfico aquí.
                 </p>
                 <button
@@ -500,16 +505,16 @@ export default function AdminDashboard() {
               <div style={{ padding: isMobile ? '28px 20px' : '40px 32px' }}>
                 <div style={{ maxWidth:'560px' }}>
                   <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'10px' }}>
-                    <p style={{ margin:'0 0 6px', fontSize:'15px', fontWeight:800, color:'#0F0A1E' }}>
+                    <p style={{ margin:'0 0 6px', fontSize:'15px', fontWeight:800, color:WHT }}>
                       Conecta Google Analytics 4 en 4 pasos
                     </p>
                     <button
                       onClick={() => setGuideOpen(false)}
-                      style={{ background:'none', border:'none', color:'#9CA3AF', fontSize:'18px', cursor:'pointer', lineHeight:1, padding:'2px' }}
+                      style={{ background:'none', border:'none', color:MUT, fontSize:'18px', cursor:'pointer', lineHeight:1, padding:'2px' }}
                       aria-label="Cerrar guía"
                     >✕</button>
                   </div>
-                  <p style={{ margin:'0 0 20px', fontSize:'13px', color:'#6B7280', lineHeight:1.6 }}>
+                  <p style={{ margin:'0 0 20px', fontSize:'13px', color:MUT, lineHeight:1.6 }}>
                     El tracking ya está activo en el código — solo necesitas crear el informe y pegar el enlace aquí.
                   </p>
                   {[
@@ -523,8 +528,8 @@ export default function AdminDashboard() {
                         {step.n}
                       </div>
                       <div>
-                        <p style={{ margin:'0 0 2px', fontSize:'13px', fontWeight:700, color:'#1F2937' }}>{step.title}</p>
-                        <p style={{ margin:0, fontSize:'12px', color:'#6B7280', lineHeight:1.5 }}>{step.desc}</p>
+                        <p style={{ margin:'0 0 2px', fontSize:'13px', fontWeight:700, color:WHT }}>{step.title}</p>
+                        <p style={{ margin:0, fontSize:'12px', color:MUT, lineHeight:1.5 }}>{step.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -570,7 +575,7 @@ export default function AdminDashboard() {
                   background: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
                   borderRadius:'16px',
                   padding: isMobile ? '18px' : '22px',
-                  border:`1px solid ${isActive ? '#EDE9FE' : '#E5E7EB'}`,
+                  border:`1px solid ${isActive ? BDR : BDR}`,
                   boxShadow: isActive ? '0 2px 12px rgba(107,33,168,0.07)' : 'none',
                   display:'flex', flexDirection:'column', gap:0,
                   opacity: isActive ? 1 : 0.65,
@@ -578,28 +583,28 @@ export default function AdminDashboard() {
                   <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'12px' }}>
                     <div style={{
                       width:'44px', height:'44px', borderRadius:'12px',
-                      background: isActive ? `${m.color}12` : '#F3F4F6',
+                      background: isActive ? `${m.color}12` : INPUT_BG,
                       display:'flex', alignItems:'center', justifyContent:'center',
                       fontSize:'22px',
                     }}>{m.icon}</div>
                     <span style={{
-                      background: isActive ? `${m.color}15` : '#F9FAFB',
-                      color: isActive ? m.color : '#9CA3AF',
+                      background: isActive ? `${m.color}15` : INPUT_BG,
+                      color: isActive ? m.color : MUT,
                       fontSize:'10px', fontWeight:800,
                       padding:'3px 9px', borderRadius:'20px',
                       letterSpacing:'0.5px', textTransform:'uppercase',
-                      border: isActive ? 'none' : '1px solid #E5E7EB',
+                      border: isActive ? 'none' : `1px solid ${BDR}`,
                     }}>{m.badge}</span>
                   </div>
-                  <p style={{ fontSize:'15px', fontWeight:800, color: isActive ? '#0F0A1E' : '#6B7280', margin:'0 0 5px' }}>{m.title}</p>
-                  <p style={{ fontSize:'12px', color:'#6B7280', margin:'0 0 18px', lineHeight:1.55, flex:1 }}>{m.desc}</p>
+                  <p style={{ fontSize:'15px', fontWeight:800, color: isActive ? WHT : MUT, margin:'0 0 5px' }}>{m.title}</p>
+                  <p style={{ fontSize:'12px', color:MUT, margin:'0 0 18px', lineHeight:1.55, flex:1 }}>{m.desc}</p>
                   <Link
                     to={m.to}
                     style={{
                       display:'inline-flex', alignItems:'center', gap:'5px',
                       padding:'8px 16px',
-                      background: isActive ? `linear-gradient(135deg, ${m.color}, ${m.color}CC)` : '#F3F4F6',
-                      color: isActive ? '#fff' : '#6B7280',
+                      background: isActive ? `linear-gradient(135deg, ${m.color}, ${m.color}CC)` : INPUT_BG,
+                      color: isActive ? '#fff' : MUT,
                       borderRadius:'9px', textDecoration:'none',
                       fontSize:'12px', fontWeight:700,
                       alignSelf:'flex-start',

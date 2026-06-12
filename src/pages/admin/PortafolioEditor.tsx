@@ -6,6 +6,9 @@ import { gradientesDisponibles, filtrosPortafolio } from '../../data/portafolio'
 import type { Proyecto } from '../../data/portafolio'
 import ImageUploader from '../../components/ImageUploader'
 import { toast } from '../../components/admin/Feedback'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, BDR2, MUT, WHT } = ADM
 
 const CATS = filtrosPortafolio.filter(f => f !== 'Todos')
 
@@ -113,14 +116,14 @@ export default function PortafolioEditor() {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', borderRadius: '10px',
-    border: '1.5px solid #E5E7EB', fontSize: '14px',
+    border: `1.5px solid ${BDR}`, fontSize: '14px',
     outline: 'none', boxSizing: 'border-box',
     fontFamily: 'inherit',
   }
 
   if (loading) return (
     <AdminLayout>
-      <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>Cargando…</div>
+      <div style={{ padding: '40px', textAlign: 'center', color: MUT }}>Cargando…</div>
     </AdminLayout>
   )
 
@@ -130,7 +133,7 @@ export default function PortafolioEditor() {
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 900, color: '#111827', margin: 0 }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 900, color: WHT, margin: 0 }}>
             {isNew ? '+ Nuevo proyecto' : 'Editar proyecto'}
           </h1>
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -138,8 +141,8 @@ export default function PortafolioEditor() {
               onClick={() => navigate('/admin/portafolio')}
               style={{
                 padding: '10px 20px', borderRadius: '10px',
-                border: '1.5px solid #E5E7EB', background: '#fff',
-                color: '#374151', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                border: `1.5px solid ${BDR}`, background: DIM,
+                color: WHT, fontWeight: 600, fontSize: '14px', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -149,7 +152,7 @@ export default function PortafolioEditor() {
               disabled={saving}
               style={{
                 padding: '10px 24px', borderRadius: '10px',
-                background: saving ? '#9CA3AF' : '#0284C7',
+                background: saving ? MUT : '#0284C7',
                 color: '#fff', border: 'none',
                 fontWeight: 700, fontSize: '14px', cursor: saving ? 'not-allowed' : 'pointer',
               }}
@@ -162,55 +165,55 @@ export default function PortafolioEditor() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
           {/* Datos principales */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Información del proyecto
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Nombre del proyecto *</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Nombre del proyecto *</label>
                 <input type="text" value={titulo} onChange={e => setTitulo(e.target.value)} style={inputStyle} placeholder="Nombre del cliente o proyecto…" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Categoría</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Categoría</label>
                 <select value={cat} onChange={e => setCat(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                   {CATS.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Año</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Año</label>
                 <input type="text" value={año} onChange={e => setAño(e.target.value)} style={inputStyle} placeholder="2024" />
               </div>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>Descripción</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>Descripción</label>
                 <textarea rows={3} value={desc} onChange={e => setDesc(e.target.value)} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Descripción breve del proyecto y sus resultados…" />
               </div>
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   Tags (separados por coma)
                 </label>
                 <input type="text" value={tagsStr} onChange={e => setTagsStr(e.target.value)} style={inputStyle} placeholder="Logo, Branding, Redes sociales" />
-                <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '4px' }}>
+                <p style={{ fontSize: '12px', color: MUT, marginTop: '4px' }}>
                   Ej: Logo, Manual de marca, Redes sociales
                 </p>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>¿Proyecto destacado?</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>¿Proyecto destacado?</label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={featured} onChange={e => setFeatured(e.target.checked)}
                     style={{ width: '16px', height: '16px', accentColor: '#0284C7' }} />
-                  <span style={{ fontSize: '14px', color: '#374151' }}>Marcar como destacado</span>
+                  <span style={{ fontSize: '14px', color: WHT }}>Marcar como destacado</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Imagen de portada */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Imagen de portada
             </h2>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '16px' }}>
+            <p style={{ fontSize: '12px', color: MUT, marginBottom: '16px' }}>
               Si subes una imagen se mostrará en la tarjeta del portafolio. Si no, se usa el color de fondo.
             </p>
             <ImageUploader
@@ -221,8 +224,8 @@ export default function PortafolioEditor() {
           </div>
 
           {/* Color / gradiente */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Color de la tarjeta
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
@@ -250,7 +253,7 @@ export default function PortafolioEditor() {
                 flexShrink: 0,
               }}>
                 <span style={{
-                  background: 'rgba(255,255,255,0.9)', color: '#374151',
+                  background: 'rgba(255,255,255,0.9)', color: WHT,
                   fontSize: '12px', fontWeight: 700,
                   padding: '4px 12px', borderRadius: '20px',
                 }}>
@@ -261,11 +264,11 @@ export default function PortafolioEditor() {
           </div>
 
           {/* ── Caso de estudio ── */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #E5E7EB' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 800, color: '#374151', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ background: DIM, borderRadius: '16px', padding: '24px', border: `1px solid ${BDR}` }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 800, color: WHT, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Caso de estudio
             </h2>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '20px' }}>
+            <p style={{ fontSize: '12px', color: MUT, marginBottom: '20px' }}>
               Rellena este bloque para mostrar un modal detallado cuando el usuario haga clic en "Ver caso de estudio".
             </p>
 
@@ -273,7 +276,7 @@ export default function PortafolioEditor() {
 
               {/* Desafío */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   🎯 El desafío
                 </label>
                 <textarea
@@ -287,7 +290,7 @@ export default function PortafolioEditor() {
 
               {/* Solución */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   💡 Nuestra solución
                 </label>
                 <textarea
@@ -301,7 +304,7 @@ export default function PortafolioEditor() {
 
               {/* Resultados */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   📊 Resultados (métricas clave)
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -323,7 +326,7 @@ export default function PortafolioEditor() {
                           onClick={() => setCsResultados(csResultados.filter((_, j) => j !== i))}
                           style={{
                             width: '32px', height: '32px', borderRadius: '8px',
-                            border: '1px solid #FECDD3', background: '#FFF5F5',
+                            border: '1px solid rgba(239,68,68,0.30)', background: '#FFF5F5',
                             color: '#E11D48', fontSize: '18px', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                           }}
@@ -336,8 +339,8 @@ export default function PortafolioEditor() {
                       onClick={() => setCsResultados([...csResultados, ''])}
                       style={{
                         padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
-                        border: '1.5px dashed #D1D5DB', background: 'transparent',
-                        color: '#6B7280', cursor: 'pointer', fontWeight: 600,
+                        border: `1.5px dashed ${BDR2}`, background: 'transparent',
+                        color: MUT, cursor: 'pointer', fontWeight: 600,
                         alignSelf: 'flex-start',
                       }}
                     >
@@ -349,16 +352,16 @@ export default function PortafolioEditor() {
 
               {/* Imágenes de galería */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '4px' }}>
                   🖼️ Galería del caso (hasta 5 imágenes)
                 </label>
-                <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '12px' }}>
+                <p style={{ fontSize: '12px', color: MUT, marginBottom: '12px' }}>
                   Las imágenes se mostrarán en una galería dentro del modal. Puedes subir hasta 5.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   {csImagenes.map((url, i) => (
                     <div key={i}>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: MUT, marginBottom: '4px' }}>
                         Imagen {i + 1}
                       </p>
                       <ImageUploader
@@ -377,7 +380,7 @@ export default function PortafolioEditor() {
 
               {/* Testimonial */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   ❝ Testimonial del cliente
                 </label>
                 <textarea
@@ -391,7 +394,7 @@ export default function PortafolioEditor() {
 
               {/* Autor del testimonial */}
               <div>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: WHT, marginBottom: '6px' }}>
                   Autor del testimonial
                 </label>
                 <input
@@ -412,8 +415,8 @@ export default function PortafolioEditor() {
               onClick={() => navigate('/admin/portafolio')}
               style={{
                 padding: '12px 24px', borderRadius: '12px',
-                border: '1.5px solid #E5E7EB', background: '#fff',
-                color: '#374151', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                border: `1.5px solid ${BDR}`, background: DIM,
+                color: WHT, fontWeight: 600, fontSize: '14px', cursor: 'pointer',
               }}
             >
               Cancelar
@@ -423,7 +426,7 @@ export default function PortafolioEditor() {
               disabled={saving}
               style={{
                 padding: '12px 28px', borderRadius: '12px',
-                background: saving ? '#9CA3AF' : '#0284C7',
+                background: saving ? MUT : '#0284C7',
                 color: '#fff', border: 'none',
                 fontWeight: 700, fontSize: '15px', cursor: saving ? 'not-allowed' : 'pointer',
               }}

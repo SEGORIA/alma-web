@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { getProyectos, deleteProyecto } from '../../lib/db'
-import { P } from '../../tokens'
+/* tokens P/PL ahora vienen del tema ADM */
 import type { Proyecto } from '../../data/portafolio'
 import { confirmar } from '../../components/admin/Feedback'
 import { CardGridSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, MUT, WHT } = ADM
+const P  = ADM.C1
 
 export default function PortafolioAdmin() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([])
@@ -33,10 +37,11 @@ export default function PortafolioAdmin() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#111827', marginBottom: '4px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '24px', fontWeight: 900, color: WHT, marginBottom: '4px', letterSpacing: '-0.5px' }}>
               🖼️ Portafolio
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               {proyectos.length} proyecto{proyectos.length !== 1 ? 's' : ''} en el portafolio
             </p>
           </div>
@@ -58,14 +63,14 @@ export default function PortafolioAdmin() {
           <CardGridSkeleton cards={6} />
         ) : proyectos.length === 0 ? (
           <div style={{
-            background: '#fff', borderRadius: '16px', padding: '48px',
-            textAlign: 'center', border: '1px solid #E5E7EB',
+            background: DIM, borderRadius: '16px', padding: '48px',
+            textAlign: 'center', border: `1px solid ${BDR}`,
           }}>
             <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🖼️</span>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: WHT, marginBottom: '8px' }}>
               No hay proyectos aún
             </p>
-            <p style={{ fontSize: '14px', color: '#9CA3AF', marginBottom: '24px' }}>
+            <p style={{ fontSize: '14px', color: MUT, marginBottom: '24px' }}>
               Agrega proyectos o migra los datos desde el dashboard.
             </p>
             <Link to="/admin/portafolio/nuevo" style={{ color: '#6B21A8', fontWeight: 700, fontSize: '14px' }}>
@@ -82,8 +87,8 @@ export default function PortafolioAdmin() {
               <div
                 key={p._id ?? p.titulo}
                 style={{
-                  background: '#fff', borderRadius: '16px',
-                  border: '1px solid #E5E7EB', overflow: 'hidden',
+                  background: DIM, borderRadius: '16px',
+                  border: `1px solid ${BDR}`, overflow: 'hidden',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}
               >
@@ -104,7 +109,7 @@ export default function PortafolioAdmin() {
                   {p.featured && (
                     <span style={{
                       position: 'absolute', top: '8px', left: '8px',
-                      background: 'rgba(255,255,255,0.9)', color: '#92400E',
+                      background: 'rgba(255,255,255,0.9)', color: ADM.AMB,
                       fontSize: '12px', fontWeight: 800, padding: '3px 10px',
                       borderRadius: '20px', zIndex: 1,
                     }}>
@@ -133,12 +138,12 @@ export default function PortafolioAdmin() {
                 {/* Content */}
                 <div style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#111827', margin: 0 }}>
+                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: WHT, margin: 0 }}>
                       {p.titulo}
                     </h3>
-                    <span style={{ fontSize: '12px', color: '#9CA3AF', flexShrink: 0 }}>{p.año}</span>
+                    <span style={{ fontSize: '12px', color: MUT, flexShrink: 0 }}>{p.año}</span>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#6B7280', lineHeight: 1.5, marginBottom: '12px' }}>
+                  <p style={{ fontSize: '12px', color: MUT, lineHeight: 1.5, marginBottom: '12px' }}>
                     {p.desc.slice(0, 80)}{p.desc.length > 80 ? '…' : ''}
                   </p>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -170,8 +175,8 @@ export default function PortafolioAdmin() {
                       title={!p._id ? 'Migra los datos a Firestore para poder eliminar' : ''}
                       style={{
                         flex: 1, padding: '8px', borderRadius: '8px',
-                        background: '#FEF2F2', color: '#EF4444',
-                        border: '1px solid #FCA5A5',
+                        background: 'rgba(239,68,68,0.10)', color: '#EF4444',
+                        border: '1px solid rgba(239,68,68,0.35)',
                         fontSize: '13px', fontWeight: 700, cursor: p._id ? 'pointer' : 'not-allowed',
                         opacity: p._id ? 1 : 0.5,
                       }}

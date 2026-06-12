@@ -8,9 +8,13 @@ import {
 } from '../../lib/db'
 import { categoriasEstaticas, fmtPrecio } from '../../data/precios'
 import type { Plan, Extra, ServicioCategoria } from '../../data/precios'
-import { P, Y } from '../../tokens'
+import { Y } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, BDR2, MUT, WHT, INPUT_BG } = ADM
+const P  = ADM.C1
 
 /* ── helpers ────────────────────────────────────────────────── */
 const emptyPlan = (tabId: string): Omit<Plan, '_id'> => ({
@@ -50,16 +54,16 @@ function PlanForm({
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 12px', borderRadius: '8px',
-    border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827',
+    border: `1px solid ${BDR}`, fontSize: '13px', color: WHT,
     outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    fontSize: '12px', fontWeight: 700, color: '#374151',
+    fontSize: '12px', fontWeight: 700, color: WHT,
     display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px',
   }
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         <div>
           <label style={labelStyle}>Nombre del plan</label>
@@ -90,7 +94,7 @@ function PlanForm({
             onChange={e => setField('destacado', e.target.checked)}
             style={{ width: '16px', height: '16px', accentColor: P, cursor: 'pointer' }}
           />
-          <label htmlFor="destacado" style={{ fontSize: '13px', fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+          <label htmlFor="destacado" style={{ fontSize: '13px', fontWeight: 600, color: WHT, cursor: 'pointer' }}>
             Marcar como "Más solicitado"
           </label>
         </div>
@@ -137,7 +141,7 @@ function PlanForm({
           onClick={() => onSave(form)}
           disabled={saving || !form.nombre || !form.precioNum}
           style={{
-            background: saving ? '#E5E7EB' : P, color: saving ? '#9CA3AF' : '#fff',
+            background: saving ? BDR : P, color: saving ? MUT : '#fff',
             padding: '10px 22px', borderRadius: '10px',
             fontWeight: 700, fontSize: '13px', border: 'none',
             cursor: saving ? 'not-allowed' : 'pointer',
@@ -148,7 +152,7 @@ function PlanForm({
         <button
           onClick={onCancel}
           style={{
-            background: '#F3F4F6', color: '#374151',
+            background: INPUT_BG, color: WHT,
             padding: '10px 18px', borderRadius: '10px',
             fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
           }}
@@ -173,16 +177,16 @@ function ExtraForm({
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '9px 12px', borderRadius: '8px',
-    border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827',
+    border: `1px solid ${BDR}`, fontSize: '13px', color: WHT,
     outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    fontSize: '12px', fontWeight: 700, color: '#374151',
+    fontSize: '12px', fontWeight: 700, color: WHT,
     display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px',
   }
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '12px', marginBottom: '16px' }}>
         <div>
           <label style={labelStyle}>Emoji</label>
@@ -213,7 +217,7 @@ function ExtraForm({
           onClick={() => onSave(form)}
           disabled={saving || !form.label || !form.precioNum}
           style={{
-            background: saving ? '#E5E7EB' : P, color: saving ? '#9CA3AF' : '#fff',
+            background: saving ? BDR : P, color: saving ? MUT : '#fff',
             padding: '10px 22px', borderRadius: '10px',
             fontWeight: 700, fontSize: '13px', border: 'none',
             cursor: saving ? 'not-allowed' : 'pointer',
@@ -224,7 +228,7 @@ function ExtraForm({
         <button
           onClick={onCancel}
           style={{
-            background: '#F3F4F6', color: '#374151',
+            background: INPUT_BG, color: WHT,
             padding: '10px 18px', borderRadius: '10px',
             fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
           }}
@@ -366,8 +370,8 @@ export default function PreciosAdmin() {
 
   /* ── Render helpers ── */
   const cardStyle: React.CSSProperties = {
-    background: '#fff', borderRadius: '16px',
-    border: '1px solid #E5E7EB', padding: '16px 20px',
+    background: DIM, borderRadius: '16px',
+    border: `1px solid ${BDR}`, padding: '16px 20px',
     display: 'flex', alignItems: 'flex-start',
     justifyContent: 'space-between', gap: '16px',
   }
@@ -377,9 +381,9 @@ export default function PreciosAdmin() {
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       style={{
-        background: disabled ? '#F3F4F6' : danger ? 'rgba(239,68,68,0.08)' : `${P}15`,
-        color: disabled ? '#D1D5DB' : danger ? '#EF4444' : P,
-        border: `1px solid ${disabled ? '#E5E7EB' : danger ? 'rgba(239,68,68,0.2)' : `${P}30`}`,
+        background: disabled ? INPUT_BG : danger ? 'rgba(239,68,68,0.08)' : `${P}15`,
+        color: disabled ? BDR2 : danger ? '#EF4444' : P,
+        border: `1px solid ${disabled ? BDR : danger ? 'rgba(239,68,68,0.2)' : `${P}30`}`,
         padding: '5px 12px', borderRadius: '8px',
         fontWeight: 600, fontSize: '12px',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -395,10 +399,11 @@ export default function PreciosAdmin() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: isMigrated ? '32px' : '16px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '26px', fontWeight: 900, color: WHT, marginBottom: '6px', letterSpacing: '-0.5px' }}>
               Precios & Servicios
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               Gestiona los planes de servicio y los extras de la calculadora.
             </p>
           </div>
@@ -406,9 +411,9 @@ export default function PreciosAdmin() {
             onClick={handleSeed}
             disabled={seeding}
             style={{
-              background: seeding ? '#E5E7EB' : isMigrated ? `${Y}33` : Y,
-              color: seeding ? '#9CA3AF' : '#92400E',
-              border: `1px solid ${seeding ? '#E5E7EB' : Y}`,
+              background: seeding ? BDR : isMigrated ? `${Y}33` : Y,
+              color: seeding ? MUT : ADM.AMB,
+              border: `1px solid ${seeding ? BDR : Y}`,
               padding: '10px 18px', borderRadius: '10px',
               fontWeight: 700, fontSize: '13px', cursor: seeding ? 'not-allowed' : 'pointer',
             }}
@@ -420,13 +425,13 @@ export default function PreciosAdmin() {
         {/* Banner migración */}
         {!loading && !isMigrated && (
           <div style={{
-            background: '#FEF9C3', border: '1px solid #FCD34D',
+            background: '#FEF9C3', border: '1px solid rgba(250,204,21,0.45)',
             borderRadius: '14px', padding: '16px 20px', marginBottom: '28px',
             display: 'flex', alignItems: 'center', gap: '14px',
           }}>
             <span style={{ fontSize: '22px', flexShrink: 0 }}>⚠️</span>
             <div>
-              <p style={{ fontSize: '14px', fontWeight: 700, color: '#92400E', marginBottom: '4px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 700, color: ADM.AMB, marginBottom: '4px' }}>
                 Estás viendo datos de ejemplo — no se pueden editar aún
               </p>
               <p style={{ fontSize: '13px', color: '#B45309', lineHeight: 1.5 }}>
@@ -449,7 +454,7 @@ export default function PreciosAdmin() {
               return (
                 <section key={cat.id} style={{ marginBottom: '40px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: 800, color: WHT, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span>{cat.emoji}</span> {cat.label}
                     </h2>
                     {!addingInTab && isMigrated && (
@@ -481,15 +486,15 @@ export default function PreciosAdmin() {
                           <div style={{ ...cardStyle, opacity: plan._id ? 1 : 0.65 }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '15px', fontWeight: 800, color: '#111827' }}>{plan.nombre}</span>
+                                <span style={{ fontSize: '15px', fontWeight: 800, color: WHT }}>{plan.nombre}</span>
                                 <span style={{ fontSize: '16px', fontWeight: 900, color: P }}>{fmtPrecio(plan.precioNum)}{plan.periodo}</span>
                                 {plan.destacado && (
-                                  <span style={{ background: Y, color: '#111', fontSize: '12px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px' }}>
+                                  <span style={{ background: Y, color: WHT, fontSize: '12px', fontWeight: 800, padding: '2px 10px', borderRadius: '20px' }}>
                                     MÁS SOLICITADO
                                   </span>
                                 )}
                               </div>
-                              <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>
+                              <p style={{ fontSize: '12px', color: MUT, margin: 0 }}>
                                 {plan.items.slice(0, 3).join(' · ')}{plan.items.length > 3 ? ` · +${plan.items.length - 3} más` : ''}
                               </p>
                             </div>
@@ -513,7 +518,7 @@ export default function PreciosAdmin() {
                     )}
 
                     {catPlanes.length === 0 && addingInTab !== cat.id && (
-                      <p style={{ fontSize: '13px', color: '#9CA3AF', textAlign: 'center', padding: '24px', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB' }}>
+                      <p style={{ fontSize: '13px', color: MUT, textAlign: 'center', padding: '24px', background: INPUT_BG, borderRadius: '12px', border: `1px dashed ${BDR}` }}>
                         Sin planes todavía. Haz clic en "+ Nuevo plan" o en "🌱 Migrar datos a Firestore" para empezar.
                       </p>
                     )}
@@ -526,10 +531,10 @@ export default function PreciosAdmin() {
             <section>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div>
-                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginBottom: '2px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: WHT, marginBottom: '2px' }}>
                     ➕ Extras de la Calculadora
                   </h2>
-                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
+                  <p style={{ fontSize: '13px', color: MUT, margin: 0 }}>
                     Servicios adicionales que el cliente puede sumar al presupuesto.
                   </p>
                 </div>
@@ -562,7 +567,7 @@ export default function PreciosAdmin() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                           <span style={{ fontSize: '22px' }}>{extra.emoji}</span>
                           <div>
-                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{extra.label}</span>
+                            <span style={{ fontSize: '14px', fontWeight: 700, color: WHT }}>{extra.label}</span>
                             <span style={{ marginLeft: '12px', fontSize: '14px', fontWeight: 800, color: P }}>{fmtPrecio(extra.precioNum)}</span>
                           </div>
                         </div>
@@ -585,7 +590,7 @@ export default function PreciosAdmin() {
                 )}
 
                 {extras.length === 0 && !addingExtra && (
-                  <p style={{ fontSize: '13px', color: '#9CA3AF', textAlign: 'center', padding: '24px', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB' }}>
+                  <p style={{ fontSize: '13px', color: MUT, textAlign: 'center', padding: '24px', background: INPUT_BG, borderRadius: '12px', border: `1px dashed ${BDR}` }}>
                     Sin extras todavía. Haz clic en "+ Nuevo extra" o migra los datos a Firestore.
                   </p>
                 )}
@@ -593,13 +598,13 @@ export default function PreciosAdmin() {
             </section>
 
             {/* ── Categorías de servicios ── */}
-            <section style={{ marginTop: '48px', borderTop: '2px solid #F3F4F6', paddingTop: '32px' }}>
+            <section style={{ marginTop: '48px', borderTop: `2px solid ${BDR}`, paddingTop: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                 <div>
-                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#111827', marginBottom: '2px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, color: WHT, marginBottom: '2px' }}>
                     🗂 Categorías de Servicios
                   </h2>
-                  <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
+                  <p style={{ fontSize: '13px', color: MUT, margin: 0 }}>
                     Los tabs de ServiciosTabs y la Calculadora. El <code>id</code> debe coincidir con el <code>tabId</code> de cada plan.
                   </p>
                 </div>
@@ -614,7 +619,7 @@ export default function PreciosAdmin() {
               </div>
 
               {!catsMigrated && (
-                <p style={{ fontSize: '13px', color: '#B45309', background: '#FEF9C3', border: '1px solid #FCD34D', borderRadius: '10px', padding: '12px 16px', marginBottom: '14px' }}>
+                <p style={{ fontSize: '13px', color: '#B45309', background: '#FEF9C3', border: '1px solid rgba(250,204,21,0.45)', borderRadius: '10px', padding: '12px 16px', marginBottom: '14px' }}>
                   ⚠️ Migra los datos a Firestore para editar las categorías.
                 </p>
               )}
@@ -623,16 +628,16 @@ export default function PreciosAdmin() {
                 {catsList.map(cat => (
                   <div key={cat._id ?? cat.id}>
                     {cat._id && editingCatId === cat._id ? (
-                      <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+                      <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                           {([['emoji','Emoji', 'Ej: 💻'], ['id','ID (interno)', 'ej: web'], ['label','Nombre visible', 'ej: Desarrollo Web'], ['desc','Descripción corta', 'ej: Landing, corporativo...']] as [keyof Omit<ServicioCategoria,'_id'>, string, string][]).map(([k, lbl, ph]) => (
                             <div key={k}>
-                              <label style={{ fontSize: '12px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
+                              <label style={{ fontSize: '12px', fontWeight: 700, color: WHT, display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
                               <input
                                 value={String(catForm[k] ?? '')}
                                 onChange={e => setCatForm(f => ({ ...f, [k]: e.target.value }))}
                                 placeholder={ph}
-                                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: `1px solid ${BDR}`, fontSize: '13px', color: WHT, outline: 'none', boxSizing: 'border-box' }}
                               />
                             </div>
                           ))}
@@ -641,7 +646,7 @@ export default function PreciosAdmin() {
                           <button onClick={() => handleSaveCat(catForm)} disabled={savingCat} style={{ background: P, color: '#fff', padding: '9px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
                             {savingCat ? 'Guardando…' : '💾 Guardar'}
                           </button>
-                          <button onClick={() => setEditingCatId(null)} style={{ background: '#F3F4F6', color: '#6B7280', padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                          <button onClick={() => setEditingCatId(null)} style={{ background: INPUT_BG, color: MUT, padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
                             Cancelar
                           </button>
                         </div>
@@ -651,9 +656,9 @@ export default function PreciosAdmin() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                           <span style={{ fontSize: '24px' }}>{cat.emoji}</span>
                           <div>
-                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{cat.label}</span>
-                            <span style={{ marginLeft: '10px', fontSize: '12px', color: '#9CA3AF', background: '#F3F4F6', padding: '2px 8px', borderRadius: '6px' }}>id: {cat.id}</span>
-                            <p style={{ fontSize: '12px', color: '#6B7280', margin: '2px 0 0' }}>{cat.desc}</p>
+                            <span style={{ fontSize: '14px', fontWeight: 700, color: WHT }}>{cat.label}</span>
+                            <span style={{ marginLeft: '10px', fontSize: '12px', color: MUT, background: INPUT_BG, padding: '2px 8px', borderRadius: '6px' }}>id: {cat.id}</span>
+                            <p style={{ fontSize: '12px', color: MUT, margin: '2px 0 0' }}>{cat.desc}</p>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
@@ -666,16 +671,16 @@ export default function PreciosAdmin() {
                 ))}
 
                 {addingCat && (
-                  <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+                  <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                       {([['emoji','Emoji', 'Ej: 💻'], ['id','ID (interno)', 'ej: web'], ['label','Nombre visible', 'ej: Desarrollo Web'], ['desc','Descripción corta', 'ej: Landing, corporativo...']] as [keyof Omit<ServicioCategoria,'_id'>, string, string][]).map(([k, lbl, ph]) => (
                         <div key={k}>
-                          <label style={{ fontSize: '12px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
+                          <label style={{ fontSize: '12px', fontWeight: 700, color: WHT, display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{lbl}</label>
                           <input
                             value={String(catForm[k] ?? '')}
                             onChange={e => setCatForm(f => ({ ...f, [k]: e.target.value }))}
                             placeholder={ph}
-                            style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: `1px solid ${BDR}`, fontSize: '13px', color: WHT, outline: 'none', boxSizing: 'border-box' }}
                           />
                         </div>
                       ))}
@@ -684,7 +689,7 @@ export default function PreciosAdmin() {
                       <button onClick={() => handleSaveCat(catForm)} disabled={savingCat} style={{ background: P, color: '#fff', padding: '9px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
                         {savingCat ? 'Guardando…' : '💾 Guardar categoría'}
                       </button>
-                      <button onClick={() => setAddingCat(false)} style={{ background: '#F3F4F6', color: '#6B7280', padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
+                      <button onClick={() => setAddingCat(false)} style={{ background: INPUT_BG, color: MUT, padding: '9px 16px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>
                         Cancelar
                       </button>
                     </div>

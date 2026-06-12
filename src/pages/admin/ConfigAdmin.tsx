@@ -10,26 +10,30 @@ import {
   seccionesInfo, seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
 } from '../../data/config'
 import type { SeccionesConfig, Testimonio, FaqItem } from '../../data/config'
-import { P, Y } from '../../tokens'
+import { Y } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
 import {
   getAdminThemeMode, setAdminThemeMode, ADM_LIGHT, ADM_DARK,
   type AdminThemeMode,
 } from '../../lib/adminTheme'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, BDR2, MUT, WHT, C1, INPUT_BG } = ADM
+const P  = ADM.C1
 
 /* ── pequeños helpers de estilo ─────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '9px 12px', borderRadius: '8px',
-  border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827',
+  border: `1px solid ${BDR}`, fontSize: '13px', color: WHT,
   outline: 'none', boxSizing: 'border-box',
 }
 const labelStyle: React.CSSProperties = {
-  fontSize: '12px', fontWeight: 700, color: '#374151',
+  fontSize: '12px', fontWeight: 700, color: WHT,
   display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px',
 }
 const cardStyle: React.CSSProperties = {
-  background: '#fff', borderRadius: '14px',
-  border: '1px solid #E5E7EB', padding: '14px 18px',
+  background: DIM, borderRadius: '14px',
+  border: `1px solid ${BDR}`, padding: '14px 18px',
   display: 'flex', alignItems: 'flex-start',
   justifyContent: 'space-between', gap: '12px',
 }
@@ -67,14 +71,14 @@ function TabSecciones() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '20px' }}>
         Activa o desactiva secciones del sitio web. Los cambios se aplican de inmediato para visitantes nuevos.
         <br />
-        <strong style={{ color: '#374151' }}>Hero</strong> y <strong style={{ color: '#374151' }}>Contacto</strong> siempre están visibles.
+        <strong style={{ color: WHT }}>Hero</strong> y <strong style={{ color: WHT }}>Contacto</strong> siempre están visibles.
       </p>
 
       {saved && (
-        <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(107,33,168,0.10)', color: C1, padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
           ✅ Cambios guardados
         </div>
       )}
@@ -85,15 +89,15 @@ function TabSecciones() {
           return (
             <div key={info.id} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: '#fff', border: `1px solid ${activa ? '#DDD6FE' : '#E5E7EB'}`,
+              background: DIM, border: `1px solid ${activa ? BDR2 : BDR}`,
               borderRadius: '14px', padding: '14px 18px', gap: '16px',
               transition: 'border-color 0.2s ease',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                 <span style={{ fontSize: '20px' }}>{info.icon}</span>
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>{info.label}</p>
-                  <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '1px' }}>{info.desc}</p>
+                  <p style={{ fontWeight: 700, fontSize: '14px', color: WHT }}>{info.label}</p>
+                  <p style={{ fontSize: '12px', color: MUT, marginTop: '1px' }}>{info.desc}</p>
                 </div>
               </div>
               {/* Toggle switch */}
@@ -103,7 +107,7 @@ function TabSecciones() {
                 style={{
                   width: '48px', height: '26px', borderRadius: '13px',
                   border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
-                  background: activa ? P : '#D1D5DB',
+                  background: activa ? P : BDR2,
                   position: 'relative', flexShrink: 0,
                   transition: 'background 0.2s ease',
                 }}
@@ -113,14 +117,14 @@ function TabSecciones() {
                   position: 'absolute', top: '3px',
                   left: activa ? '25px' : '3px',
                   width: '20px', height: '20px', borderRadius: '50%',
-                  background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                  background: DIM, boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                   transition: 'left 0.2s ease',
                 }} />
               </button>
               <span style={{
                 fontSize: '12px', fontWeight: 700, minWidth: '60px', textAlign: 'center',
-                color: activa ? P : '#9CA3AF',
-                background: activa ? `${P}15` : '#F3F4F6',
+                color: activa ? P : MUT,
+                background: activa ? `${P}15` : INPUT_BG,
                 padding: '3px 10px', borderRadius: '20px',
               }}>
                 {activa ? 'VISIBLE' : 'OCULTA'}
@@ -174,12 +178,12 @@ function TabClientes() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '16px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '16px' }}>
         Nombres que aparecen en el marquee "Confían en Alma" bajo el hero.
       </p>
 
       {saved && (
-        <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(107,33,168,0.10)', color: C1, padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
           ✅ Lista guardada
         </div>
       )}
@@ -249,7 +253,7 @@ function TestimonioForm({ initial, onSave, onCancel, saving }: {
     setForm(f => ({ ...f, [k]: v }))
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
         <div>
           <label style={labelStyle}>Nombre</label>
@@ -311,9 +315,9 @@ function TestimonioForm({ initial, onSave, onCancel, saving }: {
         <button
           onClick={() => onSave(form)}
           disabled={saving || !form.nombre || !form.texto}
-          style={{ background: saving ? '#E5E7EB' : P, color: saving ? '#9CA3AF' : '#fff', padding: '10px 22px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}
+          style={{ background: saving ? BDR : P, color: saving ? MUT : '#fff', padding: '10px 22px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}
         >{saving ? 'Guardando…' : '💾 Guardar'}</button>
-        <button onClick={onCancel} style={{ background: '#F3F4F6', color: '#374151', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+        <button onClick={onCancel} style={{ background: INPUT_BG, color: WHT, padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   )
@@ -354,7 +358,7 @@ function TabTestimonios() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <p style={{ fontSize: '13px', color: '#6B7280' }}>
+        <p style={{ fontSize: '13px', color: MUT }}>
           {testimonios.length} testimonio{testimonios.length !== 1 ? 's' : ''} — aparecen en el marquee animado de la página de inicio.
         </p>
         {!adding && (
@@ -378,8 +382,8 @@ function TabTestimonios() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
                   <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800, color: '#fff', flexShrink: 0 }}>{t.iniciales}</div>
                   <div style={{ minWidth: 0 }}>
-                    <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{t.nombre} · <span style={{ color: '#6B7280', fontWeight: 500 }}>{t.rol}, {t.empresa}</span></p>
-                    <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{t.texto}"</p>
+                    <p style={{ fontWeight: 700, fontSize: '13px', color: WHT }}>{t.nombre} · <span style={{ color: MUT, fontWeight: 500 }}>{t.rol}, {t.empresa}</span></p>
+                    <p style={{ fontSize: '12px', color: MUT, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{t.texto}"</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
@@ -396,7 +400,7 @@ function TabTestimonios() {
         )}
 
         {testimonios.length === 0 && !adding && (
-          <p style={{ fontSize: '13px', color: '#9CA3AF', textAlign: 'center', padding: '24px', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB' }}>
+          <p style={{ fontSize: '13px', color: MUT, textAlign: 'center', padding: '24px', background: INPUT_BG, borderRadius: '12px', border: `1px dashed ${BDR}` }}>
             Sin testimonios. Usa "🌱 Migrar datos" para cargar los testimonios iniciales.
           </p>
         )}
@@ -415,7 +419,7 @@ function FaqForm({ initial, onSave, onCancel, saving }: {
   const [form, setForm] = useState<Omit<FaqItem, '_id'>>(initial)
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
       <div style={{ marginBottom: '12px' }}>
         <label style={labelStyle}>Pregunta</label>
         <input value={form.q} onChange={e => setForm(f => ({ ...f, q: e.target.value }))} style={inputStyle} placeholder="¿Cuánto tiempo tarda...?" />
@@ -431,9 +435,9 @@ function FaqForm({ initial, onSave, onCancel, saving }: {
         <button
           onClick={() => onSave(form)}
           disabled={saving || !form.q || !form.a}
-          style={{ background: saving ? '#E5E7EB' : P, color: saving ? '#9CA3AF' : '#fff', padding: '10px 22px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}
+          style={{ background: saving ? BDR : P, color: saving ? MUT : '#fff', padding: '10px 22px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}
         >{saving ? 'Guardando…' : '💾 Guardar'}</button>
-        <button onClick={onCancel} style={{ background: '#F3F4F6', color: '#374151', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+        <button onClick={onCancel} style={{ background: INPUT_BG, color: WHT, padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   )
@@ -469,7 +473,7 @@ function TabFaq() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <p style={{ fontSize: '13px', color: '#6B7280' }}>
+        <p style={{ fontSize: '13px', color: MUT }}>
           {faqs.length} pregunta{faqs.length !== 1 ? 's' : ''} — acordeón de FAQ en el inicio.
         </p>
         {!adding && (
@@ -489,8 +493,8 @@ function TabFaq() {
             ) : (
               <div style={cardStyle}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', marginBottom: '3px' }}>{faq.q}</p>
-                  <p style={{ fontSize: '12px', color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{faq.a}</p>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: WHT, marginBottom: '3px' }}>{faq.q}</p>
+                  <p style={{ fontSize: '12px', color: MUT, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{faq.a}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                   {actionBtn('✏️', () => { setEditingId(faq._id ?? null); setAdding(false) })}
@@ -507,7 +511,7 @@ function TabFaq() {
         )}
 
         {faqs.length === 0 && !adding && (
-          <p style={{ fontSize: '13px', color: '#9CA3AF', textAlign: 'center', padding: '24px', background: '#F9FAFB', borderRadius: '12px', border: '1px dashed #E5E7EB' }}>
+          <p style={{ fontSize: '13px', color: MUT, textAlign: 'center', padding: '24px', background: INPUT_BG, borderRadius: '12px', border: `1px dashed ${BDR}` }}>
             Sin preguntas. Usa "🌱 Migrar datos" para cargar las FAQ iniciales.
           </p>
         )}
@@ -537,8 +541,8 @@ function TabApariencia() {
   return (
     <div>
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#111827', margin: '0 0 6px' }}>Tema de los módulos de Negocio</h2>
-        <p style={{ fontSize: '13px', color: '#6B7280', margin: 0, lineHeight: 1.6 }}>
+        <h2 style={{ fontSize: '17px', fontWeight: 800, color: WHT, margin: '0 0 6px' }}>Tema de los módulos de Negocio</h2>
+        <p style={{ fontSize: '13px', color: MUT, margin: 0, lineHeight: 1.6 }}>
           Aplica a Brief, Cotizaciones, Contratos, Clientes, Cuentas de Cobro, Finanzas y Academia.
           La preferencia se guarda en este navegador.
         </p>
@@ -554,9 +558,9 @@ function TabApariencia() {
               disabled={!!aplicando}
               style={{
                 textAlign: 'left', padding: 0, borderRadius: '16px', overflow: 'hidden',
-                border: activo ? `2px solid ${P}` : '1.5px solid #E5E7EB',
+                border: activo ? `2px solid ${P}` : `1.5px solid ${BDR}`,
                 boxShadow: activo ? `0 4px 20px ${P}25` : '0 2px 8px rgba(0,0,0,0.04)',
-                background: '#fff', cursor: activo ? 'default' : 'pointer',
+                background: DIM, cursor: activo ? 'default' : 'pointer',
                 transition: 'all 0.2s ease', position: 'relative',
                 opacity: aplicando && aplicando !== op.modo ? 0.5 : 1,
               }}
@@ -585,8 +589,8 @@ function TabApariencia() {
               {/* Info */}
               <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
                 <div>
-                  <p style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: '#111827' }}>{op.nombre}</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#6B7280', lineHeight: 1.5 }}>{op.desc}</p>
+                  <p style={{ margin: '0 0 3px', fontSize: '14px', fontWeight: 800, color: WHT }}>{op.nombre}</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: MUT, lineHeight: 1.5 }}>{op.desc}</p>
                 </div>
                 {activo && (
                   <span style={{
@@ -644,19 +648,20 @@ export default function ConfigAdmin() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '26px', fontWeight: 900, color: WHT, marginBottom: '6px', letterSpacing: '-0.5px' }}>
               Configuración
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               Visibilidad de secciones · Clientes · Testimonios · FAQ · Apariencia
             </p>
           </div>
           <button
             onClick={handleSeed} disabled={seeding}
             style={{
-              background: seeding ? '#E5E7EB' : `${Y}33`,
-              color: seeding ? '#9CA3AF' : '#92400E',
-              border: `1px solid ${seeding ? '#E5E7EB' : Y}`,
+              background: seeding ? BDR : `${Y}33`,
+              color: seeding ? MUT : ADM.AMB,
+              border: `1px solid ${seeding ? BDR : Y}`,
               padding: '10px 18px', borderRadius: '10px',
               fontWeight: 700, fontSize: '13px', cursor: seeding ? 'not-allowed' : 'pointer',
             }}
@@ -673,8 +678,8 @@ export default function ConfigAdmin() {
               style={{
                 padding: '9px 18px', borderRadius: '10px',
                 fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
-                background: tab === t.id ? P : '#F3F4F6',
-                color: tab === t.id ? '#fff' : '#374151',
+                background: tab === t.id ? P : INPUT_BG,
+                color: tab === t.id ? '#fff' : WHT,
                 transition: 'all 0.2s ease',
               }}
             >{t.label}</button>

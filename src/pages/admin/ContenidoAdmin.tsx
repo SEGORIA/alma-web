@@ -22,28 +22,32 @@ import type { PasoItem, EquipoMember } from '../../data/contenido'
 import type { ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../../data/config'
 import type { KitArchivo } from '../../data/leads'
 import { tipoIcono, formatTamano } from '../../data/leads'
-import { P, Y } from '../../tokens'
+import { Y } from '../../tokens'
 import { toast, confirmar } from '../../components/admin/Feedback'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, MUT, WHT, C1, INPUT_BG } = ADM
+const P  = ADM.C1
 
 /* ── helpers de estilo ──────────────────────────────────────── */
 const inp: React.CSSProperties = {
   width: '100%', padding: '9px 12px', borderRadius: '8px',
-  border: '1px solid #E5E7EB', fontSize: '13px', color: '#111827',
+  border: `1px solid ${BDR}`, fontSize: '13px', color: WHT,
   outline: 'none', boxSizing: 'border-box',
 }
 const lbl: React.CSSProperties = {
-  fontSize: '12px', fontWeight: 700, color: '#374151',
+  fontSize: '12px', fontWeight: 700, color: WHT,
   display: 'block', marginBottom: '5px',
   textTransform: 'uppercase', letterSpacing: '0.5px',
 }
 const card: React.CSSProperties = {
-  background: '#fff', borderRadius: '14px',
-  border: '1px solid #E5E7EB', padding: '14px 18px',
+  background: DIM, borderRadius: '14px',
+  border: `1px solid ${BDR}`, padding: '14px 18px',
   display: 'flex', alignItems: 'flex-start',
   justifyContent: 'space-between', gap: '12px',
 }
 const saved_banner = (
-  <div style={{ background: 'rgba(107,33,168,0.10)', color: '#4B2B82', padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+  <div style={{ background: 'rgba(107,33,168,0.10)', color: C1, padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
     ✅ Guardado
   </div>
 )
@@ -63,7 +67,7 @@ const saveBtn = (label: string, onClick: () => void, saving: boolean, disabled =
     onClick={onClick}
     disabled={saving || disabled}
     style={{
-      background: saving ? '#E5E7EB' : P, color: saving ? '#9CA3AF' : '#fff',
+      background: saving ? BDR : P, color: saving ? MUT : '#fff',
       padding: '10px 22px', borderRadius: '10px',
       fontWeight: 700, fontSize: '13px', border: 'none',
       cursor: saving ? 'not-allowed' : 'pointer',
@@ -100,7 +104,7 @@ function TabHero() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '20px' }}>
         Texto del subtítulo bajo el titular principal, y los 3 contadores animados.
       </p>
       {savedOk && saved_banner}
@@ -170,7 +174,7 @@ function TabContacto() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '20px' }}>
         Datos de contacto que aparecen en la sección Contacto y en el footer.
       </p>
       {savedOk && saved_banner}
@@ -210,7 +214,7 @@ function PasoForm({ initial, onSave, onCancel, saving }: {
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
       <div style={{ display: 'grid', gridTemplateColumns: '60px 60px 1fr', gap: '10px', marginBottom: '10px' }}>
         <div><label style={lbl}>Nro.</label><input value={form.n} onChange={e => set('n', e.target.value)} style={inp} placeholder="01" maxLength={2} /></div>
         <div><label style={lbl}>Emoji</label><input value={form.icon} onChange={e => set('icon', e.target.value)} style={{ ...inp, fontSize: '18px', textAlign: 'center' }} maxLength={4} /></div>
@@ -232,7 +236,7 @@ function PasoForm({ initial, onSave, onCancel, saving }: {
       </div>
       <div style={{ display: 'flex', gap: '10px' }}>
         {saveBtn('💾 Guardar', onSave.bind(null, form), saving, !form.n || !form.titulo)}
-        <button onClick={onCancel} style={{ background: '#F3F4F6', color: '#374151', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+        <button onClick={onCancel} style={{ background: INPUT_BG, color: WHT, padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   )
@@ -278,11 +282,11 @@ function TabProceso() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <p style={{ fontSize: '13px', color: '#6B7280' }}>{pasos.length} pasos del proceso de trabajo.</p>
+        <p style={{ fontSize: '13px', color: MUT }}>{pasos.length} pasos del proceso de trabajo.</p>
         <div style={{ display: 'flex', gap: '8px' }}>
           {isMigrated && (
             <button onClick={handleClean} disabled={cleaning}
-              style={{ background: cleaning ? '#E5E7EB' : 'rgba(239,68,68,0.08)', color: cleaning ? '#9CA3AF' : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
+              style={{ background: cleaning ? BDR : 'rgba(239,68,68,0.08)', color: cleaning ? MUT : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
               {cleaning ? 'Limpiando…' : '🧹 Limpiar duplicados'}
             </button>
           )}
@@ -296,7 +300,7 @@ function TabProceso() {
       </div>
 
       {!isMigrated && (
-        <div style={{ background: '#FEF9C3', border: '1px solid #FCD34D', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px', fontSize: '13px', color: '#92400E' }}>
+        <div style={{ background: '#FEF9C3', border: '1px solid rgba(250,204,21,0.45)', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px', fontSize: '13px', color: ADM.AMB }}>
           ⚠️ Migra los datos a Firestore primero para poder editar el proceso.
         </div>
       )}
@@ -312,8 +316,8 @@ function TabProceso() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                   <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: paso.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>{paso.icon}</div>
                   <div>
-                    <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Paso {paso.n} · {paso.titulo}</p>
-                    <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '380px' }}>{paso.desc}</p>
+                    <p style={{ fontWeight: 700, fontSize: '13px', color: WHT }}>Paso {paso.n} · {paso.titulo}</p>
+                    <p style={{ fontSize: '12px', color: MUT, marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '380px' }}>{paso.desc}</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
@@ -344,12 +348,12 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
   const set = <K extends keyof typeof form>(k: K, v: typeof form[K]) => setForm(f => ({ ...f, [k]: v }))
 
   return (
-    <div style={{ background: '#F9FAFB', borderRadius: '12px', padding: '20px', border: '1px solid #E5E7EB' }}>
+    <div style={{ background: INPUT_BG, borderRadius: '12px', padding: '20px', border: `1px solid ${BDR}` }}>
 
       {/* Foto */}
       <div style={{ marginBottom: '16px' }}>
         <label style={lbl}>Foto del miembro</label>
-        <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px', marginTop: '2px' }}>
+        <p style={{ fontSize: '12px', color: MUT, marginBottom: '10px', marginTop: '2px' }}>
           Si subes una foto se mostrará en lugar del emoji. Ideal cuadrada o de perfil.
         </p>
 
@@ -358,7 +362,7 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
           <div style={{
             width: '72px', height: '72px', borderRadius: '50%', flexShrink: 0,
             background: form.foto ? 'transparent' : form.color,
-            overflow: 'hidden', border: '3px solid #E5E7EB',
+            overflow: 'hidden', border: `3px solid ${BDR}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {form.foto
@@ -367,7 +371,7 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
             }
           </div>
           <div>
-            <p style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 2px' }}>{form.nombre || 'Nombre'}</p>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: WHT, margin: '0 0 2px' }}>{form.nombre || 'Nombre'}</p>
             <p style={{ fontSize: '12px', color: P, margin: 0 }}>{form.rol || 'Rol'}</p>
           </div>
         </div>
@@ -404,7 +408,7 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
 
       <div style={{ display: 'flex', gap: '10px' }}>
         {saveBtn('💾 Guardar', onSave.bind(null, form), saving, !form.nombre)}
-        <button onClick={onCancel} style={{ background: '#F3F4F6', color: '#374151', padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+        <button onClick={onCancel} style={{ background: INPUT_BG, color: WHT, padding: '10px 18px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   )
@@ -450,11 +454,11 @@ function TabEquipo() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-        <p style={{ fontSize: '13px', color: '#6B7280' }}>{equipo.length} miembro{equipo.length !== 1 ? 's' : ''} del equipo — aparecen en la sección Nosotros.</p>
+        <p style={{ fontSize: '13px', color: MUT }}>{equipo.length} miembro{equipo.length !== 1 ? 's' : ''} del equipo — aparecen en la sección Nosotros.</p>
         <div style={{ display: 'flex', gap: '8px' }}>
           {isMigrated && (
             <button onClick={handleClean} disabled={cleaning}
-              style={{ background: cleaning ? '#E5E7EB' : 'rgba(239,68,68,0.08)', color: cleaning ? '#9CA3AF' : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
+              style={{ background: cleaning ? BDR : 'rgba(239,68,68,0.08)', color: cleaning ? MUT : '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '8px 14px', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: cleaning ? 'not-allowed' : 'pointer' }}>
               {cleaning ? 'Limpiando…' : '🧹 Limpiar duplicados'}
             </button>
           )}
@@ -468,7 +472,7 @@ function TabEquipo() {
       </div>
 
       {!isMigrated && (
-        <div style={{ background: '#FEF9C3', border: '1px solid #FCD34D', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px', fontSize: '13px', color: '#92400E' }}>
+        <div style={{ background: '#FEF9C3', border: '1px solid rgba(250,204,21,0.45)', borderRadius: '12px', padding: '14px 18px', marginBottom: '16px', fontSize: '13px', color: ADM.AMB }}>
           ⚠️ Migra los datos a Firestore primero para editar el equipo.
         </div>
       )}
@@ -484,7 +488,7 @@ function TabEquipo() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#fff', fontWeight: 800, flexShrink: 0 }}>{m.iniciales}</div>
                   <div>
-                    <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>{m.nombre}</p>
+                    <p style={{ fontWeight: 700, fontSize: '13px', color: WHT }}>{m.nombre}</p>
                     <p style={{ fontSize: '12px', color: P, marginTop: '1px', fontWeight: 600 }}>{m.rol}</p>
                   </div>
                 </div>
@@ -537,14 +541,14 @@ function TabManifiesto() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '20px' }}>
         Los 6 principios que aparecen en la sección Manifiesto de la landing page.
       </p>
       {savedOk && saved_banner}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
         {principios.map((p, i) => (
-          <div key={i} style={{ background: '#F9FAFB', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB' }}>
+          <div key={i} style={{ background: INPUT_BG, borderRadius: '12px', padding: '16px', border: `1px solid ${BDR}` }}>
             <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: '10px', alignItems: 'end', marginBottom: '10px' }}>
               <div>
                 <label style={lbl}>Nro.</label>
@@ -633,18 +637,18 @@ function TabLeadMagnet() {
 
   return (
     <div>
-      <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '20px' }}>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '20px' }}>
         El kit gratuito que aparece en la sección de captura de leads.
       </p>
 
       {/* ── Sección 1: Archivos descargables ── */}
-      <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '20px', border: '1px solid #E5E7EB', marginBottom: '28px' }}>
+      <div style={{ background: INPUT_BG, borderRadius: '14px', padding: '20px', border: `1px solid ${BDR}`, marginBottom: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 800, color: WHT, margin: '0 0 4px' }}>
               📁 Archivos del Kit
             </h3>
-            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
+            <p style={{ fontSize: '12px', color: MUT, margin: 0 }}>
               {archivos.length} archivo{archivos.length !== 1 ? 's' : ''} — los usuarios los descargan al pedir el kit
             </p>
           </div>
@@ -657,13 +661,13 @@ function TabLeadMagnet() {
         {archivos.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
             {archivos.map(a => (
-              <div key={a._id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', borderRadius: '10px', padding: '10px 14px', border: '1px solid #E5E7EB' }}>
+              <div key={a._id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: DIM, borderRadius: '10px', padding: '10px 14px', border: `1px solid ${BDR}` }}>
                 <span style={{ fontSize: '20px', flexShrink: 0 }}>{tipoIcono(a.tipo)}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 700, fontSize: '13px', color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nombre}</p>
+                  <p style={{ fontWeight: 700, fontSize: '13px', color: WHT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nombre}</p>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '2px' }}>
-                    {a.descripcion && <span style={{ fontSize: '11px', color: '#6B7280' }}>{a.descripcion}</span>}
-                    {a.tamano && <span style={{ fontSize: '11px', color: '#9CA3AF' }}>{formatTamano(a.tamano)}</span>}
+                    {a.descripcion && <span style={{ fontSize: '11px', color: MUT }}>{a.descripcion}</span>}
+                    {a.tamano && <span style={{ fontSize: '11px', color: MUT }}>{formatTamano(a.tamano)}</span>}
                     <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: P, fontWeight: 600, textDecoration: 'none' }}>Ver →</a>
                   </div>
                 </div>
@@ -677,8 +681,8 @@ function TabLeadMagnet() {
         )}
 
         {/* Formulario para nuevo archivo */}
-        <div style={{ borderTop: archivos.length > 0 ? '1px solid #E5E7EB' : 'none', paddingTop: archivos.length > 0 ? '16px' : 0 }}>
-          <p style={{ fontSize: '12px', fontWeight: 700, color: '#374151', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <div style={{ borderTop: archivos.length > 0 ? `1px solid ${BDR}` : 'none', paddingTop: archivos.length > 0 ? '16px' : 0 }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: WHT, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             + Subir nuevo archivo
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
@@ -698,8 +702,8 @@ function TabLeadMagnet() {
       </div>
 
       {/* ── Sección 2: Texto de la sección ── */}
-      <div style={{ background: '#F9FAFB', borderRadius: '14px', padding: '20px', border: '1px solid #E5E7EB' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#111827', margin: '0 0 16px' }}>
+      <div style={{ background: INPUT_BG, borderRadius: '14px', padding: '20px', border: `1px solid ${BDR}` }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 800, color: WHT, margin: '0 0 16px' }}>
           ✏️ Texto de la Sección
         </h3>
         {savedOk && saved_banner}
@@ -718,13 +722,13 @@ function TabLeadMagnet() {
         </div>
 
         <label style={lbl}>Beneficios listados en la tarjeta visual</label>
-        <p style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '10px' }}>
+        <p style={{ fontSize: '12px', color: MUT, marginBottom: '10px' }}>
           Se muestran en la tarjeta animada a la izquierda de la sección.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
           {form.recursos.map((r, i) => (
             <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#9CA3AF', width: '20px', flexShrink: 0 }}>{i + 1}.</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: MUT, width: '20px', flexShrink: 0 }}>{i + 1}.</span>
               <input value={r} onChange={e => setRecurso(i, e.target.value)} style={{ ...inp, flex: 1 }}
                 placeholder="Nombre del beneficio..." />
               <button onClick={() => removeRecurso(i)}
@@ -778,19 +782,20 @@ export default function ContenidoAdmin() {
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 900, color: '#111827', marginBottom: '6px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '26px', fontWeight: 900, color: WHT, marginBottom: '6px', letterSpacing: '-0.5px' }}>
               Contenido
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               Edita el contenido de todas las secciones del sitio.
             </p>
           </div>
           <button
             onClick={handleSeed} disabled={seeding}
             style={{
-              background: seeding ? '#E5E7EB' : `${Y}33`,
-              color: seeding ? '#9CA3AF' : '#92400E',
-              border: `1px solid ${seeding ? '#E5E7EB' : Y}`,
+              background: seeding ? BDR : `${Y}33`,
+              color: seeding ? MUT : ADM.AMB,
+              border: `1px solid ${seeding ? BDR : Y}`,
               padding: '10px 18px', borderRadius: '10px',
               fontWeight: 700, fontSize: '13px', cursor: seeding ? 'not-allowed' : 'pointer',
             }}
@@ -805,8 +810,8 @@ export default function ContenidoAdmin() {
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               padding: '9px 18px', borderRadius: '10px',
               fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer',
-              background: tab === t.id ? P : '#F3F4F6',
-              color: tab === t.id ? '#fff' : '#374151',
+              background: tab === t.id ? P : INPUT_BG,
+              color: tab === t.id ? '#fff' : WHT,
               transition: 'all 0.2s ease',
             }}>{t.label}</button>
           ))}

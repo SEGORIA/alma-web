@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { getArticulos, deleteArticulo } from '../../lib/db'
-import { P, Y } from '../../tokens'
+import { Y } from '../../tokens'
 import type { Articulo } from '../../data/articulos'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { ADM } from '../../lib/adminTheme'
+
+const { DIM, BDR, MUT, WHT } = ADM
+const P  = ADM.C1
 
 export default function BlogAdmin() {
   const [articulos, setArticulos] = useState<Articulo[]>([])
@@ -33,10 +37,11 @@ export default function BlogAdmin() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#111827', marginBottom: '4px', letterSpacing: '-0.5px' }}>
+            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
+            <h1 style={{ fontSize: '24px', fontWeight: 900, color: WHT, marginBottom: '4px', letterSpacing: '-0.5px' }}>
               ✍️ Blog
             </h1>
-            <p style={{ fontSize: '14px', color: '#6B7280' }}>
+            <p style={{ fontSize: '14px', color: MUT }}>
               {articulos.length} artículo{articulos.length !== 1 ? 's' : ''} publicado{articulos.length !== 1 ? 's' : ''}
             </p>
           </div>
@@ -58,14 +63,14 @@ export default function BlogAdmin() {
           <ListSkeleton rows={4} />
         ) : articulos.length === 0 ? (
           <div style={{
-            background: '#fff', borderRadius: '16px', padding: '48px',
-            textAlign: 'center', border: '1px solid #E5E7EB',
+            background: DIM, borderRadius: '16px', padding: '48px',
+            textAlign: 'center', border: `1px solid ${BDR}`,
           }}>
             <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>📝</span>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: WHT, marginBottom: '8px' }}>
               No hay artículos aún
             </p>
-            <p style={{ fontSize: '14px', color: '#9CA3AF', marginBottom: '24px' }}>
+            <p style={{ fontSize: '14px', color: MUT, marginBottom: '24px' }}>
               Crea tu primer artículo o migra los datos desde el dashboard.
             </p>
             <Link to="/admin/blog/nuevo" style={{ color: P, fontWeight: 700, fontSize: '14px' }}>
@@ -78,8 +83,8 @@ export default function BlogAdmin() {
               <div
                 key={a._id ?? a.slug}
                 style={{
-                  background: '#fff', borderRadius: '16px',
-                  padding: '20px 24px', border: '1px solid #E5E7EB',
+                  background: DIM, borderRadius: '16px',
+                  padding: '20px 24px', border: `1px solid ${BDR}`,
                   display: 'flex', alignItems: 'center', gap: '16px',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                 }}
@@ -98,14 +103,14 @@ export default function BlogAdmin() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
                     <h3 style={{
-                      fontSize: '15px', fontWeight: 800, color: '#111827',
+                      fontSize: '15px', fontWeight: 800, color: WHT,
                       margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {a.titulo}
                     </h3>
                     {a.destacado && (
                       <span style={{
-                        fontSize: '12px', fontWeight: 700, color: '#78350F',
+                        fontSize: '12px', fontWeight: 700, color: ADM.AMB,
                         background: `${Y}30`, padding: '2px 8px', borderRadius: '20px',
                         flexShrink: 0,
                       }}>
@@ -113,7 +118,7 @@ export default function BlogAdmin() {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: MUT, margin: 0 }}>
                     {a.cat} · {a.fecha} · {a.minutos} min · /{a.slug}
                   </p>
                 </div>
@@ -126,8 +131,8 @@ export default function BlogAdmin() {
                     rel="noopener noreferrer"
                     style={{
                       padding: '7px 14px', borderRadius: '8px',
-                      border: '1px solid #E5E7EB', background: '#fff',
-                      color: '#374151', textDecoration: 'none',
+                      border: `1px solid ${BDR}`, background: DIM,
+                      color: WHT, textDecoration: 'none',
                       fontSize: '12px', fontWeight: 600,
                     }}
                   >
@@ -150,8 +155,8 @@ export default function BlogAdmin() {
                     title={!a._id ? 'Migra los datos a Firestore para poder eliminar' : ''}
                     style={{
                       padding: '7px 14px', borderRadius: '8px',
-                      background: '#FEF2F2', color: '#EF4444',
-                      border: '1px solid #FCA5A5',
+                      background: 'rgba(239,68,68,0.10)', color: '#EF4444',
+                      border: '1px solid rgba(239,68,68,0.35)',
                       fontSize: '12px', fontWeight: 700,
                       cursor: a._id ? 'pointer' : 'not-allowed',
                       opacity: a._id ? 1 : 0.5,
