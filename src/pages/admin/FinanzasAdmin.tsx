@@ -4,11 +4,16 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
 import type { Cliente, MetricaMes } from '../../data/clientes'
-import { confirmar } from '../../components/admin/Feedback'
+import {
+  getMovimientos, saveMovimiento, deleteMovimiento, getCuentasCobro,
+  type Movimiento, type MovimientoTipo, type CuentaCobro,
+} from '../../lib/db'
+import { toast, confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
-import { ADM } from '../../lib/adminTheme'
+import { ADM, getAdminThemeMode } from '../../lib/adminTheme'
 
-const { BK, DIM, BDR, BDR2, MUT, WHT, C1, ACC2, ROSE, AMB, BLUE, INPUT_BG, ZEBRA } = ADM
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, ACC2, ROSE, AMB, TEAL, GRN, BLUE, INPUT_BG, GHOST, ZEBRA } = ADM
+const CS = getAdminThemeMode()
 
 /* ── Paleta ─────────────────────────────────────────────── */
 
@@ -44,6 +49,33 @@ const ESTADO_META: Record<string, { label: string; color: string; bg: string }> 
 }
 
 type FinTab = 'finanzas' | 'clientes' | 'metricas'
+
+/* ── Movimientos: tipos y categorías ─────────────────────── */
+const TIPO_META: Record<MovimientoTipo, { label: string; short: string; color: string; sign: 1 | -1 }> = {
+  ingreso:         { label: 'Ingreso',         short: 'ING', color: GRN,  sign:  1 },
+  gasto_operativo: { label: 'Gasto operativo', short: 'OPE', color: ROSE, sign: -1 },
+  gasto_personal:  { label: 'Gasto personal',  short: 'PER', color: AMB,  sign: -1 },
+}
+
+const CATS: Record<MovimientoTipo, string[]> = {
+  ingreso:         ['Mensualidad', 'Proyecto puntual', 'Adicional', 'Otro'],
+  gasto_operativo: ['Nómina', 'Software y herramientas', 'Publicidad', 'Equipos', 'Servicios', 'Transporte', 'Impuestos', 'Otro'],
+  gasto_personal:  ['Retiro socios', 'Personal', 'Otro'],
+}
+
+/* Datos del dashboard anterior (public/finanzas.html → localStorage) */
+type LegacyItem  = { id: number; nombre: string; monto: number; tipo?: string; categoria?: string; socio?: string }
+type LegacyMonth = { ingresos?: LegacyItem[]; operativos?: LegacyItem[]; personales?: LegacyItem[] }
+
+function currentMonthKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+function shiftMonth(mes: string, delta: number) {
+  const [y, m] = mes.split('-').map(Number)
+  const d = new Date(y, m - 1 + delta, 15)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
 const inputSt: React.CSSProperties = {
   width: '100%', background: INPUT_BG, border: `1px solid ${BDR2}`,
@@ -84,6 +116,35 @@ export default function FinanzasAdmin() {
   const [clientes, setClientes]     = useState<Cliente[]>([])
   const [loadingCl, setLoadingCl]   = useState(false)
 
+  /* ── Finanzas state ──────────────────────────────────── */
+  const [movs,       setMovs]       = useState<Movimiento[]>([])
+  const [cuentas,    setCuentas]    = useState<CuentaCobro[]>([])
+  const [finLoaded,  setFinLoaded]  = useState(false)
+  const [loadingFin, setLoadingFin] = useState(false)
+  const [finMes,     setFinMes]     = useState(currentMonthKey())
+  // form nuevo movimiento
+  const [fTipo,  setFTipo]  = useState<MovimientoTipo>('ingreso')
+  const [fFecha, setFFecha] = useState(() => new Date().toISOString().slice(0, 10))
+  const [fCat,   setFCat]   = useState(CATS.ingreso[0])
+  const [fDesc,  setFDesc]  = useState('')
+  const [fMonto, setFMonto] = useState('')
+  const [savingMov, setSavingMov] = useState(false)
+  // migración del dashboard anterior (localStorage)
+  const [legacy, setLegacy] = useState<{ data: Record<string, LegacyMonth>; n: number } | null>(() => {
+    try {
+      if (localStorage.getItem('alma_fin_migrado')) return null
+      const raw = localStorage.getItem('alma_data')
+      if (!raw) return null
+      const data = JSON.parse(raw) as Record<string, LegacyMonth>
+      let n = 0
+      for (const m of Object.values(data)) {
+        n += (m.ingresos ?? []).length + (m.operativos ?? []).length + (m.personales ?? []).length
+      }
+      return n > 0 ? { data, n } : null
+    } catch { return null }
+  })
+  const [importing, setImporting] = useState(false)
+
   /* ── Métricas state ──────────────────────────────────── */
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [platform, setPlatform]     = useState('ig')
@@ -108,8 +169,20 @@ export default function FinanzasAdmin() {
 
   /* ── Load clients ────────────────────────────────────── */
   useEffect(() => {
-    if ((tab === 'metricas' || tab === 'clientes') && clientes.length === 0) loadClients()
+    if (clientes.length === 0) loadClients()
+    if (tab === 'finanzas' && !finLoaded) loadFin()
   }, [tab])
+
+  async function loadFin() {
+    setLoadingFin(true)
+    try {
+      const [m, cc] = await Promise.all([getMovimientos(), getCuentasCobro()])
+      setMovs(m)
+      setCuentas(cc)
+      setFinLoaded(true)
+    } catch (e) { console.error(e) }
+    finally { setLoadingFin(false) }
+  }
 
   async function loadClients() {
     if (!db) return
@@ -173,6 +246,98 @@ export default function FinanzasAdmin() {
     setClientes(cs => cs.map(c => c._id === selectedId ? { ...c, metricas_historico: hist } : c))
     if (editKey === `${mes}|${plat}`) { setEditKey(null); setForm({}) }
   }
+  /* ── Finanzas: derivadas del mes seleccionado ────────── */
+  const hoyStr        = new Date().toISOString().slice(0, 10)
+  const movsMes       = movs.filter(m => m.fecha.startsWith(finMes))
+  const cxcPagadasMes = cuentas.filter(c => c.estado === 'pagada' && (c.fecha ?? '').startsWith(finMes))
+  const ingresosMov   = movsMes.filter(m => m.tipo === 'ingreso').reduce((s, m) => s + m.monto, 0)
+  const ingresosCxc   = cxcPagadasMes.reduce((s, c) => s + (c.total ?? 0), 0)
+  const ingresosTotal = ingresosMov + ingresosCxc
+  const gastosOp      = movsMes.filter(m => m.tipo === 'gasto_operativo').reduce((s, m) => s + m.monto, 0)
+  const gastosPer     = movsMes.filter(m => m.tipo === 'gasto_personal').reduce((s, m) => s + m.monto, 0)
+  const gastosTotal   = gastosOp + gastosPer
+  const utilidad      = ingresosTotal - gastosTotal
+  const margen        = ingresosTotal > 0 ? Math.round((utilidad / ingresosTotal) * 100) : 0
+  // Cuentas por cobrar (global, no solo el mes)
+  const cxcVencidas   = cuentas.filter(c => c.estado === 'vencida' || (c.estado !== 'pagada' && (c.vencimiento ?? '') !== '' && c.vencimiento < hoyStr))
+  const cxcPendientes = cuentas.filter(c => (c.estado === 'pendiente' || c.estado === 'enviada') && !cxcVencidas.includes(c))
+  const cxcPendTotal  = cxcPendientes.reduce((s, c) => s + (c.total ?? 0), 0)
+  const cxcVencTotal  = cxcVencidas.reduce((s, c) => s + (c.total ?? 0), 0)
+  // Flujo de los últimos 6 meses (ingresos vs gastos)
+  const serie6 = Array.from({ length: 6 }, (_, i) => {
+    const mes = shiftMonth(currentMonthKey(), i - 5)
+    const ing = movs.filter(m => m.tipo === 'ingreso' && m.fecha.startsWith(mes)).reduce((s, m) => s + m.monto, 0)
+      + cuentas.filter(c => c.estado === 'pagada' && (c.fecha ?? '').startsWith(mes)).reduce((s, c) => s + (c.total ?? 0), 0)
+    const gas = movs.filter(m => m.tipo !== 'ingreso' && m.fecha.startsWith(mes)).reduce((s, m) => s + m.monto, 0)
+    return { mes, ing, gas }
+  })
+  const maxSerie = Math.max(1, ...serie6.flatMap(s => [s.ing, s.gas]))
+
+  /* ── Finanzas: handlers ──────────────────────────────── */
+  async function addMovimiento() {
+    const monto = parseFloat(fMonto)
+    if (!fDesc.trim() || !monto || monto <= 0) { toast.err('Completa la descripción y un monto válido'); return }
+    setSavingMov(true)
+    try {
+      const data: Omit<Movimiento, '_id'> = { fecha: fFecha, tipo: fTipo, categoria: fCat, descripcion: fDesc.trim(), monto }
+      const id = await saveMovimiento(data)
+      setMovs(prev => [{ ...data, _id: id }, ...prev])
+      setFDesc(''); setFMonto('')
+      toast.ok('Movimiento registrado')
+    } catch (e) { toast.err('Error al guardar: ' + e) }
+    finally { setSavingMov(false) }
+  }
+
+  async function removeMovimiento(m: Movimiento) {
+    if (!m._id) return
+    if (!(await confirmar(`¿Eliminar "${m.descripcion}" (${fmtCOP(m.monto)})?`))) return
+    try {
+      await deleteMovimiento(m._id)
+      setMovs(prev => prev.filter(x => x._id !== m._id))
+      toast.ok('Movimiento eliminado')
+    } catch (e) { toast.err('Error: ' + e) }
+  }
+
+  function exportCsv() {
+    const rows: string[][] = [['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto']]
+    cxcPagadasMes.forEach(c => rows.push([c.fecha, 'Ingreso (CxC)', 'Cuenta de cobro', `${c.numero} · ${c.clienteNombre}`, String(c.total ?? 0)]))
+    movsMes.forEach(m => rows.push([m.fecha, TIPO_META[m.tipo].label, m.categoria, m.descripcion, String(TIPO_META[m.tipo].sign * m.monto)]))
+    const csv = '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `finanzas-${finMes}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  async function importLegacy() {
+    if (!legacy) return
+    const ok = await confirmar({
+      titulo:  'Importar dashboard anterior',
+      mensaje: `Se importarán ${legacy.n} movimientos guardados en este navegador a Firestore, quedando sincronizados para todo el equipo. Cada registro se asigna al día 1 de su mes.`,
+      accion:  'Importar todo',
+      peligro: false,
+    })
+    if (!ok) return
+    setImporting(true)
+    try {
+      const nuevos: Movimiento[] = []
+      for (const [mes, bucket] of Object.entries(legacy.data)) {
+        const fecha = `${mes}-01`
+        for (const it of bucket.ingresos   ?? []) nuevos.push({ fecha, tipo: 'ingreso',         categoria: it.tipo || 'Otro',                                  descripcion: it.nombre, monto: it.monto })
+        for (const it of bucket.operativos ?? []) nuevos.push({ fecha, tipo: 'gasto_operativo', categoria: it.categoria || 'Otro',                             descripcion: it.nombre, monto: it.monto })
+        for (const it of bucket.personales ?? []) nuevos.push({ fecha, tipo: 'gasto_personal',  categoria: it.socio ? `Socio: ${it.socio}` : 'Personal',       descripcion: it.nombre, monto: it.monto })
+      }
+      for (const n of nuevos) { n._id = await saveMovimiento(n) }
+      setMovs(prev => [...nuevos, ...prev])
+      localStorage.setItem('alma_fin_migrado', '1')
+      setLegacy(null)
+      toast.ok(`${nuevos.length} movimientos importados correctamente`)
+    } catch (e) { toast.err('Error al importar: ' + e) }
+    finally { setImporting(false) }
+  }
+
   const platHistory = (selectedClient?.metricas_historico ?? [])
     .filter(m => m.plataforma === platform)
     .sort((a, b) => b.mes.localeCompare(a.mes))
@@ -245,12 +410,189 @@ export default function FinanzasAdmin() {
             TAB: DASHBOARD FINANCIERO
         ════════════════════════════════════════════════ */}
         {tab === 'finanzas' && (
-          <iframe
-            src="/finanzas.html"
-            title="Dashboard de Finanzas"
-            style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
-            allow="clipboard-write"
-          />
+          <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '16px' : '24px 32px' }}>
+            {loadingFin && !finLoaded ? (
+              <ListSkeleton rows={6} />
+            ) : (
+              <>
+                {/* ─ Selector de mes + acciones ─ */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '10px', padding: '4px' }}>
+                    <button onClick={() => setFinMes(shiftMonth(finMes, -1))} style={{ border: 'none', background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '14px', padding: '4px 10px' }}>◀</button>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: WHT, minWidth: '130px', textAlign: 'center', textTransform: 'capitalize' }}>{mesLabel(finMes)}</span>
+                    <button onClick={() => setFinMes(shiftMonth(finMes, 1))} style={{ border: 'none', background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '14px', padding: '4px 10px' }}>▶</button>
+                  </div>
+                  {finMes !== currentMonthKey() && (
+                    <button onClick={() => setFinMes(currentMonthKey())} style={{ border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '11px', fontWeight: 700, padding: '7px 14px', borderRadius: '8px' }}>
+                      Hoy
+                    </button>
+                  )}
+                  <div style={{ flex: 1 }} />
+                  {legacy && (
+                    <button onClick={importLegacy} disabled={importing} style={{ border: `0.5px solid ${AMB}55`, background: `${AMB}12`, color: AMB, cursor: importing ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, padding: '8px 14px', borderRadius: '8px' }}>
+                      {importing ? 'Importando…' : `⬆ Importar dashboard anterior (${legacy.n})`}
+                    </button>
+                  )}
+                  <button onClick={exportCsv} style={{ border: `0.5px solid ${BDR2}`, background: DIM, color: WHT, cursor: 'pointer', fontSize: '11px', fontWeight: 700, padding: '8px 14px', borderRadius: '8px' }}>
+                    ⬇ Exportar CSV
+                  </button>
+                </div>
+
+                {/* ─ KPIs del mes ─ */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: '12px', marginBottom: '12px' }}>
+                  {[
+                    { lbl: 'Ingresos del mes', val: fmtCOP(ingresosTotal), sub: ingresosCxc > 0 ? `${fmtCOP(ingresosCxc)} de cuentas de cobro` : 'Manuales + cuentas pagadas', col: GRN,  ico: '↑' },
+                    { lbl: 'Gastos del mes',   val: fmtCOP(gastosTotal),   sub: `Operativos ${fmtCOP(gastosOp)} · Pers. ${fmtCOP(gastosPer)}`,                                  col: ROSE, ico: '↓' },
+                    { lbl: 'Utilidad',         val: fmtCOP(utilidad),      sub: utilidad >= 0 ? 'Resultado del mes' : 'Pérdida del mes',                                          col: utilidad >= 0 ? TEAL : ROSE, ico: '◆' },
+                    { lbl: 'Margen',           val: `${margen}%`,          sub: 'Utilidad / ingresos',                                                                            col: ACC2, ico: '%' },
+                  ].map(k => (
+                    <div key={k.lbl} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '16px 18px 13px', position: 'relative', overflow: 'hidden' }}>
+                      <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', color: MUT }}>{k.lbl}</p>
+                      <p style={{ margin: '0 0 3px', fontSize: '22px', fontWeight: 300, color: k.col, lineHeight: 1, fontFamily: 'Georgia, serif' }}>{k.val}</p>
+                      <p style={{ margin: 0, fontSize: '10px', color: MUT }}>{k.sub}</p>
+                      <span style={{ position: 'absolute', bottom: 0, right: '10px', fontSize: '40px', color: GHOST, lineHeight: 1, userSelect: 'none', pointerEvents: 'none' }}>{k.ico}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ─ KPIs del negocio ─ */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '12px', marginBottom: '24px' }}>
+                  {[
+                    { lbl: 'MRR contratos activos', val: fmtCOP(facturacion),  sub: `${activos.length} cliente${activos.length !== 1 ? 's' : ''} activo${activos.length !== 1 ? 's' : ''}`, col: AMB },
+                    { lbl: 'Por cobrar',            val: fmtCOP(cxcPendTotal), sub: `${cxcPendientes.length} cuenta${cxcPendientes.length !== 1 ? 's' : ''} pendiente${cxcPendientes.length !== 1 ? 's' : ''}`, col: BLUE },
+                    { lbl: 'Cuentas vencidas',      val: fmtCOP(cxcVencTotal), sub: cxcVencidas.length > 0 ? `${cxcVencidas.length} requieren gestión` : 'Sin cuentas vencidas', col: cxcVencidas.length > 0 ? ROSE : MUT },
+                  ].map(k => (
+                    <div key={k.lbl} style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '14px 18px', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: k.col, opacity: 0.6 }} />
+                      <p style={{ margin: '0 0 6px', fontSize: '9px', fontWeight: 800, letterSpacing: '1.2px', textTransform: 'uppercase', color: MUT }}>{k.lbl}</p>
+                      <p style={{ margin: '0 0 3px', fontSize: '19px', fontWeight: 300, color: k.col, lineHeight: 1, fontFamily: 'Georgia, serif' }}>{k.val}</p>
+                      <p style={{ margin: 0, fontSize: '10px', color: MUT }}>{k.sub}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ─ Registrar movimiento + Flujo 6 meses ─ */}
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+
+                  {/* Form nuevo movimiento */}
+                  <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '18px' }}>
+                    <p style={{ margin: '0 0 14px', fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: MUT }}>Registrar movimiento</p>
+                    {/* Tipo pills */}
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      {(Object.keys(TIPO_META) as MovimientoTipo[]).map(t => (
+                        <button key={t} onClick={() => { setFTipo(t); setFCat(CATS[t][0]) }} style={{
+                          padding: '6px 13px', borderRadius: '20px', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
+                          border: `1px solid ${fTipo === t ? TIPO_META[t].color : BDR2}`,
+                          background: fTipo === t ? `${TIPO_META[t].color}15` : 'transparent',
+                          color: fTipo === t ? TIPO_META[t].color : MUT,
+                        }}>
+                          {TIPO_META[t].label}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <label style={labelSt}>Fecha
+                        <input type="date" value={fFecha} onChange={e => setFFecha(e.target.value)} style={inputSt} />
+                      </label>
+                      <label style={labelSt}>Categoría
+                        <select value={fCat} onChange={e => setFCat(e.target.value)} style={inputSt}>
+                          {CATS[fTipo].map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                      <label style={labelSt}>Descripción
+                        <input value={fDesc} onChange={e => setFDesc(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addMovimiento() }} placeholder="Ej: Mensualidad Casa Mama" style={inputSt} />
+                      </label>
+                      <label style={labelSt}>Monto (COP)
+                        <input type="number" min="0" value={fMonto} onChange={e => setFMonto(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addMovimiento() }} placeholder="0" style={inputSt} />
+                      </label>
+                    </div>
+                    <button onClick={addMovimiento} disabled={savingMov} style={{
+                      width: '100%', padding: '10px', borderRadius: '8px', border: 'none', cursor: savingMov ? 'wait' : 'pointer',
+                      background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 800, fontSize: '12px', letterSpacing: '0.5px',
+                    }}>
+                      {savingMov ? 'Guardando…' : '+ Registrar'}
+                    </button>
+                  </div>
+
+                  {/* Flujo 6 meses */}
+                  <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                      <p style={{ margin: 0, fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: MUT }}>Flujo últimos 6 meses</p>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <span style={{ fontSize: '10px', color: GRN, fontWeight: 700 }}>● Ingresos</span>
+                        <span style={{ fontSize: '10px', color: ROSE, fontWeight: 700 }}>● Gastos</span>
+                      </div>
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: isMobile ? '6px' : '12px', minHeight: '130px' }}>
+                      {serie6.map(s => (
+                        <div key={s.mes} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '110px', width: '100%', justifyContent: 'center' }}>
+                            <div title={`Ingresos: ${fmtCOP(s.ing)}`} style={{ width: '38%', maxWidth: '22px', height: `${Math.max(2, (s.ing / maxSerie) * 100)}%`, background: `linear-gradient(180deg, ${GRN}, ${GRN}66)`, borderRadius: '3px 3px 0 0' }} />
+                            <div title={`Gastos: ${fmtCOP(s.gas)}`} style={{ width: '38%', maxWidth: '22px', height: `${Math.max(2, (s.gas / maxSerie) * 100)}%`, background: `linear-gradient(180deg, ${ROSE}, ${ROSE}66)`, borderRadius: '3px 3px 0 0' }} />
+                          </div>
+                          <span style={{ fontSize: '9px', color: s.mes === finMes ? WHT : MUT, fontWeight: s.mes === finMes ? 800 : 600, textTransform: 'capitalize' }}>
+                            {new Date(s.mes + '-15T12:00:00').toLocaleDateString('es-CO', { month: 'short' })}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ─ Movimientos del mes ─ */}
+                <div style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '12px', overflow: 'hidden' }}>
+                  <div style={{ padding: '12px 18px', borderBottom: `0.5px solid ${BDR}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ margin: 0, fontSize: '9px', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: MUT }}>
+                      Movimientos · <span style={{ textTransform: 'capitalize' }}>{mesLabel(finMes)}</span>
+                    </p>
+                    <span style={{ fontSize: '10px', color: MUT }}>{movsMes.length + cxcPagadasMes.length} registros</span>
+                  </div>
+
+                  {movsMes.length === 0 && cxcPagadasMes.length === 0 ? (
+                    <p style={{ padding: '36px', textAlign: 'center', color: MUT, fontSize: '13px' }}>
+                      Sin movimientos en {mesLabel(finMes)}. Registra el primero con el formulario de arriba.
+                    </p>
+                  ) : (
+                    <>
+                      {/* Cuentas de cobro pagadas (ingresos automáticos) */}
+                      {cxcPagadasMes.map((c, i) => (
+                        <div key={c._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 18px', borderBottom: `0.5px solid ${BDR}`, background: i % 2 === 0 ? 'transparent' : ZEBRA, flexWrap: 'wrap' }}>
+                          <span style={{ flexShrink: 0, fontSize: '9px', fontWeight: 800, letterSpacing: '0.5px', padding: '3px 8px', borderRadius: '4px', background: `${TEAL}15`, color: TEAL, border: `0.5px solid ${TEAL}40` }}>CXC</span>
+                          <span style={{ fontSize: '11px', color: MUT, flexShrink: 0, width: '74px' }}>{c.fecha}</span>
+                          <span style={{ fontSize: '12px', color: WHT, fontWeight: 600, flex: 1, minWidth: '140px' }}>{c.numero} · {c.clienteNombre}</span>
+                          <span style={{ fontSize: '10px', color: MUT, flexShrink: 0 }}>Cuenta de cobro pagada</span>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: GRN, fontFamily: 'Georgia, serif', flexShrink: 0, width: '110px', textAlign: 'right' }}>+{fmtCOP(c.total ?? 0)}</span>
+                          <span style={{ width: '28px', flexShrink: 0 }} />
+                        </div>
+                      ))}
+                      {/* Movimientos manuales */}
+                      {movsMes.map((m, i) => {
+                        const meta = TIPO_META[m.tipo]
+                        return (
+                          <div key={m._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 18px', borderBottom: `0.5px solid ${BDR}`, background: (cxcPagadasMes.length + i) % 2 === 0 ? 'transparent' : ZEBRA, flexWrap: 'wrap' }}>
+                            <span style={{ flexShrink: 0, fontSize: '9px', fontWeight: 800, letterSpacing: '0.5px', padding: '3px 8px', borderRadius: '4px', background: `${meta.color}15`, color: meta.color, border: `0.5px solid ${meta.color}40` }}>{meta.short}</span>
+                            <span style={{ fontSize: '11px', color: MUT, flexShrink: 0, width: '74px' }}>{m.fecha}</span>
+                            <span style={{ fontSize: '12px', color: WHT, fontWeight: 600, flex: 1, minWidth: '140px' }}>{m.descripcion}</span>
+                            <span style={{ fontSize: '10px', color: MUT, flexShrink: 0 }}>{m.categoria}</span>
+                            <span style={{ fontSize: '13px', fontWeight: 700, color: meta.sign > 0 ? GRN : ROSE, fontFamily: 'Georgia, serif', flexShrink: 0, width: '110px', textAlign: 'right' }}>
+                              {meta.sign > 0 ? '+' : '−'}{fmtCOP(m.monto)}
+                            </span>
+                            <button onClick={() => removeMovimiento(m)} title="Eliminar" style={{ width: '28px', flexShrink: 0, border: 'none', background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '13px', padding: '2px' }}>🗑</button>
+                          </div>
+                        )
+                      })}
+                    </>
+                  )}
+                </div>
+
+                <p style={{ margin: '12px 0 0', fontSize: '10.5px', color: MUT }}>
+                  💡 Los ingresos combinan movimientos manuales y cuentas de cobro <strong style={{ color: TEAL }}>pagadas</strong> (según su fecha de emisión). Gestiona las cuentas en el módulo Cuentas de Cobro.
+                </p>
+              </>
+            )}
+          </div>
         )}
 
         {/* ════════════════════════════════════════════════
@@ -292,7 +634,7 @@ export default function FinanzasAdmin() {
                   <select
                     value={clEstado}
                     onChange={e => setClEstado(e.target.value)}
-                    style={{ ...inputSt, width: 'auto', colorScheme: 'dark', fontSize: '12px', padding: '7px 10px' }}
+                    style={{ ...inputSt, width: 'auto', colorScheme: CS, fontSize: '12px', padding: '7px 10px' }}
                   >
                     <option value="todos">Todos los estados</option>
                     <option value="activo">Activos</option>
@@ -303,7 +645,7 @@ export default function FinanzasAdmin() {
                   <select
                     value={clSort}
                     onChange={e => setClSort(e.target.value as 'marca' | 'valor' | 'estado')}
-                    style={{ ...inputSt, width: 'auto', colorScheme: 'dark', fontSize: '12px', padding: '7px 10px' }}
+                    style={{ ...inputSt, width: 'auto', colorScheme: CS, fontSize: '12px', padding: '7px 10px' }}
                   >
                     <option value="marca">Ordenar: Marca A-Z</option>
                     <option value="valor">Ordenar: Mayor valor</option>
@@ -530,7 +872,7 @@ export default function FinanzasAdmin() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
                         <span style={{ fontSize: '10px', color: MUT, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Período:</span>
                         <input type="month" value={mesValue} onChange={e => onMesChange(e.target.value)}
-                          style={{ ...inputSt, width: 'auto', colorScheme: 'dark', fontSize: '12px', padding: '6px 10px' }} />
+                          style={{ ...inputSt, width: 'auto', colorScheme: CS, fontSize: '12px', padding: '6px 10px' }} />
                       </div>
                     </div>
                     <div style={{ padding: '16px' }}>

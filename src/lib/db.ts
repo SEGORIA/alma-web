@@ -897,6 +897,41 @@ export async function deleteCuentaCobro(id: string): Promise<void> {
   await deleteDoc(doc(db!, 'cuentas_cobro', id))
 }
 
+/* ══ FINANZAS — Movimientos (ingresos / gastos) ═════════════ */
+
+export type MovimientoTipo = 'ingreso' | 'gasto_operativo' | 'gasto_personal'
+
+export interface Movimiento {
+  _id?:        string
+  fecha:       string          // YYYY-MM-DD
+  tipo:        MovimientoTipo
+  categoria:   string
+  descripcion: string
+  monto:       number
+  clienteId?:  string
+}
+
+function movimientosCol() { return collection(db!, 'finanzas_movimientos') }
+
+export async function getMovimientos(): Promise<Movimiento[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(movimientosCol(), orderBy('fecha', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Movimiento), _id: d.id }))
+  } catch { return [] }
+}
+
+export async function saveMovimiento(data: Omit<Movimiento, '_id'>): Promise<string> {
+  if (!db) throw new Error('DB not ready')
+  const ref = await addDoc(movimientosCol(), { ...data, creadoEn: serverTimestamp() })
+  return ref.id
+}
+
+export async function deleteMovimiento(id: string): Promise<void> {
+  if (!firebaseReady || !db) return
+  await deleteDoc(doc(db!, 'finanzas_movimientos', id))
+}
+
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 
 export async function seedConfig() {
