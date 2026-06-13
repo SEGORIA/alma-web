@@ -572,7 +572,7 @@ export default function AdminDashboard() {
               const isActive = m.badge === 'Activo'
               return (
                 <div key={m.to} style={{
-                  background: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
+                  background: isActive ? DIM : 'rgba(255,255,255,0.55)',
                   borderRadius:'16px',
                   padding: isMobile ? '18px' : '22px',
                   border:`1px solid ${isActive ? BDR : BDR}`,
