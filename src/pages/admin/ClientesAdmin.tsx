@@ -14,7 +14,7 @@ import {
 import { ListSkeleton } from '../../components/admin/Loading'
 import { ADM } from '../../lib/adminTheme'
 
-const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, INPUT_BG, GHOST, SOFT } = ADM
+const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, BLUE, INPUT_BG, GHOST, SOFT } = ADM
 
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
 
@@ -428,7 +428,7 @@ export default function ClientesAdmin() {
           <button
             onClick={handleNew}
             style={{
-              background: 'linear-gradient(135deg, #6E2DFF, #9333EA)', color: WHT,
+              background: `linear-gradient(135deg, ${C1}, ${ACC2})`, color: '#fff',
               border: 'none', cursor: 'pointer',
               padding: '10px 22px', borderRadius: '4px', fontWeight: 700, fontSize: '12px',
               display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0,
@@ -560,7 +560,7 @@ export default function ClientesAdmin() {
           zIndex: 300, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
         }}>
           <div style={{
-            background: '#12121A', width: isMobile ? '100%' : '720px',
+            background: DIM, width: isMobile ? '100%' : '720px',
             maxWidth: '100%', display: 'flex', flexDirection: 'column',
             boxShadow: '-8px 0 40px rgba(34,22,54,0.18)',
             overflowY: 'auto',
@@ -613,7 +613,7 @@ export default function ClientesAdmin() {
             </div>
 
             {/* Tab content */}
-            <div style={{ flex: 1, padding: '24px', overflowY: 'auto', background: '#12121A' }}>
+            <div style={{ flex: 1, padding: '24px', overflowY: 'auto', background: DIM }}>
 
               {/* ─ PERFIL ─ */}
               {tab === 'perfil' && (
@@ -677,7 +677,7 @@ export default function ClientesAdmin() {
                       <div style={{
                         position: 'relative', borderRadius: '6px', overflow: 'hidden',
                         border: `0.5px dashed ${form.logo_url ? BDR : BDR2}`,
-                        background: '#0D0D14',
+                        background: BK,
                         minHeight: '90px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
@@ -755,7 +755,7 @@ export default function ClientesAdmin() {
                   </div>
 
                   {/* Servicios adicionales */}
-                  <div style={{ background: '#12121A', border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '16px' }}>
+                  <div style={{ background: BK, border: `0.5px solid ${BDR}`, borderRadius: '6px', padding: '16px' }}>
                     <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: AMB, margin: '0 0 14px' }}>
                       Servicios adicionales
                     </p>
@@ -1532,14 +1532,14 @@ export default function ClientesAdmin() {
                                     <p style={{ margin:'1px 0 0', fontSize:'11px', color:MUT }}>{mes.mes}</p>
                                   </div>
                                   <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                                    {mes.html_contenido && <span style={{ fontSize:'10px', background:'rgba(107,33,168,0.25)', color:'#C4B5FD', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>HTML ✓</span>}
-                                    {(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels) && <span style={{ fontSize:'10px', background:'rgba(5,150,105,0.2)', color:'#6EE7B7', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>Drive ✓</span>}
-                                    {(mes.extras ?? []).length > 0 && <span style={{ fontSize:'10px', background:'rgba(217,119,6,0.2)', color:'#FCD34D', padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>{(mes.extras ?? []).length} extras</span>}
+                                    {mes.html_contenido && <span style={{ fontSize:'10px', background:'rgba(107,33,168,0.25)', color:ACC2, padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>HTML ✓</span>}
+                                    {(mes.drive_links?.post || mes.drive_links?.carrusel || mes.drive_links?.reels) && <span style={{ fontSize:'10px', background:'rgba(5,150,105,0.2)', color:GRN, padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>Drive ✓</span>}
+                                    {(mes.extras ?? []).length > 0 && <span style={{ fontSize:'10px', background:'rgba(217,119,6,0.2)', color:AMB, padding:'2px 6px', borderRadius:'4px', fontWeight:700 }}>{(mes.extras ?? []).length} extras</span>}
                                     <span style={{ fontSize:'13px', color:MUT, transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition:'transform 0.2s' }}>▾</span>
                                   </div>
                                   <button
                                     onClick={e => { e.stopPropagation(); removeTrelloMes(mes.id) }}
-                                    style={{ padding:'3px 9px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}
+                                    style={{ padding:'3px 9px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}
                                   >🗑</button>
                                 </div>
 
@@ -1560,7 +1560,7 @@ export default function ClientesAdmin() {
                                     </div>
 
                                     {/* Bloque 1: HTML Estrategia */}
-                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                    <div style={{ background:BK, border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
                                       <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:C1, textTransform:'uppercase', letterSpacing:'0.5px' }}>📋 Bloque 1 — Estrategia HTML</p>
                                       <label style={labelStyle}>
                                         Título de la estrategia (opcional)
@@ -1570,8 +1570,8 @@ export default function ClientesAdmin() {
                                         {mes.html_contenido ? (
                                           <div style={{ display:'flex', alignItems:'center', gap:'10px', background:DIM, border:`0.5px solid ${BDR}`, borderRadius:'6px', padding:'8px 12px' }}>
                                             <span style={{ fontSize:'14px' }}>✅</span>
-                                            <p style={{ margin:0, fontSize:'12px', color:'#6EE7B7', flex:1 }}>HTML cargado ({(mes.html_contenido.length / 1024).toFixed(1)} KB)</p>
-                                            <button onClick={() => updateTrelloMes(mes.id, { html_contenido: undefined })} style={{ padding:'3px 8px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE }}>✕ Quitar</button>
+                                            <p style={{ margin:0, fontSize:'12px', color:GRN, flex:1 }}>HTML cargado ({(mes.html_contenido.length / 1024).toFixed(1)} KB)</p>
+                                            <button onClick={() => updateTrelloMes(mes.id, { html_contenido: undefined })} style={{ padding:'3px 8px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE }}>✕ Quitar</button>
                                           </div>
                                         ) : (
                                           <label style={{ ...labelStyle }}>
@@ -1589,8 +1589,8 @@ export default function ClientesAdmin() {
                                     </div>
 
                                     {/* Bloque 2: Drive Links */}
-                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
-                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#6EE7B7', textTransform:'uppercase', letterSpacing:'0.5px' }}>🗂️ Bloque 2 — Accesos Google Drive</p>
+                                    <div style={{ background:BK, border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:GRN, textTransform:'uppercase', letterSpacing:'0.5px' }}>🗂️ Bloque 2 — Accesos Google Drive</p>
                                       <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                                         <label style={labelStyle}>
                                           POST — URL Drive
@@ -1608,8 +1608,8 @@ export default function ClientesAdmin() {
                                     </div>
 
                                     {/* Bloque 3: Extras */}
-                                    <div style={{ background:'#0D0D14', border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
-                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#FCD34D', textTransform:'uppercase', letterSpacing:'0.5px' }}>📦 Bloque 3 — Extras / Otros</p>
+                                    <div style={{ background:BK, border:`1px solid ${BDR2}`, borderRadius:'7px', padding:'12px' }}>
+                                      <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:AMB, textTransform:'uppercase', letterSpacing:'0.5px' }}>📦 Bloque 3 — Extras / Otros</p>
                                       {(mes.extras ?? []).length > 0 && (
                                         <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'10px' }}>
                                           {(mes.extras ?? []).map(ex => (
@@ -1619,7 +1619,7 @@ export default function ClientesAdmin() {
                                                 {ex.url && <p style={{ margin:'1px 0 0', fontSize:'10px', color:MUT, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ex.url}</p>}
                                                 {ex.nota && <p style={{ margin:'1px 0 0', fontSize:'10px', color:MUT }}>{ex.nota}</p>}
                                               </div>
-                                              <button onClick={() => removeExtraFromMes(mes.id, ex.id)} style={{ padding:'2px 7px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'10px', color:ROSE }}>✕</button>
+                                              <button onClick={() => removeExtraFromMes(mes.id, ex.id)} style={{ padding:'2px 7px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'10px', color:ROSE }}>✕</button>
                                             </div>
                                           ))}
                                         </div>
@@ -1654,7 +1654,7 @@ export default function ClientesAdmin() {
                       )}
 
                       {/* Formulario nuevo mes */}
-                      <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                      <div style={{ background:BK, border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
                         <p style={{ fontSize:'11px', fontWeight:700, color:MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Agregar nuevo mes al tablero</p>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
                           <label style={labelStyle}>
@@ -1685,11 +1685,11 @@ export default function ClientesAdmin() {
                                   <p style={{ margin:0, fontSize:'13px', color:WHT, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{h.label}</p>
                                   <p style={{ margin:'2px 0 0', fontSize:'11px', color:MUT }}>{h.mes}</p>
                                 </div>
-                                <button onClick={() => removeParrillaHtml(h.id)} style={{ padding:'4px 10px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}>🗑 Eliminar</button>
+                                <button onClick={() => removeParrillaHtml(h.id)} style={{ padding:'4px 10px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color:ROSE, flexShrink:0 }}>🗑 Eliminar</button>
                               </div>
                             ))}
                           </div>
-                          <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                          <div style={{ background:BK, border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
                             <p style={{ fontSize:'11px', fontWeight:700, color:MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Subir parrilla HTML legacy</p>
                             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
                               <label style={labelStyle}>Etiqueta *<input value={newHtmlLabel} onChange={e => setNewHtmlLabel(e.target.value)} style={inputStyle} placeholder="Mes 1 · Julio 2026" /></label>
@@ -1752,7 +1752,7 @@ export default function ClientesAdmin() {
                                 </div>
                                 <span style={{ fontSize:'11px', color: MUT, transform: isEditing ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}>▾</span>
                                 <button onClick={e => { e.stopPropagation(); removeAcceso(acc.id) }}
-                                  style={{ padding:'2px 8px', borderRadius:'4px', border:`0.5px solid #4a1a2e`, background:'transparent', cursor:'pointer', fontSize:'11px', color: ROSE, flexShrink:0 }}>🗑</button>
+                                  style={{ padding:'2px 8px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color: ROSE, flexShrink:0 }}>🗑</button>
                               </div>
                               {/* Editor inline */}
                               {isEditing && (
@@ -1781,7 +1781,7 @@ export default function ClientesAdmin() {
                     )}
 
                     {/* Formulario nuevo acceso */}
-                    <div style={{ background:'#0D0D14', border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                    <div style={{ background:BK, border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
                       <p style={{ fontSize:'11px', fontWeight:700, color: MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Agregar nuevo acceso</p>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
                         <label style={labelStyle}>
@@ -1863,10 +1863,10 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
   const pendSol = cliente.solicitudes.filter(s => s.estado === 'pendiente').length
 
   const statusStyle: React.CSSProperties =
-    cliente.estado === 'activo'     ? { background: SOFT, color: ACC2, border: '0.5px solid #6E2DFF' } :
-    cliente.estado === 'pausado'    ? { background: '#2a1a10', color: '#D97706', border: '0.5px solid #7a5e30' } :
-    cliente.estado === 'prospecto'  ? { background: '#0d1e30', color: '#60c0e0', border: '0.5px solid #2060a0' } :
-    /* finalizado */                  { background: '#2a0d1a', color: '#E11D48', border: '0.5px solid #5a1a30' }
+    cliente.estado === 'activo'     ? { background: SOFT, color: ACC2, border: `0.5px solid ${C1}` } :
+    cliente.estado === 'pausado'    ? { background: `${AMB}1A`, color: AMB, border: `0.5px solid ${AMB}55` } :
+    cliente.estado === 'prospecto'  ? { background: `${BLUE}1A`, color: BLUE, border: `0.5px solid ${BLUE}55` } :
+    /* finalizado */                  { background: `${ROSE}1A`, color: ROSE, border: `0.5px solid ${ROSE}55` }
 
   const CLIENTE_ESTADOS_MAP: Record<string, string> = {
     activo: 'Activo', pausado: 'Pausado', prospecto: 'Prospecto', finalizado: 'Finalizado'
@@ -1875,16 +1875,16 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
   return (
     <div
       style={{ background: DIM, border: `0.5px solid ${BDR}`, borderRadius: '6px', overflow: 'hidden', transition: 'border-color 0.25s, transform 0.2s, box-shadow 0.2s' }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = '#6E2DFF'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(110,45,255,0.15)' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = C1; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(110,45,255,0.15)' }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = BDR; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
     >
       {/* Header */}
       <div style={{ padding: '14px 16px 12px', borderBottom: `0.5px solid ${BDR}`, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           {cliente.logo_url ? (
-            <img src={cliente.logo_url} alt={cliente.marca} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'contain', background: '#0D0D14', padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }} />
+            <img src={cliente.logo_url} alt={cliente.marca} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'contain', background: BK, padding: '4px', border: `0.5px solid ${BDR2}`, flexShrink: 0 }} />
           ) : (
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #6E2DFF, #9333EA)', color: WHT, fontSize: '15px', fontWeight: 600, flexShrink: 0 }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${C1}, ${ACC2})`, color: '#fff', fontSize: '15px', fontWeight: 600, flexShrink: 0 }}>
               {cliente.marca.charAt(0).toUpperCase()}
             </div>
           )}
@@ -1908,7 +1908,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           ...((cliente.grabaciones_mes ?? 0) > 0 ? [{ label: '🎬 Grabaciones', val: `${cliente.grabaciones_mes}/mes` }] : []),
           ...(pendSol > 0 ? [{ label: 'Pendientes', val: `${pendSol} solicitud${pendSol > 1 ? 'es' : ''}`, danger: true }] : []),
         ] as { label: string; val: string; danger?: boolean }[]).map(({ label, val, danger }) => (
-          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '0.5px solid #1A1A22' }}>
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `0.5px solid ${BDR}` }}>
             <span style={{ fontSize: '10px', color: MUT, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
             <span style={{ fontSize: '13px', color: danger ? ROSE : WHT }}>{val}</span>
           </div>
@@ -1917,7 +1917,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
 
       {/* Service tags footer */}
       {cliente.servicios.length > 0 && (
-        <div style={{ padding: '8px 16px', background: '#0D0D14', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        <div style={{ padding: '8px 16px', background: BK, display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
           {cliente.servicios.slice(0, 3).map(s => (
             <span key={s} style={{ fontSize: '8px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 5px', borderRadius: '2px', background: INPUT_BG, border: `0.5px solid ${BDR}`, color: MUT }}>
               {s.length > 14 ? s.slice(0, 12) + '…' : s}
@@ -1943,15 +1943,15 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
           <a
             href={`${portalBase}${cliente.access_token}`}
             target="_blank" rel="noopener noreferrer"
-            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: '0.5px solid #6E2DFF', background: SOFT, cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
+            style={{ flex: 1, padding: '7px 0', borderRadius: '3px', border: `0.5px solid ${C1}`, background: SOFT, cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: ACC2, textDecoration: 'none', textAlign: 'center', display: 'block', letterSpacing: '0.1em', textTransform: 'uppercase' }}
           >
             Portal
           </a>
         )}
         <button
           onClick={onDelete}
-          style={{ padding: '7px 11px', borderRadius: '3px', border: '0.5px solid #4a1a2e', background: 'transparent', cursor: 'pointer', fontSize: '12px', color: ROSE, transition: 'background 0.15s' }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#1e0a14')}
+          style={{ padding: '7px 11px', borderRadius: '3px', border: `0.5px solid ${ROSE}40`, background: 'transparent', cursor: 'pointer', fontSize: '12px', color: ROSE, transition: 'background 0.15s' }}
+          onMouseEnter={e => (e.currentTarget.style.background = `${ROSE}15`)}
           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           🗑
