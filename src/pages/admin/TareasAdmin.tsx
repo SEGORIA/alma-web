@@ -72,6 +72,97 @@ const emptyMiembro = (): MiembroForm => ({
   nombre: '', rol: '', iniciales: '', emoji: '✨', color: EQUIPO_GRADIENTES[0], pin: '', desc: '',
 })
 
+/* ══ Parser local para creación en lote ═════════════════════════
+   Formato:
+     Anny:              ← encabezado (nombre del responsable)
+     - editar reel (alta) #semanal @lunes
+     - subir 3 historias
+   Tags inline:
+     (alta|media|baja)  → prioridad
+     #diaria|#semanal|#mensual|#unica → frecuencia
+     @YYYY-MM-DD | @lunes..@domingo | @hoy | @manana → fecha límite
+═══════════════════════════════════════════════════════════════ */
+type LoteDraft = {
+  titulo: string
+  responsableId: string
+  responsableNombre: string
+  frecuencia: TareaFrecuencia
+  prioridad: TareaPrioridad
+  fechaLimite: string
+  match: 'ok' | 'ambiguo' | 'sin_match'
+  header: string
+}
+
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
+const isoDate = (d: Date) => d.toISOString().slice(0, 10)
+const DOW = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado']
+
+function parseFechaToken(tok: string): string {
+  const t = norm(tok)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t
+  const hoy = new Date()
+  if (t === 'hoy') return isoDate(hoy)
+  if (t === 'manana') { const d = new Date(hoy); d.setDate(d.getDate() + 1); return isoDate(d) }
+  const idx = DOW.indexOf(t)
+  if (idx >= 0) {
+    const d = new Date(hoy)
+    let delta = (idx - d.getDay() + 7) % 7
+    if (delta === 0) delta = 7
+    d.setDate(d.getDate() + delta)
+    return isoDate(d)
+  }
+  return ''
+}
+
+function matchMiembros(header: string, equipo: EquipoMember[]): EquipoMember[] {
+  const h = norm(header.replace(/^para\s+/i, '').replace(/:$/, ''))
+  if (!h) return []
+  const usable = equipo.filter(m => !!m._id)
+  const exact = usable.filter(m => norm(m.nombre) === h || norm(m.nombre).split(' ')[0] === h)
+  if (exact.length) return exact
+  return usable.filter(m => norm(m.nombre).includes(h))
+}
+
+function parseLote(texto: string, equipo: EquipoMember[]): LoteDraft[] {
+  const drafts: LoteDraft[] = []
+  let header = ''
+  let actuales: EquipoMember[] = []
+
+  for (const raw of texto.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const isBullet = /^[-*•]\s+/.test(line) || /^\d+[.)]\s+/.test(line)
+
+    if (!isBullet) {
+      header = line.replace(/:$/, '').trim()
+      actuales = matchMiembros(header, equipo)
+      continue
+    }
+
+    let body = line.replace(/^[-*•]\s+/, '').replace(/^\d+[.)]\s+/, '')
+    let prioridad: TareaPrioridad = 'media'
+    let frecuencia: TareaFrecuencia = 'unica'
+    let fechaLimite = ''
+
+    body = body.replace(/\((alta|media|baja)\)/i, (_, p) => { prioridad = norm(p) as TareaPrioridad; return ' ' })
+    body = body.replace(/!\s*(alta|media|baja)/i, (_, p) => { prioridad = norm(p) as TareaPrioridad; return ' ' })
+    body = body.replace(/#(diaria|semanal|mensual|unica|única)/i, (_, f) => { frecuencia = (norm(f) === 'unica' ? 'unica' : norm(f)) as TareaFrecuencia; return ' ' })
+    body = body.replace(/@(\S+)/g, (_, d) => { const f = parseFechaToken(d); if (f) fechaLimite = f; return ' ' })
+
+    const titulo = body.replace(/\s{2,}/g, ' ').trim()
+    if (!titulo) continue
+
+    const match: LoteDraft['match'] = actuales.length === 1 ? 'ok' : actuales.length > 1 ? 'ambiguo' : 'sin_match'
+    drafts.push({
+      titulo,
+      responsableId:     actuales.length === 1 ? actuales[0]._id! : '',
+      responsableNombre: actuales.length === 1 ? actuales[0].nombre : '',
+      frecuencia, prioridad, fechaLimite, match, header,
+    })
+  }
+  return drafts
+}
+
 /* ══ Modal de tarea (crear/editar) ══════════════════════════════ */
 function TareaModal({ initial, equipo, onSave, onCancel, saving }: {
   initial: TareaForm
@@ -392,6 +483,168 @@ function TareaCard({ t, miembro, onMove, onEdit, onDelete }: {
   )
 }
 
+/* ══ Tab — Crear en lote (parser local) ═════════════════════════ */
+function CrearEnLote({ equipo, isMobile, onCreated }: {
+  equipo: EquipoMember[]
+  isMobile: boolean
+  onCreated: () => Promise<void> | void
+}) {
+  const [texto, setTexto] = useState('')
+  const [drafts, setDrafts] = useState<LoteDraft[] | null>(null)
+  const [creating, setCreating] = useState(false)
+
+  function interpretar() {
+    const d = parseLote(texto, equipo)
+    if (d.length === 0) { toast.err('No se detectaron tareas. Usa viñetas (-) bajo el nombre de cada responsable.'); return }
+    setDrafts(d)
+  }
+
+  function setDraft(i: number, patch: Partial<LoteDraft>) {
+    setDrafts(prev => prev ? prev.map((d, j) => j === i ? { ...d, ...patch } : d) : prev)
+  }
+
+  function quitar(i: number) {
+    setDrafts(prev => prev ? prev.filter((_, j) => j !== i) : prev)
+  }
+
+  function onResponsable(i: number, id: string) {
+    const m = equipo.find(e => e._id === id)
+    setDraft(i, { responsableId: id, responsableNombre: m?.nombre ?? '', match: id ? 'ok' : 'sin_match' })
+  }
+
+  const sinAsignar = (drafts ?? []).filter(d => !d.responsableId).length
+
+  async function confirmar2() {
+    if (!drafts) return
+    setCreating(true)
+    try {
+      for (const d of drafts) {
+        await createTarea({
+          titulo: d.titulo,
+          descripcion: '',
+          responsableId: d.responsableId,
+          responsableNombre: d.responsableNombre,
+          frecuencia: d.frecuencia,
+          prioridad: d.prioridad,
+          estado: 'pendiente',
+          fechaLimite: d.fechaLimite || '',
+        })
+      }
+      await onCreated()
+      toast.ok(`${drafts.length} tarea${drafts.length !== 1 ? 's' : ''} creada${drafts.length !== 1 ? 's' : ''}`)
+      setDrafts(null); setTexto('')
+    } catch (err) { toast.err('Error: ' + err) }
+    setCreating(false)
+  }
+
+  const matchBadge = (m: LoteDraft['match']) => {
+    if (m === 'ok') return null
+    const isAmb = m === 'ambiguo'
+    return (
+      <span style={{ fontSize: '10px', fontWeight: 800, color: isAmb ? AMB : ROSE, background: isAmb ? `${AMB}15` : `${ROSE}15`, borderRadius: '6px', padding: '2px 7px', whiteSpace: 'nowrap' }}>
+        {isAmb ? 'Elige responsable' : 'Sin asignar'}
+      </span>
+    )
+  }
+
+  return (
+    <div>
+      {/* Entrada de texto */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 280px', gap: '16px', marginBottom: '20px' }}>
+        <div>
+          <label style={lbl}>Pega tu lista de tareas</label>
+          <textarea
+            value={texto}
+            onChange={e => setTexto(e.target.value)}
+            rows={isMobile ? 8 : 11}
+            placeholder={'Anny:\n- editar reel de Casa Mama (alta) @lunes\n- subir 3 historias #semanal\n\nMariana:\n- diseñar post de promoción #mensual\n- actualizar logo del cliente X (media)'}
+            style={{ ...inp, resize: 'vertical', lineHeight: 1.6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '12.5px' }}
+          />
+          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+            <button onClick={interpretar} disabled={!texto.trim()} style={{
+              background: texto.trim() ? C1 : BDR, color: texto.trim() ? '#fff' : MUT,
+              border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
+              cursor: texto.trim() ? 'pointer' : 'not-allowed',
+            }}>
+              ✨ Interpretar
+            </button>
+            {drafts && (
+              <button onClick={() => { setDrafts(null) }} style={{ background: INPUT_BG, color: WHT, border: `1px solid ${BDR2}`, padding: '10px 16px', borderRadius: '10px', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Leyenda de formato */}
+        <div style={{ background: DIM, border: `1px solid ${BDR}`, borderRadius: '12px', padding: '14px 16px', alignSelf: 'start' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '10px', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase', color: MUT }}>Cómo escribir</p>
+          <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: WHT, lineHeight: 1.7 }}>
+            <li>Encabezado con el <strong>nombre</strong> del responsable y luego viñetas.</li>
+            <li><code>(alta)</code> <code>(media)</code> <code>(baja)</code> → prioridad</li>
+            <li><code>#semanal</code> <code>#diaria</code> <code>#mensual</code> → frecuencia</li>
+            <li><code>@lunes</code> <code>@manana</code> <code>@2026-06-20</code> → fecha</li>
+          </ul>
+          <p style={{ margin: '10px 0 0', fontSize: '11px', color: MUT, lineHeight: 1.5 }}>
+            Revisa y corrige la interpretación antes de crear. Nada se guarda hasta que confirmes.
+          </p>
+        </div>
+      </div>
+
+      {/* Vista previa */}
+      {drafts && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: WHT, fontWeight: 700 }}>
+              {drafts.length} tarea{drafts.length !== 1 ? 's' : ''} detectada{drafts.length !== 1 ? 's' : ''}
+              {sinAsignar > 0 && <span style={{ color: ROSE, fontWeight: 600 }}> · {sinAsignar} sin responsable</span>}
+            </p>
+            <button onClick={confirmar2} disabled={creating || drafts.length === 0 || sinAsignar > 0} style={{
+              background: (creating || sinAsignar > 0) ? BDR : C1, color: (creating || sinAsignar > 0) ? MUT : '#fff',
+              border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
+              cursor: (creating || sinAsignar > 0) ? 'not-allowed' : 'pointer',
+            }}>
+              {creating ? 'Creando…' : `✓ Confirmar y crear ${drafts.length}`}
+            </button>
+          </div>
+          {sinAsignar > 0 && (
+            <p style={{ margin: '0 0 12px', fontSize: '12px', color: AMB }}>
+              ⚠️ Asigna un responsable a las filas marcadas para poder crear las tareas (cada tarea debe llegar al portal de alguien).
+            </p>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {drafts.map((d, i) => (
+              <div key={i} style={{
+                background: DIM, border: `1px solid ${d.responsableId ? BDR : `${ROSE}55`}`, borderRadius: '12px',
+                padding: '12px 14px', display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1.4fr 2fr 0.9fr 0.9fr 1fr auto', gap: '8px', alignItems: 'center',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <select value={d.responsableId} onChange={e => onResponsable(i, e.target.value)} style={{ ...inp, padding: '7px 8px' }}>
+                    <option value="">— Responsable —</option>
+                    {equipo.filter(m => !!m._id).map(m => <option key={m._id} value={m._id}>{m.nombre}</option>)}
+                  </select>
+                  {matchBadge(d.match)}
+                </div>
+                <input value={d.titulo} onChange={e => setDraft(i, { titulo: e.target.value })} style={{ ...inp, padding: '7px 8px' }} placeholder="Título de la tarea" />
+                <select value={d.prioridad} onChange={e => setDraft(i, { prioridad: e.target.value as TareaPrioridad })} style={{ ...inp, padding: '7px 8px' }}>
+                  {TAREA_PRIORIDADES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+                <select value={d.frecuencia} onChange={e => setDraft(i, { frecuencia: e.target.value as TareaFrecuencia })} style={{ ...inp, padding: '7px 8px' }}>
+                  {TAREA_FRECUENCIAS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
+                </select>
+                <input type="date" value={d.fechaLimite} onChange={e => setDraft(i, { fechaLimite: e.target.value })} style={{ ...inp, padding: '7px 8px' }} />
+                <button onClick={() => quitar(i)} title="Quitar" style={{ background: 'rgba(239,68,68,0.08)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', padding: '7px 10px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', justifySelf: isMobile ? 'start' : 'center' }}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ══ Página ══════════════════════════════════════════════════════ */
 export default function TareasAdmin() {
   const isMobile = useIsMobile()
@@ -402,7 +655,7 @@ export default function TareasAdmin() {
   const [modal, setModal] = useState<{ tarea: Tarea | null } | null>(null)
   const [miembroModal, setMiembroModal] = useState<{ miembro: EquipoMember | null } | null>(null)
 
-  const [tab, setTab] = useState<'tablero' | 'equipo'>('tablero')
+  const [tab, setTab] = useState<'tablero' | 'equipo' | 'lote'>('tablero')
   const [fResponsable, setFResponsable] = useState('todos')
   const [fFrecuencia, setFFrecuencia] = useState('todas')
   const [fPrioridad, setFPrioridad] = useState('todas')
@@ -522,6 +775,7 @@ export default function TareasAdmin() {
               {([
                 { key: 'tablero', label: '📋 Tablero' },
                 { key: 'equipo',  label: '👥 Equipo' },
+                { key: 'lote',    label: '✨ Crear en lote' },
               ] as { key: typeof tab; label: string }[]).map(t => (
                 <button key={t.key} onClick={() => setTab(t.key)} style={{
                   padding: '8px 16px', borderRadius: '20px', border: 'none',
@@ -534,12 +788,14 @@ export default function TareasAdmin() {
                 </button>
               ))}
             </div>
-            <button onClick={() => tab === 'equipo' ? setMiembroModal({ miembro: null }) : setModal({ tarea: null })} style={{
-              background: C1, color: '#fff', border: 'none', padding: '10px 18px',
-              borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-            }}>
-              {tab === 'equipo' ? '+ Nuevo miembro' : '+ Nueva tarea'}
-            </button>
+            {tab !== 'lote' && (
+              <button onClick={() => tab === 'equipo' ? setMiembroModal({ miembro: null }) : setModal({ tarea: null })} style={{
+                background: C1, color: '#fff', border: 'none', padding: '10px 18px',
+                borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+              }}>
+                {tab === 'equipo' ? '+ Nuevo miembro' : '+ Nueva tarea'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -610,7 +866,7 @@ export default function TareasAdmin() {
                 })}
               </div>
             </>
-          ) : (
+          ) : tab === 'equipo' ? (
             /* ══ TAB EQUIPO ══ */
             <>
               {(() => {
@@ -654,6 +910,9 @@ export default function TareasAdmin() {
                 </div>
               )}
             </>
+          ) : (
+            /* ══ TAB CREAR EN LOTE ══ */
+            <CrearEnLote equipo={equipo} isMobile={isMobile} onCreated={reload} />
           )}
         </div>
       </div>
