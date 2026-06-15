@@ -1,6 +1,6 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, serverTimestamp, arrayUnion,
+  query, orderBy, where, serverTimestamp, arrayUnion,
 } from 'firebase/firestore'
 import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
@@ -21,6 +21,7 @@ import type { KitArchivo, Lead } from '../data/leads'
 import type { Brief, BriefFormConfig } from '../data/briefs'
 import { DEFAULT_BRIEF_CONFIG } from '../data/briefs'
 import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../data/clientes'
+import type { Tarea } from '../data/tareas'
 
 
 
@@ -39,6 +40,7 @@ function kitCol()         { return collection(db!, 'kit_archivos') }
 function leadsCol()       { return collection(db!, 'leads') }
 function briefsCol()      { return collection(db!, 'briefs') }
 function briefConfigDoc() { return doc(db!, 'brief_config', 'v1') }
+function tareasCol()      { return collection(db!, 'tareas') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -819,6 +821,41 @@ export interface Cotizacion {
   subtotal: number
   total: number
   notas: string
+}
+
+/* ══ TAREAS ═════════════════════════════════════════════════ */
+
+export async function getTareas(): Promise<Tarea[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(tareasCol(), orderBy('createdAt', 'desc')))
+    return snap.docs.map(d => ({ ...(d.data() as Tarea), _id: d.id }))
+  } catch {
+    return []
+  }
+}
+
+export async function getTareasByResponsable(responsableId: string): Promise<Tarea[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(tareasCol(), where('responsableId', '==', responsableId)))
+    return snap.docs.map(d => ({ ...(d.data() as Tarea), _id: d.id }))
+  } catch {
+    return []
+  }
+}
+
+export async function createTarea(data: Omit<Tarea, '_id'>): Promise<string> {
+  const ref = await addDoc(tareasCol(), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+  return ref.id
+}
+
+export async function updateTarea(id: string, data: Partial<Tarea>) {
+  await updateDoc(doc(db!, 'tareas', id), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function deleteTarea(id: string) {
+  await deleteDoc(doc(db!, 'tareas', id))
 }
 
 function cotizacionesCol() { return collection(db!, 'cotizaciones') }

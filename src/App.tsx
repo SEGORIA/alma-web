@@ -57,6 +57,8 @@ const ClientesAdmin       = lazy(() => import('./pages/admin/ClientesAdmin'))
 const CotizacionesAdmin   = lazy(() => import('./pages/admin/CotizacionesAdmin'))
 const CuentasCobroAdmin   = lazy(() => import('./pages/admin/CuentasCobroAdmin'))
 const AcademiaAdmin       = lazy(() => import('./pages/admin/AcademiaAdmin'))
+const TareasAdmin         = lazy(() => import('./pages/admin/TareasAdmin'))
+const EquipoPortalPage    = lazy(() => import('./pages/EquipoPortal'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -614,6 +616,8 @@ export default function App() {
         <Route path="/portafolio"    element={<PortafolioPage />} />
         <Route path="/equipo"          element={<EquipoPage />} />
         <Route path="/cliente/:token" element={<ClientePortalPage />} />
+        <Route path="/equipo-portal" element={<EquipoPortalPage />} />
+        <Route path="/equipo-portal/:pin" element={<EquipoPortalPage />} />
         <Route path="*"              element={<NotFoundPage />} />
 
         {/* Admin — lazy */}
@@ -635,6 +639,7 @@ export default function App() {
         <Route path="/admin/cotizaciones" element={<RequireAuth><CotizacionesAdmin /></RequireAuth>} />
         <Route path="/admin/cuentas-cobro" element={<RequireAuth><CuentasCobroAdmin /></RequireAuth>} />
         <Route path="/admin/academia"      element={<RequireAuth><AcademiaAdmin /></RequireAuth>} />
+        <Route path="/admin/tareas"        element={<RequireAuth><TareasAdmin /></RequireAuth>} />
       </Routes>
     </Suspense>
   )

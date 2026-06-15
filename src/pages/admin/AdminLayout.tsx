@@ -27,6 +27,7 @@ const NEGOCIO: NavEntry[] = [
   { label: '👥 Clientes',           to: '/admin/clientes', badgeKey: 'solicitudesPend' },
   { label: '💳 Cuentas de Cobro',   to: '/admin/cuentas-cobro' },
   { label: '💼 Finanzas',           to: '/admin/finanzas' },
+  { label: '✅ Tareas',             to: '/admin/tareas' },
   { label: '🎓 Academia',           to: '/admin/academia' },
 ]
 

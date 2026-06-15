@@ -20,6 +20,7 @@ export type EquipoMember = {
   color:     string   // CSS gradient
   foto?:     string   // URL de foto (opcional, reemplaza emoji+gradiente)
   orden?:    number
+  pin?:      string   // PIN de acceso al portal interno de tareas (/equipo/:pin)
 }
 
 // ── Estáticos (fallback sin Firebase) ─────────────────────────

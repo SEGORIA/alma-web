@@ -390,6 +390,14 @@ function EquipoForm({ initial, onSave, onCancel, saving }: {
         <div><label style={lbl}>Emoji — se usa si no hay foto</label><input value={form.emoji} onChange={e => set('emoji', e.target.value)} style={{ ...inp, fontSize: '18px' }} maxLength={4} /></div>
       </div>
 
+      <div style={{ marginBottom: '10px' }}>
+        <label style={lbl}>PIN de acceso al portal de tareas (opcional)</label>
+        <input value={form.pin ?? ''} onChange={e => set('pin', e.target.value.replace(/\D/g, ''))} style={{ ...inp, maxWidth: '120px' }} maxLength={4} placeholder="Ej: 1234" />
+        <p style={{ fontSize: '12px', color: MUT, marginTop: '4px' }}>
+          Si lo asignas, este miembro podrá entrar a <code>/equipo-portal/{form.pin || '••••'}</code> para ver y actualizar sus tareas.
+        </p>
+      </div>
+
       <div style={{ marginBottom: '12px' }}>
         <label style={lbl}>Descripción</label>
         <textarea value={form.desc} onChange={e => set('desc', e.target.value)} rows={2}
@@ -481,7 +489,7 @@ function TabEquipo() {
         {equipo.map(m => (
           <div key={m._id ?? m.nombre}>
             {m._id && editingId === m._id ? (
-              <EquipoForm initial={{ nombre: m.nombre, rol: m.rol, desc: m.desc, iniciales: m.iniciales, emoji: m.emoji, color: m.color, orden: m.orden ?? 0 }}
+              <EquipoForm initial={{ nombre: m.nombre, rol: m.rol, desc: m.desc, iniciales: m.iniciales, emoji: m.emoji, color: m.color, orden: m.orden ?? 0, pin: m.pin ?? '' }}
                 onSave={handleSave} onCancel={() => setEditingId(null)} saving={saving} />
             ) : (
               <div style={{ ...card, opacity: m._id ? 1 : 0.65 }}>
@@ -493,6 +501,10 @@ function TabEquipo() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  {m.pin && actionBtn('🔗', () => {
+                    navigator.clipboard.writeText(`${window.location.origin}/equipo-portal/${m.pin}`)
+                    toast.ok('Link del portal copiado')
+                  })}
                   {m._id && actionBtn('✏️', () => { setEditingId(m._id!); setAdding(false) })}
                   {m._id && actionBtn('🗑', () => handleDelete(m), true)}
                 </div>
@@ -501,7 +513,7 @@ function TabEquipo() {
           </div>
         ))}
         {adding && (
-          <EquipoForm initial={{ nombre: '', rol: '', desc: '', iniciales: '', emoji: '✨', color: EQUIPO_GRADIENTES[0], orden: equipo.length }}
+          <EquipoForm initial={{ nombre: '', rol: '', desc: '', iniciales: '', emoji: '✨', color: EQUIPO_GRADIENTES[0], orden: equipo.length, pin: '' }}
             onSave={handleSave} onCancel={() => setAdding(false)} saving={saving} />
         )}
       </div>
