@@ -35,8 +35,14 @@ import { getConfig, getContactoInfo } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
 import { useAuth }  from './hooks/useAuth'
+import { useIsMobile } from './hooks/useIsMobile'
 import { Navigate } from 'react-router-dom'
 import { P, PD, Y } from './tokens'
+
+/* Bajo este ancho la navegación usa menú hamburguesa: con 7 enlaces + logo +
+   CTA, el nav horizontal no cabe en teléfonos (incluido landscape ~915px),
+   foldables, tablets pequeñas ni en pantalla dividida de Android. */
+const NAV_MOBILE_BREAKPOINT = 1024
 
 /* ── Admin pages — lazy loaded (no se cargan hasta /admin) ── */
 const AdminLogin       = lazy(() => import('./pages/admin/AdminLogin'))
@@ -260,7 +266,7 @@ function Landing() {
   }
 
   const [scrolled,  setScrolled]  = useState(false)
-  const [isMobile,  setIsMobile]  = useState(window.innerWidth < 768)
+  const isMobile = useIsMobile(NAV_MOBILE_BREAKPOINT)
   const progressRef = useRef<HTMLDivElement>(null)
   const [menuOpen,       setMenuOpen]       = useState(false)
   const [activeSection,  setActiveSection]  = useState('inicio')
@@ -283,18 +289,16 @@ function Landing() {
         progressRef.current.style.width = `${pct}%`
       }
     }
-    const onResize = () => {
-      const mobile = window.innerWidth < 768
-      setIsMobile(mobile)
-      if (!mobile) setMenuOpen(false)
-    }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
     }
   }, [])
+
+  // Cierra el menú móvil al pasar a viewport de escritorio
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false)
+  }, [isMobile])
 
   useEffect(() => {
     const ids = NAV_LINKS.map(l => l.id)

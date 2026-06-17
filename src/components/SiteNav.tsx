@@ -3,6 +3,12 @@ import { Link } from 'react-router-dom'
 import { P, PD, Y } from '../tokens'
 import { getContactoInfo } from '../lib/db'
 import { contactoDefault } from '../data/config'
+import { useIsMobile } from '../hooks/useIsMobile'
+
+/* Mismo breakpoint que la navegación de la landing: con 7 enlaces + logo + CTA
+   el nav horizontal no cabe en teléfonos (incl. landscape), foldables ni
+   tablets pequeñas, así que por debajo de esto se usa el menú hamburguesa. */
+const NAV_MOBILE_BREAKPOINT = 1024
 
 // Links que apuntan a secciones de la landing desde páginas internas
 const LINKS = [
@@ -17,7 +23,7 @@ const LINKS = [
 
 export default function SiteNav({ activePath }: { activePath?: string }) {
   const [scrolled,   setScrolled]   = useState(false)
-  const [isMobile,   setIsMobile]   = useState(window.innerWidth < 768)
+  const isMobile = useIsMobile(NAV_MOBILE_BREAKPOINT)
   const [menuOpen,   setMenuOpen]   = useState(false)
   const [waLink,     setWaLink]     = useState(
     `https://wa.me/${contactoDefault.whatsapp}?text=Hola%2C%20quiero%20empezar%20mi%20proyecto%20con%20Alma`
@@ -31,17 +37,14 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
-    const onResize = () => {
-      setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth >= 768) setMenuOpen(false)
-    }
     window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-    }
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Cierra el menú móvil al pasar a viewport de escritorio
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false)
+  }, [isMobile])
 
   // Scroll lock seguro para Android e iOS (overflow:hidden solo rompe touch events en Android)
   useEffect(() => {
