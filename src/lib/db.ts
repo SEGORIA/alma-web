@@ -9,13 +9,13 @@ import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/p
 import {
   seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
   contactoDefault, heroStatsDefault, heroSubtituloDefault,
-  principiosDefault, leadMagnetDefault,
+  principiosDefault, leadMagnetDefault, emisorDefault,
 } from '../data/config'
 import { pasosEstaticos, equipoEstatico } from '../data/contenido'
 import type { Articulo } from '../data/articulos'
 import type { Proyecto } from '../data/portafolio'
 import type { Plan, Extra, ServicioCategoria } from '../data/precios'
-import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig } from '../data/config'
+import type { SiteConfig, SeccionesConfig, Testimonio, FaqItem, ContactoInfo, HeroStat, ManifiestoItem, LeadMagnetConfig, EmisorInfo } from '../data/config'
 import type { PasoItem, EquipoMember } from '../data/contenido'
 import type { KitArchivo, Lead } from '../data/leads'
 import type { Brief, BriefFormConfig } from '../data/briefs'
@@ -233,6 +233,7 @@ export async function getConfig(): Promise<SiteConfig> {
     heroSubtitulo:  heroSubtituloDefault,
     principios:     principiosDefault,
     leadMagnet:     leadMagnetDefault,
+    emisor:         emisorDefault,
   }
   if (!firebaseReady || !db) return fallback
   if (!_configPromise) {
@@ -248,6 +249,7 @@ export async function getConfig(): Promise<SiteConfig> {
           heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
           principios:     data.principios    ?? principiosDefault,
           leadMagnet:     data.leadMagnet    ?? leadMagnetDefault,
+          emisor:         { ...emisorDefault, ...(data.emisor ?? {}) },
         }
       })
       .catch(() => fallback)
@@ -278,6 +280,16 @@ export async function updateLeadMagnetConfig(leadMagnet: LeadMagnetConfig) {
 export async function getContactoInfo(): Promise<ContactoInfo> {
   const cfg = await getConfig()
   return cfg.contactoInfo ?? contactoDefault
+}
+
+export async function getEmisorInfo(): Promise<EmisorInfo> {
+  const cfg = await getConfig()
+  return { ...emisorDefault, ...(cfg.emisor ?? {}) }
+}
+
+export async function updateEmisorInfo(emisor: EmisorInfo) {
+  invalidateConfigCache()
+  await updateConfig({ emisor })
 }
 
 export async function getHeroContent(): Promise<{ stats: HeroStat[]; subtitulo: string }> {

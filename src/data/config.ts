@@ -61,6 +61,17 @@ export type LeadMagnetConfig = {
   recursos:  string[]  // texto de cada beneficio (icono es fijo por posición)
 }
 
+/** Datos del emisor (ALMA) que se adjuntan en las cuentas de cobro. */
+export type EmisorInfo = {
+  nombre:         string   // marca grande, p.ej. 'ALMA'
+  razonSocial:    string   // 'Alma Agencia Creativa S.A.S.'
+  nit:            string
+  ciudad:         string
+  email:          string
+  telefono:       string
+  datosBancarios: string   // texto multilínea que precarga "Datos para pago"
+}
+
 export type SiteConfig = {
   secciones:      SeccionesConfig
   clientes:       string[]
@@ -69,6 +80,7 @@ export type SiteConfig = {
   heroSubtitulo?: string
   principios?:    ManifiestoItem[]
   leadMagnet?:    LeadMagnetConfig
+  emisor?:        EmisorInfo
 }
 
 // ── Secciones — información para el admin ─────────────────────
@@ -174,4 +186,14 @@ export const leadMagnetDefault: LeadMagnetConfig = {
     'Plantillas de contenido editables',
     'Guía de métricas clave para marcas',
   ],
+}
+
+export const emisorDefault: EmisorInfo = {
+  nombre:         'ALMA',
+  razonSocial:    'Alma Agencia Creativa S.A.S.',
+  nit:            '',
+  ciudad:         'Manizales, Caldas',
+  email:          'alma.directivo@gmail.com',
+  telefono:       '',
+  datosBancarios: '',
 }

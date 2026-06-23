@@ -3,9 +3,11 @@ import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import {
   getClientes, getCuentasCobro, saveCuentaCobro, updateCuentaCobro, deleteCuentaCobro,
+  getEmisorInfo, updateEmisorInfo,
 } from '../../lib/db'
 import type { CuentaCobro, CuentaConcepto } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
+import { emisorDefault, type EmisorInfo } from '../../data/config'
 import { confirmar, toast } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
 import { ADM } from '../../lib/adminTheme'
@@ -59,6 +61,59 @@ const EMPTY_CC = (): Omit<CuentaCobro, '_id'> => ({
   notas:           '',
 })
 
+/* ── Modal: datos del emisor (ALMA) ─────────────────────────── */
+function EmisorModal({ initial, onSave, onCancel }: {
+  initial: EmisorInfo
+  onSave: (d: EmisorInfo) => void
+  onCancel: () => void
+}) {
+  const [f, setF] = useState<EmisorInfo>(initial)
+  const set = <K extends keyof EmisorInfo>(k: K, v: EmisorInfo[K]) => setF(p => ({ ...p, [k]: v }))
+
+  return (
+    <div onClick={onCancel} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: DIM, borderRadius: '10px', border: `0.5px solid ${BDR}`, width: '100%', maxWidth: '520px', maxHeight: '92vh', overflowY: 'auto', padding: '22px' }}>
+        <p style={{ margin: '0 0 4px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>Emisor</p>
+        <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 900, color: WHT }}>Datos de ALMA</h2>
+        <p style={{ margin: '0 0 18px', fontSize: '12px', color: MUT, lineHeight: 1.5 }}>
+          Aparecen como encabezado, firma y datos de pago en cada cuenta de cobro.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <label style={lbStyle}>Marca (título)
+            <input value={f.nombre} onChange={e => set('nombre', e.target.value)} style={iStyle} placeholder="ALMA" />
+          </label>
+          <label style={lbStyle}>NIT
+            <input value={f.nit} onChange={e => set('nit', e.target.value)} style={iStyle} placeholder="901.234.567-8" />
+          </label>
+          <label style={{ ...lbStyle, gridColumn: '1 / -1' }}>Razón social
+            <input value={f.razonSocial} onChange={e => set('razonSocial', e.target.value)} style={iStyle} placeholder="Alma Agencia Creativa S.A.S." />
+          </label>
+          <label style={lbStyle}>Ciudad
+            <input value={f.ciudad} onChange={e => set('ciudad', e.target.value)} style={iStyle} placeholder="Manizales, Caldas" />
+          </label>
+          <label style={lbStyle}>Email
+            <input value={f.email} onChange={e => set('email', e.target.value)} style={iStyle} placeholder="contacto@..." />
+          </label>
+          <label style={{ ...lbStyle, gridColumn: '1 / -1' }}>Teléfono (opcional)
+            <input value={f.telefono} onChange={e => set('telefono', e.target.value)} style={iStyle} placeholder="+57 ..." />
+          </label>
+          <label style={{ ...lbStyle, gridColumn: '1 / -1' }}>Datos bancarios para pago
+            <textarea value={f.datosBancarios} onChange={e => set('datosBancarios', e.target.value)} rows={5}
+              style={{ ...iStyle, resize: 'vertical', lineHeight: 1.7, fontFamily: 'inherit' }}
+              placeholder={'Banco: Bancolombia\nTipo: Ahorros\nNo: 000-000000-00\nTitular: ...\nNit/CC: ...'} />
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginTop: '18px', justifyContent: 'flex-end' }}>
+          <button onClick={onCancel} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>Cancelar</button>
+          <button onClick={() => onSave(f)} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>✓ Guardar datos</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ═══════════════════════════════════════════════════════════ */
 export default function CuentasCobroAdmin() {
   const isMobile = useIsMobile()
@@ -73,14 +128,24 @@ export default function CuentasCobroAdmin() {
   const [search,   setSearch]   = useState('')
   const [form,     setForm]     = useState<Omit<CuentaCobro, '_id'>>(EMPTY_CC())
   const [previewHtml, setPreviewHtml] = useState<string | null>(null)
+  const [emisor,   setEmisor]   = useState<EmisorInfo>(emisorDefault)
+  const [emisorModal, setEmisorModal] = useState(false)
 
   useEffect(() => {
-    Promise.all([getClientes(), getCuentasCobro()]).then(([cl, cc]) => {
+    Promise.all([getClientes(), getCuentasCobro(), getEmisorInfo()]).then(([cl, cc, em]) => {
       setClientes(cl)
       setCuentas(cc)
+      setEmisor(em)
       setLoading(false)
     })
   }, [])
+
+  /* Nueva cuenta de cobro: precarga los datos bancarios del emisor */
+  function nuevaCuenta() {
+    setForm({ ...EMPTY_CC(), datosBancarios: emisor.datosBancarios })
+    setEditId(null)
+    setView('form')
+  }
 
   /* ── Recalcular total ── */
   useEffect(() => {
@@ -133,6 +198,18 @@ export default function CuentasCobroAdmin() {
       toast.err('No se pudo guardar: ' + err)
     } finally {
       setSaving(false)
+    }
+  }
+
+  /* ── Guardar datos del emisor (ALMA) ── */
+  async function handleSaveEmisor(data: EmisorInfo) {
+    try {
+      await updateEmisorInfo(data)
+      setEmisor(data)
+      setEmisorModal(false)
+      toast.ok('Datos de ALMA actualizados. Se usarán en las próximas cuentas de cobro.')
+    } catch (err) {
+      toast.err('No se pudo guardar: ' + err)
     }
   }
 
@@ -192,7 +269,13 @@ export default function CuentasCobroAdmin() {
         @media print { body { padding: 20px 32px; } }
       </style></head><body>
       <div class="top">
-        <div class="brand"><h1>ALMA</h1><p>Agencia Creativa S.A.S.</p><p>NIT: _________________</p><p>Manizales, Caldas — contacto@almaagenciacreativa.com</p></div>
+        <div class="brand">
+          <h1>${emisor.nombre || 'ALMA'}</h1>
+          <p>${emisor.razonSocial}</p>
+          ${emisor.nit ? `<p>NIT: ${emisor.nit}</p>` : ''}
+          <p>${[emisor.ciudad, emisor.email].filter(Boolean).join(' — ')}</p>
+          ${emisor.telefono ? `<p>Tel: ${emisor.telefono}</p>` : ''}
+        </div>
         <div class="doc-badge"><div class="title">Cuenta de Cobro</div><p>No. ${c.numero}</p><p>Fecha: ${c.fecha}</p><p>Vence: ${c.vencimiento}</p></div>
       </div>
 
@@ -224,11 +307,11 @@ export default function CuentasCobroAdmin() {
 
       <div class="firma-grid">
         <div class="firma-box">
-          <p><strong>ALMA AGENCIA CREATIVA S.A.S.</strong></p>
+          <p><strong>${(emisor.razonSocial || 'ALMA AGENCIA CREATIVA S.A.S.').toUpperCase()}</strong></p>
           <p style="margin-top:32px">_________________________________</p>
           <p>Firma del prestador del servicio</p>
-          <p>NIT: _____________________________</p>
-          <p>Ciudad y fecha: Manizales, ${c.fecha}</p>
+          <p>NIT: ${emisor.nit || '_____________________________'}</p>
+          <p>Ciudad y fecha: ${(emisor.ciudad || '________').split(',')[0]}, ${c.fecha}</p>
         </div>
         <div class="firma-box">
           <p><strong>EL CLIENTE</strong></p>
@@ -286,9 +369,14 @@ export default function CuentasCobroAdmin() {
             <h1 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px', fontWeight: 900, color: WHT, letterSpacing: '-0.5px' }}>Cuentas de Cobro</h1>
           </div>
           {view === 'list' ? (
-            <button onClick={() => { setForm(EMPTY_CC()); setEditId(null); setView('form') }} style={{ padding: '10px 20px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              + Nueva cuenta de cobro
-            </button>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button onClick={() => setEmisorModal(true)} title="Editar los datos de ALMA que aparecen en las cuentas de cobro" style={{ padding: '10px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: WHT, fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                🏢 Datos de ALMA
+              </button>
+              <button onClick={nuevaCuenta} style={{ padding: '10px 20px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                + Nueva cuenta de cobro
+              </button>
+            </div>
           ) : (
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => { setView('list'); setEditId(null) }} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
@@ -349,7 +437,7 @@ export default function CuentasCobroAdmin() {
               <div style={{ textAlign: 'center', padding: '60px 0' }}>
                 <p style={{ fontSize: '32px', marginBottom: '12px' }}>💰</p>
                 <p style={{ color: MUT, fontSize: '13px' }}>No hay cuentas de cobro todavía</p>
-                <button onClick={() => { setForm(EMPTY_CC()); setEditId(null); setView('form') }} style={{ marginTop: '16px', padding: '9px 20px', borderRadius: '4px', border: `0.5px solid ${C1}`, background: 'transparent', color: ACC2, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Crear la primera</button>
+                <button onClick={nuevaCuenta} style={{ marginTop: '16px', padding: '9px 20px', borderRadius: '4px', border: `0.5px solid ${C1}`, background: 'transparent', color: ACC2, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>Crear la primera</button>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -495,6 +583,11 @@ export default function CuentasCobroAdmin() {
         )}
 
       </div>
+
+      {/* ── Modal: datos del emisor (ALMA) ── */}
+      {emisorModal && (
+        <EmisorModal initial={emisor} onSave={handleSaveEmisor} onCancel={() => setEmisorModal(false)} />
+      )}
 
       {/* ── Modal de vista previa del PDF ── */}
       {previewHtml && (
