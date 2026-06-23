@@ -6,7 +6,7 @@ import {
 } from '../../lib/db'
 import type { CuentaCobro, CuentaConcepto } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
-import { confirmar } from '../../components/admin/Feedback'
+import { confirmar, toast } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
 import { ADM } from '../../lib/adminTheme'
 
@@ -72,6 +72,7 @@ export default function CuentasCobroAdmin() {
   const [filter,   setFilter]   = useState<CuentaCobro['estado'] | 'todos'>('todos')
   const [search,   setSearch]   = useState('')
   const [form,     setForm]     = useState<Omit<CuentaCobro, '_id'>>(EMPTY_CC())
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([getClientes(), getCuentasCobro()]).then(([cl, cc]) => {
@@ -115,7 +116,8 @@ export default function CuentasCobroAdmin() {
 
   /* ── Guardar ── */
   async function handleSave() {
-    if (!form.clienteNombre.trim() || !form.numero.trim()) return
+    if (!form.numero.trim()) { toast.err('Indica el número de la cuenta de cobro.'); return }
+    if (!form.clienteNombre.trim()) { toast.err('Falta el nombre / contacto del cliente. Vincula un cliente registrado o escríbelo en “Ingreso manual”.'); return }
     setSaving(true)
     try {
       if (editId) {
@@ -126,6 +128,9 @@ export default function CuentasCobroAdmin() {
         setCuentas(prev => [{ ...form, _id: id }, ...prev])
       }
       setView('list'); setEditId(null); setForm(EMPTY_CC())
+      toast.ok(editId ? 'Cuenta de cobro actualizada.' : 'Cuenta de cobro guardada.')
+    } catch (err) {
+      toast.err('No se pudo guardar: ' + err)
     } finally {
       setSaving(false)
     }
@@ -153,10 +158,8 @@ export default function CuentasCobroAdmin() {
   }
 
   /* ── PDF (formato formal cuenta de cobro colombiana) ── */
-  function printCuenta(c: CuentaCobro) {
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(`
+  function buildCuentaHtml(c: CuentaCobro): string {
+    return `
       <!DOCTYPE html><html><head>
       <meta charset="UTF-8">
       <title>Cuenta de Cobro ${c.numero}</title>
@@ -238,8 +241,22 @@ export default function CuentasCobroAdmin() {
 
       <div class="footer">Cuenta de cobro generada por ALMA Agencia Creativa · ${c.numero} · ${c.fecha}</div>
       </body></html>
-    `)
-    win.document.close()
+    `
+  }
+
+  function openPreview(c: CuentaCobro) {
+    if (!c.clienteNombre.trim() && !c.clienteEmpresa?.trim()) {
+      toast.err('Completa al menos el nombre o la empresa del cliente para previsualizar.')
+      return
+    }
+    setPreviewHtml(buildCuentaHtml(c))
+  }
+
+  /* Imprime el contenido del iframe del modal (evita el bloqueo de pop-ups) */
+  function printPreview() {
+    const ifr = document.getElementById('cc-preview-frame') as HTMLIFrameElement | null
+    const win = ifr?.contentWindow
+    if (!win) return
     win.focus()
     win.print()
   }
@@ -277,7 +294,7 @@ export default function CuentasCobroAdmin() {
               <button onClick={() => { setView('list'); setEditId(null) }} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 ← Volver
               </button>
-              <button onClick={() => printCuenta({ ...form, _id: editId ?? '' } as CuentaCobro)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
+              <button onClick={() => openPreview({ ...form, _id: editId ?? '' } as CuentaCobro)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 🖨️ Vista previa PDF
               </button>
               <button onClick={handleSave} disabled={saving} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
@@ -357,7 +374,7 @@ export default function CuentasCobroAdmin() {
                         <select value={c.estado} onChange={e => changeEstado(c._id!, e.target.value as CuentaCobro['estado'])} style={{ padding: '5px 8px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: INPUT_BG, color: MUT, fontSize: '10px', cursor: 'pointer', outline: 'none' }}>
                           {ESTADOS.map(e => <option key={e.key} value={e.key}>{e.label}</option>)}
                         </select>
-                        <button onClick={() => printCuenta(c)} title="PDF" style={{ padding: '5px 10px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: TEAL, cursor: 'pointer', fontSize: '12px' }}>🖨️</button>
+                        <button onClick={() => openPreview(c)} title="PDF" style={{ padding: '5px 10px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: TEAL, cursor: 'pointer', fontSize: '12px' }}>🖨️</button>
                         <button onClick={() => openEdit(c)} title="Editar" style={{ padding: '5px 10px', borderRadius: '3px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>✎</button>
                         <button onClick={() => handleDelete(c._id!)} title="Eliminar" style={{ padding: '5px 10px', borderRadius: '3px', border: `0.5px solid ${ROSE}22`, background: 'transparent', color: ROSE, cursor: 'pointer', fontSize: '13px' }}>×</button>
                       </div>
@@ -478,6 +495,49 @@ export default function CuentasCobroAdmin() {
         )}
 
       </div>
+
+      {/* ── Modal de vista previa del PDF ── */}
+      {previewHtml && (
+        <div
+          onClick={() => setPreviewHtml(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(2px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: isMobile ? '12px' : '28px',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: '10px', overflow: 'hidden',
+              width: '100%', maxWidth: '820px', height: '92vh',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.45)',
+            }}
+          >
+            {/* Barra superior del modal */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '0.5px solid #e5e7eb', flexShrink: 0 }}>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#111', letterSpacing: '0.3px' }}>Vista previa · Cuenta de cobro</p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={printPreview} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                  🖨️ Imprimir / Guardar PDF
+                </button>
+                <button onClick={() => setPreviewHtml(null)} style={{ padding: '8px 14px', borderRadius: '6px', border: '0.5px solid #d1d5db', background: '#fff', color: '#374151', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
+                  Cerrar
+                </button>
+              </div>
+            </div>
+            {/* Documento */}
+            <iframe
+              id="cc-preview-frame"
+              title="Vista previa de la cuenta de cobro"
+              srcDoc={previewHtml}
+              style={{ flex: 1, width: '100%', border: 'none', background: '#fff' }}
+            />
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }
