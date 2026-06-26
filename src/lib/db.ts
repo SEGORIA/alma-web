@@ -26,6 +26,21 @@ import type { Tarea } from '../data/tareas'
 
 
 /* ── Helpers ─────────────────────────────────────────────── */
+
+/** Elimina recursivamente los valores `undefined` de un objeto antes de enviarlo
+ *  a Firestore (que rechaza `undefined` pero acepta `null` o campo ausente). */
+function stripUndefined(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(stripUndefined)
+  if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      if (v !== undefined) out[k] = stripUndefined(v)
+    }
+    return out
+  }
+  return obj
+}
+
 function articulosCol()   { return collection(db!, 'articulos') }
 function portafolioCol()  { return collection(db!, 'portafolio') }
 function planesCol()      { return collection(db!, 'precios_planes') }
@@ -698,11 +713,12 @@ export async function saveCliente(
 
 export async function updateCliente(id: string, data: Partial<Cliente>): Promise<void> {
   if (!firebaseReady || !db) return
-  await updateDoc(doc(db!, 'clientes', id), { ...data, updatedAt: serverTimestamp() })
-  const token = data.access_token
+  const clean = stripUndefined(data) as Partial<Cliente>
+  await updateDoc(doc(db!, 'clientes', id), { ...clean, updatedAt: serverTimestamp() })
+  const token = clean.access_token
   if (token) {
     await setDoc(doc(db!, 'portales', token), {
-      ...portalPayload(data),
+      ...portalPayload(clean),
       clienteId: id,
       updatedAt:  serverTimestamp(),
     }, { merge: true })
