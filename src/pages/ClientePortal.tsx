@@ -413,8 +413,9 @@ export default function ClientePortal() {
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))', gap:'14px' }}>
                 {([
                   {
-                    label:'Posts publicados', value: String(publicados.length),
-                    sub: `de ${parrilla.length} en parrilla`,
+                    label:'Posts publicados',
+                    value: mesActual?.posts_publicados != null ? String(mesActual.posts_publicados) : String(publicados.length),
+                    sub: mesActual?.posts_publicados != null ? 'según métricas del mes' : `de ${parrilla.length} en parrilla`,
                     grad:'linear-gradient(135deg, #0F0520, #2D0A5E)',
                     icon:'📅', accent:'#A78BFA',
                   },
