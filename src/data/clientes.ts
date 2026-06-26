@@ -90,17 +90,29 @@ export type Solicitud = {
 }
 
 export type MetricaMes = {
-  mes:                string   // YYYY-MM
-  plataforma?:        string   // "ig" | "fb" | "tk" | "tw" | "li" | "yt" — si aplica a una red específica
+  mes:                string
+  plataforma?:        string
   alcance?:           number
   impresiones?:       number
   likes?:             number
   comentarios?:       number
   guardados?:         number
   compartidos?:       number
-  seguidores?:        number   // nuevos seguidores ese mes
-  engagement?:        number   // porcentaje, ej: 4.5
+  seguidores?:        number
+  engagement?:        number
   posts_publicados?:  number
+  // Audiencia
+  pct_mujeres?:       number
+  pct_hombres?:       number
+  edad_principal?:    string   // ej: "25-34"
+  ciudad_top?:        string   // ej: "Manizales"
+  // Distribución por tipo de contenido
+  pct_historias?:      number
+  pct_publicaciones?:  number
+  pct_reels?:          number
+  // Actividad del perfil
+  visitas_perfil?:    number
+  clics_enlace?:      number
 }
 
 export type PlanMes = {

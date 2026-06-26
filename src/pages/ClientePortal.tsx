@@ -525,6 +525,98 @@ export default function ClientePortal() {
                 </div>
               )}
 
+              {/* ══ AUDIENCIA DEL MES ══ */}
+              {mesActual && (mesActual.pct_mujeres != null || mesActual.pct_hombres != null || !!mesActual.edad_principal || !!mesActual.ciudad_top || mesActual.pct_historias != null || mesActual.pct_publicaciones != null || mesActual.pct_reels != null || mesActual.visitas_perfil != null || mesActual.clics_enlace != null) && (
+                <div style={{ background:'#fff', borderRadius:'20px', border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <div style={{ padding:'18px 22px 14px', borderBottom:'1px solid #F3F4F6' }}>
+                    <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#111' }}>👥 Audiencia del mes</p>
+                    <p style={{ margin:'2px 0 0', fontSize:'12px', color:'#9CA3AF' }}>
+                      {(() => { const [y,mo] = mesActual.mes.split('-'); return new Date(+y, +mo-1, 1).toLocaleDateString('es-CO',{month:'long', year:'numeric'}) })()} · Instagram Insights
+                    </p>
+                  </div>
+                  <div style={{ padding:'18px 22px', display:'flex', flexDirection:'column', gap:'18px' }}>
+
+                    {/* Género */}
+                    {(mesActual.pct_mujeres != null || mesActual.pct_hombres != null) && (
+                      <div>
+                        <p style={{ margin:'0 0 8px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Género</p>
+                        <div style={{ display:'flex', gap:'8px', marginBottom:'8px', flexWrap:'wrap' }}>
+                          {mesActual.pct_mujeres != null && <span style={{ background:'rgba(236,72,153,0.12)', color:'#BE185D', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♀ Mujeres {mesActual.pct_mujeres}%</span>}
+                          {mesActual.pct_hombres != null && <span style={{ background:'rgba(59,130,246,0.12)', color:'#1D4ED8', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♂ Hombres {mesActual.pct_hombres}%</span>}
+                        </div>
+                        {mesActual.pct_mujeres != null && mesActual.pct_hombres != null && (
+                          <div style={{ height:'8px', borderRadius:'4px', overflow:'hidden', display:'flex' }}>
+                            <div style={{ width:`${mesActual.pct_mujeres}%`, background:'linear-gradient(90deg,#EC4899,#F472B6)', transition:'width 0.6s ease' }} />
+                            <div style={{ flex:1, background:'linear-gradient(90deg,#60A5FA,#3B82F6)' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Edad + Ciudad */}
+                    {(mesActual.edad_principal || mesActual.ciudad_top) && (
+                      <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
+                        {mesActual.edad_principal && (
+                          <div style={{ flex:1, minWidth:'130px', background:'rgba(107,33,168,0.06)', borderRadius:'12px', padding:'14px 16px' }}>
+                            <p style={{ margin:'0 0 3px', fontSize:'11px', color:'#9CA3AF', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Edad principal</p>
+                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:P }}>{mesActual.edad_principal} <span style={{ fontSize:'13px', fontWeight:600, color:'#9CA3AF' }}>años</span></p>
+                          </div>
+                        )}
+                        {mesActual.ciudad_top && (
+                          <div style={{ flex:1, minWidth:'130px', background:'rgba(5,150,105,0.06)', borderRadius:'12px', padding:'14px 16px' }}>
+                            <p style={{ margin:'0 0 3px', fontSize:'11px', color:'#9CA3AF', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Ciudad principal</p>
+                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:'#059669' }}>{mesActual.ciudad_top}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Distribución por tipo */}
+                    {(mesActual.pct_historias != null || mesActual.pct_publicaciones != null || mesActual.pct_reels != null) && (
+                      <div>
+                        <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Visualizaciones por formato</p>
+                        <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                          {([
+                            { label:'Historias',     pct: mesActual.pct_historias,     color:'#8B5CF6' },
+                            { label:'Publicaciones', pct: mesActual.pct_publicaciones, color:'#EC4899' },
+                            { label:'Reels',         pct: mesActual.pct_reels,         color:'#F59E0B' },
+                          ] as { label: string; pct: number | undefined; color: string }[]).filter(x => x.pct != null).map(x => (
+                            <div key={x.label} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                              <span style={{ fontSize:'12px', color:'#6B7280', minWidth:'95px', fontWeight:600 }}>{x.label}</span>
+                              <div style={{ flex:1, height:'22px', background:'#F9FAFB', borderRadius:'6px', overflow:'hidden', position:'relative' }}>
+                                <div style={{ height:'100%', width:`${x.pct}%`, background: x.color, borderRadius:'6px', display:'flex', alignItems:'center', paddingLeft:'8px', transition:'width 0.6s ease' }}>
+                                  {(x.pct ?? 0) > 18 && <span style={{ fontSize:'11px', fontWeight:800, color:'#fff' }}>{x.pct}%</span>}
+                                </div>
+                                {(x.pct ?? 0) <= 18 && <span style={{ position:'absolute', left:`${(x.pct ?? 0) + 1}%`, top:'50%', transform:'translateY(-50%)', marginLeft:'4px', fontSize:'11px', fontWeight:700, color: x.color }}>{x.pct}%</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actividad del perfil */}
+                    {(mesActual.visitas_perfil != null || mesActual.clics_enlace != null) && (
+                      <div style={{ display:'flex', gap:'16px', flexWrap:'wrap', paddingTop:'4px', borderTop:'1px solid #F9FAFB' }}>
+                        {mesActual.visitas_perfil != null && (
+                          <div style={{ textAlign:'center', flex:1, minWidth:'100px' }}>
+                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesActual.visitas_perfil.toLocaleString()}</p>
+                            <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>🔍 Visitas al perfil</p>
+                          </div>
+                        )}
+                        {mesActual.clics_enlace != null && (
+                          <div style={{ textAlign:'center', flex:1, minWidth:'100px' }}>
+                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesActual.clics_enlace.toLocaleString()}</p>
+                            <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>🔗 Clics en enlace</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              )}
+
               {/* ══ MÉTRICAS ACUMULADAS (parrilla) si no hay histAdmin ══ */}
               {histAdmin.length < 2 && conMet.length > 0 && (
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))', gap:'12px' }}>

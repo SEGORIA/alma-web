@@ -1127,7 +1127,14 @@ export default function ClientesAdmin() {
                   { key: 'compartidos',      label: 'Compartidos',  icon: '↗️' },
                   { key: 'seguidores',       label: 'Nuevos segs.', icon: '👥' },
                   { key: 'engagement',       label: 'Engagement %', icon: '📈' },
-                  { key: 'posts_publicados', label: 'Posts pub.',   icon: '✅' },
+                  { key: 'posts_publicados',  label: 'Posts pub.',    icon: '✅' },
+                  { key: 'pct_mujeres',       label: 'Mujeres %',     icon: '♀' },
+                  { key: 'pct_hombres',       label: 'Hombres %',     icon: '♂' },
+                  { key: 'pct_historias',     label: 'Historias %',   icon: '📖' },
+                  { key: 'pct_publicaciones', label: 'Publicac. %',   icon: '📝' },
+                  { key: 'pct_reels',         label: 'Reels %',       icon: '🎬' },
+                  { key: 'visitas_perfil',    label: 'Visitas perfil', icon: '🔍' },
+                  { key: 'clics_enlace',      label: 'Clics enlace',  icon: '🔗' },
                 ]
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -1163,13 +1170,23 @@ export default function ClientesAdmin() {
                                       <label key={String(k.key)} style={labelStyle}>
                                         {k.icon} {k.label}
                                         <input
-                                          type="number" min={0} step={k.key === 'engagement' ? 0.1 : 1}
+                                          type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
                                           value={(newMes[k.key] as number | undefined) ?? ''}
                                           onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
                                           style={inputStyle} placeholder="0"
                                         />
                                       </label>
                                     ))}
+                                  </div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                                    <label style={labelStyle}>
+                                      👶 Edad principal
+                                      <input value={newMes.edad_principal ?? ''} onChange={e => setNewMes(n => ({ ...n, edad_principal: e.target.value || undefined }))} style={inputStyle} placeholder="25-34" />
+                                    </label>
+                                    <label style={labelStyle}>
+                                      📍 Ciudad top
+                                      <input value={newMes.ciudad_top ?? ''} onChange={e => setNewMes(n => ({ ...n, ciudad_top: e.target.value || undefined }))} style={inputStyle} placeholder="Manizales" />
+                                    </label>
                                   </div>
                                   <div style={{ display: 'flex', gap: '8px' }}>
                                     <button onClick={upsertMetricaMes} style={{ padding: '8px 18px', borderRadius: '9px', background: C1, color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '12.5px' }}>Guardar cambios</button>
@@ -1196,13 +1213,23 @@ export default function ClientesAdmin() {
                             <label key={String(k.key)} style={labelStyle}>
                               {k.icon} {k.label}
                               <input
-                                type="number" min={0} step={k.key === 'engagement' ? 0.1 : 1}
+                                type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
                                 value={(newMes[k.key] as number | undefined) ?? ''}
                                 onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
                                 style={inputStyle} placeholder="0"
                               />
                             </label>
                           ))}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                          <label style={labelStyle}>
+                            👶 Edad principal
+                            <input value={newMes.edad_principal ?? ''} onChange={e => setNewMes(n => ({ ...n, edad_principal: e.target.value || undefined }))} style={inputStyle} placeholder="25-34" />
+                          </label>
+                          <label style={labelStyle}>
+                            📍 Ciudad top
+                            <input value={newMes.ciudad_top ?? ''} onChange={e => setNewMes(n => ({ ...n, ciudad_top: e.target.value || undefined }))} style={inputStyle} placeholder="Manizales" />
+                          </label>
                         </div>
                         <button onClick={upsertMetricaMes} disabled={!newMes.mes} style={{ background: newMes.mes ? C1 : '#9CA3AF', color: '#fff', border: 'none', cursor: newMes.mes ? 'pointer' : 'default', padding: '9px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px' }}>
                           Agregar mes
