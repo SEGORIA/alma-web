@@ -5,11 +5,10 @@ import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
 } from '../../lib/db'
-import type { Cliente, Entregable, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem } from '../../data/clientes'
+import type { Cliente, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem } from '../../data/clientes'
 import {
-  CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES, ENTREGABLE_CATEGORIAS,
+  CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
-  ENTREGABLE_REVISION_ESTADOS,
 } from '../../data/clientes'
 import { ListSkeleton } from '../../components/admin/Loading'
 import { ADM } from '../../lib/adminTheme'
@@ -19,7 +18,7 @@ const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, BLUE, INP
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'entregables' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
+type ModalTab = 'perfil' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -68,7 +67,6 @@ export default function ClientesAdmin() {
   const [saveMsg,    setSaveMsg]    = useState('')
 
   /* sub-forms */
-  const [newE, setNewE] = useState<Partial<Entregable>>({ categoria: 'branding', nombre: '', url: '' })
   const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
   const [editingParrillaId, setEditingParrillaId] = useState<string | null>(null)
   const [newMes, setNewMes] = useState<Partial<MetricaMes>>({ mes: '' })
@@ -164,23 +162,6 @@ export default function ClientesAdmin() {
     await deleteCliente(id)
     setClientes(prev => prev.filter(c => c._id !== id))
     setConfirmId(null)
-  }
-
-  function addEntregable() {
-    if (!newE.nombre?.trim() || !newE.url?.trim()) return
-    const item: Entregable = {
-      id: newId(),
-      categoria: newE.categoria ?? 'otro',
-      nombre: newE.nombre.trim(),
-      url: newE.url.trim(),
-      descripcion: newE.descripcion?.trim(),
-    }
-    setForm(f => ({ ...f, entregables: [...f.entregables, item] }))
-    setNewE({ categoria: 'branding', nombre: '', url: '' })
-  }
-
-  function removeEntregable(id: string) {
-    setForm(f => ({ ...f, entregables: f.entregables.filter(e => e.id !== id) }))
   }
 
   function addParrillaItem() {
@@ -586,12 +567,11 @@ export default function ClientesAdmin() {
             }}>
               {([
                 { key: 'perfil',      label: '👤 Perfil' },
-                { key: 'entregables', label: `📋 Contenido (${form.entregables.length})` },
+                { key: 'estrategia',  label: '🗂️ Tablero & Estrategia' },
                 { key: 'parrilla',    label: `📅 Parrilla (${form.parrilla.length})` },
                 { key: 'solicitudes', label: `💬 Solicitudes (${form.solicitudes.length})` },
                 { key: 'metricas',    label: `📊 Métricas (${(form.metricas_historico ?? []).length})` },
                 { key: 'portal',      label: '🔗 Portal' },
-                { key: 'estrategia',  label: '🎯 Estrategia' },
                 { key: 'accesos',     label: `🔐 Accesos (${(form.accesos ?? []).length})` },
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
@@ -803,115 +783,6 @@ export default function ClientesAdmin() {
                       placeholder="Solo visible para el equipo de Alma…"
                       style={{ ...inputStyle, resize: 'vertical', background: '#FEFCE8', borderColor: '#FDE68A' }}
                     />
-                  </div>
-                </div>
-              )}
-
-              {/* ─ CONTENIDO ─ */}
-              {tab === 'entregables' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {form.entregables.length === 0 ? (
-                    <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '24px 0' }}>Sin contenidos aún. Agrega el primero abajo.</p>
-                  ) : (
-                    form.entregables.map(e => {
-                      const cat    = ENTREGABLE_CATEGORIAS.find(c => c.key === e.categoria)
-                      const revEst = ENTREGABLE_REVISION_ESTADOS.find(x => x.value === (e.estado_revision ?? 'pendiente_revision'))
-                      const comentarios = e.comentarios ?? []
-                      return (
-                        <div key={e.id} style={{
-                          background: '#fff', borderRadius: '12px',
-                          border: '1px solid #E5E7EB',
-                          borderLeft: `4px solid ${cat?.color ?? '#E5E7EB'}`,
-                          overflow: 'hidden',
-                        }}>
-                          {/* Fila principal */}
-                          <div style={{ padding: '14px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <span style={{
-                              width: '36px', height: '36px', borderRadius: '10px',
-                              background: (cat?.color ?? '#6B7280') + '20',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '18px', flexShrink: 0,
-                            }}>{cat?.icon ?? '📦'}</span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px', flexWrap: 'wrap' }}>
-                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#111' }}>{e.nombre}</p>
-                                <span style={{ padding: '2px 8px', borderRadius: '20px', background: revEst?.bg ?? '#F3F4F6', color: revEst?.color ?? '#6B7280', fontSize: '10.5px', fontWeight: 800 }}>
-                                  {revEst?.icon} {revEst?.label}
-                                </span>
-                                {comentarios.length > 0 && (
-                                  <span style={{ fontSize: '11px', color: '#9CA3AF' }}>💬 {comentarios.length}</span>
-                                )}
-                              </div>
-                              {e.descripcion && <p style={{ margin: '0 0 3px', fontSize: '12px', color: '#6B7280' }}>{e.descripcion}</p>}
-                              <a href={e.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#6B21A8', wordBreak: 'break-all' }}>{e.url}</a>
-                            </div>
-                            <button onClick={() => removeEntregable(e.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: '18px', flexShrink: 0, lineHeight: 1 }}>×</button>
-                          </div>
-
-                          {/* Comentarios del cliente */}
-                          {comentarios.length > 0 && (
-                            <div style={{ padding: '10px 16px 14px', background: '#FAFAFA', borderTop: '1px solid #F3F4F6' }}>
-                              <p style={{ margin: '0 0 8px', fontSize: '10.5px', fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                Comentarios del cliente
-                              </p>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {comentarios.map(c => {
-                                  const isAprov = c.tipo === 'aprobacion'
-                                  return (
-                                    <div key={c.id} style={{
-                                      padding: '8px 10px', borderRadius: '8px',
-                                      background: isAprov ? '#F0FDF4' : '#FFF1F2',
-                                      border: `1px solid ${isAprov ? '#BBF7D0' : '#FECDD3'}`,
-                                      display: 'flex', gap: '8px', alignItems: 'flex-start',
-                                    }}>
-                                      <span style={{ fontSize: '13px', flexShrink: 0 }}>{isAprov ? '✅' : '🔄'}</span>
-                                      <div style={{ flex: 1 }}>
-                                        <p style={{ margin: '0 0 2px', fontSize: '11px', fontWeight: 800, color: isAprov ? '#059669' : '#DC2626' }}>
-                                          {isAprov ? 'Aprobación' : 'Ajuste solicitado'} · {c.autor === 'cliente' ? 'Cliente' : 'Alma'}
-                                          {c.createdAt ? ` · ${new Date(c.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}` : ''}
-                                        </p>
-                                        <p style={{ margin: 0, fontSize: '12.5px', color: '#374151' }}>{c.texto}</p>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })
-                  )}
-
-                  {/* Formulario agregar contenido */}
-                  <div style={{ background: '#F0FDF4', border: '1.5px dashed #86EFAC', borderRadius: '14px', padding: '18px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Subir contenido</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                      <label style={labelStyle}>
-                        Categoría
-                        <select value={newE.categoria} onChange={e => setNewE(n => ({ ...n, categoria: e.target.value as Entregable['categoria'] }))} style={inputStyle}>
-                          {ENTREGABLE_CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
-                        </select>
-                      </label>
-                      <label style={labelStyle}>
-                        Nombre del contenido *
-                        <input value={newE.nombre ?? ''} onChange={e => setNewE(n => ({ ...n, nombre: e.target.value }))} style={inputStyle} placeholder="Ej: Logo principal" />
-                      </label>
-                    </div>
-                    <label style={{ ...labelStyle, marginBottom: '10px' }}>
-                      URL del archivo / link *
-                      <input value={newE.url ?? ''} onChange={e => setNewE(n => ({ ...n, url: e.target.value }))} style={inputStyle} placeholder="https://drive.google.com/…" />
-                    </label>
-                    <label style={{ ...labelStyle, marginBottom: '12px' }}>
-                      Descripción (opcional)
-                      <input value={newE.descripcion ?? ''} onChange={e => setNewE(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="Contexto breve para el cliente" />
-                    </label>
-                    <button onClick={addEntregable} style={{
-                      background: C1, color: '#fff', border: 'none', cursor: 'pointer',
-                      padding: '9px 20px', borderRadius: '10px', fontWeight: 700, fontSize: '13px',
-                    }}>
-                      Subir contenido
-                    </button>
                   </div>
                 </div>
               )}
@@ -1419,7 +1290,7 @@ export default function ClientesAdmin() {
                       { label: 'Email', value: form.email || '—' },
                       { label: 'Estado', value: CLIENTE_ESTADOS.find(e => e.value === form.estado)?.label ?? form.estado },
                       { label: 'Servicios', value: form.servicios.length > 0 ? form.servicios.join(', ') : '—' },
-                      { label: 'Entregables', value: String(form.entregables.length) },
+                      { label: 'Meses en tablero', value: String((form.parrilla_meses ?? []).length) },
                       { label: 'Items en parrilla', value: String(form.parrilla.length) },
                       { label: 'Solicitudes', value: String(form.solicitudes.length) },
                     ].map(row => (
@@ -1511,9 +1382,12 @@ export default function ClientesAdmin() {
                       </div>
                     </div>
 
-                    {/* ── Tablero Trello por meses ── */}
-                    <div>
-                      {sectionHdr('📋 Tablero Trello por meses')}
+                    {/* ── Tablero de Contenido por meses (primero: es lo que ve el cliente) ── */}
+                    <div style={{ order: -1 }}>
+                      {sectionHdr('🗂️ Tablero de Contenido — espacios del mes')}
+                      <p style={{ fontSize: '12px', color: MUT, margin: '-4px 0 14px', lineHeight: 1.6 }}>
+                        Cada mes que agregues aquí aparece como columna en el portal del cliente. Dentro de cada mes pega los enlaces de Google&nbsp;Drive de <strong style={{ color: WHT }}>Post/Carruseles</strong>, <strong style={{ color: WHT }}>Reels</strong> e <strong style={{ color: WHT }}>Historias</strong> (esos son los “espacios” que el cliente abre), la estrategia en HTML y los extras.
+                      </p>
 
                       {/* Lista de meses existentes */}
                       {(form.parrilla_meses ?? []).length > 0 && (
@@ -1593,7 +1467,7 @@ export default function ClientesAdmin() {
                                       <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:GRN, textTransform:'uppercase', letterSpacing:'0.5px' }}>🗂️ Bloque 2 — Accesos Google Drive</p>
                                       <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                                         <label style={labelStyle}>
-                                          POST — URL Drive
+                                          POST / CARRUSELES — URL Drive
                                           <input value={mes.drive_links?.post ?? ''} onChange={e => updateTrelloMes(mes.id, { drive_links: { ...mes.drive_links, post: e.target.value || undefined } })} style={inputStyle} placeholder="https://drive.google.com/..." />
                                         </label>
                                         <label style={labelStyle}>
@@ -1901,7 +1775,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
       {/* Stats rows */}
       <div style={{ padding: '8px 16px', cursor: 'pointer' }} onClick={onEdit}>
         {([
-          { label: 'Contenido', val: `${cliente.entregables.length} piezas` },
+          { label: 'Tablero',   val: `${(cliente.parrilla_meses ?? []).length} mes${(cliente.parrilla_meses ?? []).length !== 1 ? 'es' : ''}` },
           { label: 'Parrilla',  val: `${cliente.parrilla.length} posts` },
           ...(cliente.valor_contrato ? [{ label: 'Contrato', val: `${cliente.valor_contrato}${cliente.moneda ? ` ${cliente.moneda}` : ''}` }] : []),
           ...(cliente.acomp_eventos ? [{ label: '🎪 Eventos', val: 'Incluido' }] : []),
