@@ -1803,7 +1803,7 @@ function ClienteCard({ cliente, onEdit, onDelete, portalBase }: {
       <div style={{ padding: '8px 16px', cursor: 'pointer' }} onClick={onEdit}>
         {([
           { label: 'Tablero',   val: `${(cliente.parrilla_meses ?? []).length} mes${(cliente.parrilla_meses ?? []).length !== 1 ? 'es' : ''}` },
-          { label: 'Parrilla',  val: `${cliente.parrilla.length} posts` },
+          { label: 'Parrilla',  val: (() => { const n = cliente.parrilla.length || (cliente.metricas_historico?.[0]?.posts_publicados ?? 0); return `${n} posts` })() },
           ...(cliente.valor_contrato ? [{ label: 'Contrato', val: `${cliente.valor_contrato}${cliente.moneda ? ` ${cliente.moneda}` : ''}` }] : []),
           ...(cliente.acomp_eventos ? [{ label: '🎪 Eventos', val: 'Incluido' }] : []),
           ...((cliente.grabaciones_mes ?? 0) > 0 ? [{ label: '🎬 Grabaciones', val: `${cliente.grabaciones_mes}/mes` }] : []),
