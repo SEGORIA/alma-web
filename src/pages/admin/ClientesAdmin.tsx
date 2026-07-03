@@ -807,8 +807,8 @@ export default function ClientesAdmin() {
                           </div>
                         </div>
 
-                        {/* Fila 1: Día, Semana, Fecha, Red, Tipo, Duración */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px', marginBottom: '12px' }}>
+                        {/* Fila 1: Día, Semana, Fecha, Hora, Red, Tipo, Duración */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '10px', marginBottom: '12px' }}>
                           <label style={labelStyle}>
                             Día #
                             <input type="number" value={ep.dia_num ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, dia_num: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
@@ -820,6 +820,10 @@ export default function ClientesAdmin() {
                           <label style={labelStyle}>
                             Fecha *
                             <input type="date" value={ep.fecha ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, fecha: e.target.value }))} style={inputStyle} />
+                          </label>
+                          <label style={labelStyle}>
+                            Hora
+                            <input type="time" value={ep.hora ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, hora: e.target.value || undefined }))} style={inputStyle} />
                           </label>
                           <label style={labelStyle}>
                             Red
@@ -996,7 +1000,7 @@ export default function ClientesAdmin() {
                   {/* ── Formulario agregar nuevo ── */}
                   <div style={{ background: '#F0FDF4', border: '1.5px dashed #86EFAC', borderRadius: '14px', padding: '18px' }}>
                     <p style={{ fontSize: '12px', fontWeight: 800, color: C1, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>+ Agregar a la parrilla</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '10px', marginBottom: '10px' }}>
                       <label style={labelStyle}>
                         Día #
                         <input type="number" value={newP.dia_num ?? ''} onChange={e => setNewP(n => ({ ...n, dia_num: e.target.value ? +e.target.value : undefined }))} style={inputStyle} placeholder="1" min={1} />
@@ -1008,6 +1012,10 @@ export default function ClientesAdmin() {
                       <label style={labelStyle}>
                         Fecha *
                         <input type="date" value={newP.fecha ?? ''} onChange={e => setNewP(n => ({ ...n, fecha: e.target.value }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Hora
+                        <input type="time" value={newP.hora ?? ''} onChange={e => setNewP(n => ({ ...n, hora: e.target.value || undefined }))} style={inputStyle} />
                       </label>
                       <label style={labelStyle}>
                         Red

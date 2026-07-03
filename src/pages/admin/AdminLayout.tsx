@@ -28,6 +28,7 @@ const NEGOCIO: NavEntry[] = [
   { label: '💳 Cuentas de Cobro',   to: '/admin/cuentas-cobro' },
   { label: '💼 Finanzas',           to: '/admin/finanzas' },
   { label: '✅ Tareas',             to: '/admin/tareas' },
+  { label: '📅 Calendario',         to: '/admin/calendario' },
   { label: '🎓 Academia',           to: '/admin/academia' },
 ]
 

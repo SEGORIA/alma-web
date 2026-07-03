@@ -54,6 +54,7 @@ export type ParrillaItem = {
   dia_num?:    number        // 1, 2, 3… (dentro del plan)
   semana?:     number        // 1, 2, 3…
   fecha:       string        // YYYY-MM-DD
+  hora?:       string        // HH:MM (hora de publicación)
   // Formato
   red:         string        // Instagram, TikTok, etc.
   tipo:        string        // Reel, Carrusel, Post, Story, Video

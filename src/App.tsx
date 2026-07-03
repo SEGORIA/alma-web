@@ -64,6 +64,7 @@ const CotizacionesAdmin   = lazy(() => import('./pages/admin/CotizacionesAdmin')
 const CuentasCobroAdmin   = lazy(() => import('./pages/admin/CuentasCobroAdmin'))
 const AcademiaAdmin       = lazy(() => import('./pages/admin/AcademiaAdmin'))
 const TareasAdmin         = lazy(() => import('./pages/admin/TareasAdmin'))
+const CalendarioAdmin     = lazy(() => import('./pages/admin/CalendarioAdmin'))
 const EquipoPortalPage    = lazy(() => import('./pages/EquipoPortal'))
 
 const NAV_LINKS = [
@@ -644,6 +645,7 @@ export default function App() {
         <Route path="/admin/cuentas-cobro" element={<RequireAuth><CuentasCobroAdmin /></RequireAuth>} />
         <Route path="/admin/academia"      element={<RequireAuth><AcademiaAdmin /></RequireAuth>} />
         <Route path="/admin/tareas"        element={<RequireAuth><TareasAdmin /></RequireAuth>} />
+        <Route path="/admin/calendario"    element={<RequireAuth><CalendarioAdmin /></RequireAuth>} />
       </Routes>
     </Suspense>
   )

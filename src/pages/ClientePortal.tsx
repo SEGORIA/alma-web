@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
-import type { Cliente, Solicitud } from '../data/clientes'
+import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
 import {
   PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
@@ -74,6 +74,10 @@ export default function ClientePortal() {
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
   const [visiblePasswords,    setVisiblePasswords]    = useState<Set<string>>(new Set())
   const [copiedKey,           setCopiedKey]           = useState<string | null>(null)
+  // Calendario editorial
+  const [parrillaView,  setParrillaView]  = useState<'tablero' | 'calendario'>('tablero')
+  const [calMes,        setCalMes]        = useState(() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() } })
+  const [calModalPosts, setCalModalPosts] = useState<ParrillaItem[] | null>(null)
 
   function copyToClipboard(key: string, value: string) {
     navigator.clipboard.writeText(value).then(() => {
@@ -818,6 +822,166 @@ export default function ClientePortal() {
             )
           }
 
+          // ── Calendario editorial ──
+          if (parrillaView === 'calendario') {
+            const parrilla = data.parrilla ?? []
+            const { year, month } = calMes
+            const firstDay = new Date(year, month, 1).getDay()
+            const daysInMonth = new Date(year, month + 1, 0).getDate()
+            const cells: (number | null)[] = []
+            for (let i = 0; i < firstDay; i++) cells.push(null)
+            for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+            while (cells.length % 7 !== 0) cells.push(null)
+            const postsByDay: Record<number, ParrillaItem[]> = {}
+            parrilla.forEach(p => {
+              if (!p.fecha) return
+              const [y, m, d] = p.fecha.split('-').map(Number)
+              if (y === year && m === month + 1) {
+                if (!postsByDay[d]) postsByDay[d] = []
+                postsByDay[d].push(p)
+              }
+            })
+            const RED_COLOR: Record<string, string> = {
+              'Instagram':'#E1306C','TikTok':'#010101','Facebook':'#1877F2',
+              'YouTube':'#FF0000','LinkedIn':'#0A66C2','X':'#1DA1F2',
+            }
+            const monthLabel = new Date(year, month, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
+            const todayD = new Date()
+            const prevM = () => setCalMes(({ year:y, month:m }) => m === 0 ? { year:y-1, month:11 } : { year:y, month:m-1 })
+            const nextM = () => setCalMes(({ year:y, month:m }) => m === 11 ? { year:y+1, month:0 } : { year:y, month:m+1 })
+
+            return (
+              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', background:'linear-gradient(160deg,#0E0322 0%,#1A0640 55%,#2D0C72 100%)', minHeight:'calc(100vh - 96px)', padding:'24px 28px 40px', animation:'fadeUp 0.35s ease' }}>
+
+                {/* Header: toggle + navegación mes */}
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px', flexWrap:'wrap', gap:'12px' }}>
+                  <div style={{ display:'flex', gap:'4px', background:'rgba(255,255,255,0.07)', borderRadius:'12px', padding:'3px' }}>
+                    <button onClick={() => setParrillaView('tablero')} style={{ padding:'7px 16px', borderRadius:'9px', background:'transparent', border:'none', color:'rgba(255,255,255,0.5)', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>📋 Tablero</button>
+                    <button style={{ padding:'7px 16px', borderRadius:'9px', background:'rgba(255,255,255,0.14)', border:'none', color:'#fff', fontSize:'12px', fontWeight:800, cursor:'default' }}>📅 Calendario</button>
+                  </div>
+                  <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
+                    <button onClick={prevM} style={{ width:'32px', height:'32px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
+                    <span style={{ fontSize:'14px', fontWeight:800, color:'#fff', textTransform:'capitalize', minWidth:'160px', textAlign:'center' }}>{monthLabel}</span>
+                    <button onClick={nextM} style={{ width:'32px', height:'32px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
+                  </div>
+                </div>
+
+                {/* Nombres de días */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'4px', marginBottom:'4px' }}>
+                  {['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(d => (
+                    <div key={d} style={{ textAlign:'center', fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.3)', padding:'4px 0', textTransform:'uppercase', letterSpacing:'0.5px' }}>{d}</div>
+                  ))}
+                </div>
+
+                {/* Grid de días */}
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'4px' }}>
+                  {cells.map((day, i) => {
+                    const posts = day ? (postsByDay[day] ?? []) : []
+                    const isToday = day !== null && todayD.getFullYear() === year && todayD.getMonth() === month && todayD.getDate() === day
+                    const hasPosts = posts.length > 0
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => hasPosts && setCalModalPosts(posts)}
+                        style={{
+                          minHeight:'72px', background: day ? (hasPosts ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)') : 'transparent',
+                          borderRadius:'10px', padding:'6px 5px 5px',
+                          cursor: hasPosts ? 'pointer' : 'default',
+                          border: isToday ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid transparent',
+                          transition:'background 0.15s',
+                          ...(hasPosts ? { ':hover': { background:'rgba(255,255,255,0.12)' } } : {}),
+                        }}
+                      >
+                        {day !== null && (
+                          <>
+                            <p style={{ margin:'0 0 5px', fontSize:'11px', fontWeight: isToday ? 900 : 500, color: isToday ? '#A78BFA' : 'rgba(255,255,255,0.45)', textAlign:'right', lineHeight:1 }}>{day}</p>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'3px' }}>
+                              {posts.slice(0, 3).map(p => (
+                                <div key={p.id} title={`${p.red} · ${p.tipo}`} style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[p.red] ?? '#6B7280', flexShrink:0 }} />
+                              ))}
+                              {posts.length > 3 && <span style={{ fontSize:'9px', color:'rgba(255,255,255,0.4)', lineHeight:'9px', marginLeft:'1px' }}>+{posts.length-3}</span>}
+                            </div>
+                            {posts.length > 0 && (
+                              <p style={{ margin:'4px 0 0', fontSize:'9px', color:'rgba(255,255,255,0.35)', lineHeight:1.2, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>
+                                {posts[0].tipo}{posts.length > 1 ? ` +${posts.length-1}` : ''}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Leyenda redes */}
+                <div style={{ marginTop:'20px', display:'flex', gap:'14px', flexWrap:'wrap' }}>
+                  {Object.entries(RED_COLOR).map(([red, color]) => {
+                    if (!parrilla.some(p => p.red === red)) return null
+                    return (
+                      <div key={red} style={{ display:'flex', alignItems:'center', gap:'5px' }}>
+                        <div style={{ width:'8px', height:'8px', borderRadius:'50%', background:color }} />
+                        <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.4)', fontWeight:600 }}>{red}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Modal detalle del día */}
+                {calModalPosts && (
+                  <div onClick={e => { if (e.target === e.currentTarget) setCalModalPosts(null) }} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.72)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px', backdropFilter:'blur(6px)' }}>
+                    <div style={{ background:'linear-gradient(160deg,#1A0640,#2D0C72)', borderRadius:'22px', padding:'24px', maxWidth:'540px', width:'100%', maxHeight:'88vh', overflowY:'auto', border:'1px solid rgba(255,255,255,0.12)', boxShadow:'0 24px 60px rgba(0,0,0,0.7)' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px' }}>
+                        <p style={{ margin:0, fontSize:'16px', fontWeight:900, color:'#fff' }}>
+                          📅 {calModalPosts[0]?.fecha}{calModalPosts[0]?.hora ? ` · ${calModalPosts[0].hora}` : ''}
+                        </p>
+                        <button onClick={() => setCalModalPosts(null)} style={{ background:'rgba(255,255,255,0.1)', border:'none', color:'rgba(255,255,255,0.7)', borderRadius:'9px', padding:'6px 14px', cursor:'pointer', fontSize:'13px', fontWeight:700 }}>✕</button>
+                      </div>
+                      {calModalPosts.map(post => {
+                        const estColor = post.estado === 'publicado' ? {bg:'#D1FAE5',color:'#065F46',label:'✅ Publicado'} : post.estado === 'aprobado' ? {bg:'#DBEAFE',color:'#1E40AF',label:'👍 Aprobado'} : post.estado === 'pendiente_aprobacion' ? {bg:'#FEF3C7',color:'#92400E',label:'⏳ Pendiente'} : {bg:'#F3F4F6',color:'#6B7280',label:'📝 Borrador'}
+                        return (
+                          <div key={post.id} style={{ background:'rgba(255,255,255,0.05)', borderRadius:'16px', padding:'18px', marginBottom:'12px', border:'1px solid rgba(255,255,255,0.08)' }}>
+                            <div style={{ display:'flex', gap:'8px', alignItems:'center', marginBottom:'12px', flexWrap:'wrap' }}>
+                              <div style={{ width:'10px', height:'10px', borderRadius:'50%', background: RED_COLOR[post.red] ?? '#6B7280', flexShrink:0 }} />
+                              <span style={{ fontSize:'13px', fontWeight:800, color:'#fff' }}>{post.red}</span>
+                              <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.35)' }}>·</span>
+                              <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.6)' }}>{post.tipo}</span>
+                              {post.hora && <span style={{ fontSize:'12px', color:'#A78BFA', fontWeight:700 }}>🕐 {post.hora}</span>}
+                              <span style={{ marginLeft:'auto', fontSize:'11px', fontWeight:700, padding:'3px 9px', borderRadius:'20px', background:estColor.bg, color:estColor.color }}>{estColor.label}</span>
+                            </div>
+                            <p style={{ margin:'0 0 6px', fontSize:'15px', fontWeight:900, color:'#fff', lineHeight:1.4 }}>{post.descripcion}</p>
+                            {post.subtitulo && <p style={{ margin:'0 0 10px', fontSize:'13px', color:'rgba(255,255,255,0.45)' }}>{post.subtitulo}</p>}
+                            {post.caption && (
+                              <div style={{ marginBottom:'10px' }}>
+                                <p style={{ margin:'0 0 4px', fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Caption</p>
+                                <div style={{ background:'rgba(0,0,0,0.35)', borderRadius:'10px', padding:'12px 14px' }}>
+                                  <p style={{ margin:'0 0 8px', fontSize:'12px', color:'rgba(255,255,255,0.7)', whiteSpace:'pre-wrap', lineHeight:1.55 }}>{post.caption}</p>
+                                  <button onClick={() => navigator.clipboard.writeText(post.caption!)} style={{ background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.3)', color:'#A78BFA', borderRadius:'7px', padding:'5px 12px', fontSize:'11px', fontWeight:800, cursor:'pointer' }}>
+                                    Copiar caption
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            {post.hashtags && <p style={{ margin:'0 0 8px', fontSize:'12px', color:'#A78BFA', fontFamily:'monospace', lineHeight:1.5 }}>{post.hashtags}</p>}
+                            {post.cta && <p style={{ margin:'0 0 8px', fontSize:'12px', fontWeight:700, color:'#FCD34D' }}>CTA: {post.cta}</p>}
+                            {post.instrucciones && (
+                              <div style={{ marginTop:'8px' }}>
+                                <p style={{ margin:'0 0 4px', fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Instrucciones de publicación</p>
+                                {post.instrucciones.split('\n').filter(Boolean).map((line, li) => (
+                                  <p key={li} style={{ margin:'0 0 2px', fontSize:'12px', color:'rgba(255,255,255,0.55)' }}>• {line}</p>
+                                ))}
+                              </div>
+                            )}
+                            {post.link && <a href={post.link} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:'10px', fontSize:'12px', color:'#60A5FA', fontWeight:700 }}>Ver publicación →</a>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          }
+
           // ── Tablero Trello (siempre visible — placeholders si no hay meses) ──
           {
             const boardIsPlaceholder = parrillaMeses.length === 0
@@ -840,11 +1004,12 @@ export default function ClientePortal() {
                 padding:'24px 40px 40px',
                 animation:'fadeUp 0.35s ease',
               }}>
-                {/* Título del tablero */}
-                <div style={{ marginBottom:'20px', display:'flex', alignItems:'center', gap:'12px' }}>
-                  <p style={{ margin:0, fontSize:'12px', fontWeight:800, color:'rgba(255,255,255,0.35)', textTransform:'uppercase', letterSpacing:'1.5px' }}>
-                    Tablero de contenido
-                  </p>
+                {/* Título del tablero + toggle calendario */}
+                <div style={{ marginBottom:'20px', display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
+                  <div style={{ display:'flex', gap:'4px', background:'rgba(255,255,255,0.07)', borderRadius:'12px', padding:'3px', flexShrink:0 }}>
+                    <button style={{ padding:'7px 16px', borderRadius:'9px', background:'rgba(255,255,255,0.14)', border:'none', color:'#fff', fontSize:'12px', fontWeight:800, cursor:'default' }}>📋 Tablero</button>
+                    <button onClick={() => setParrillaView('calendario')} style={{ padding:'7px 16px', borderRadius:'9px', background:'transparent', border:'none', color:'rgba(255,255,255,0.5)', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>📅 Calendario</button>
+                  </div>
                   <div style={{ flex:1, height:'1px', background:'rgba(255,255,255,0.07)' }} />
                   {parrillaMeses.length === 0 && (
                     <span style={{ fontSize:'10px', fontWeight:700, color:'rgba(255,193,7,0.7)', background:'rgba(255,193,7,0.1)', border:'1px solid rgba(255,193,7,0.2)', borderRadius:'20px', padding:'3px 10px', whiteSpace:'nowrap' }}>
