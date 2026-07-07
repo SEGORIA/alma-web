@@ -413,7 +413,7 @@ export default function ClientePortal() {
                 </span>
               </div>
 
-              {/* ══ 4 STAT CARDS GRANDES ══ */}
+              {/* ══ STAT CARDS GRANDES ══ */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))', gap:'14px' }}>
                 {([
                   {
@@ -436,6 +436,13 @@ export default function ClientePortal() {
                     sub: 'promedio del período',
                     grad:'linear-gradient(135deg, #052E16, #065F46)',
                     icon:'📈', accent:'#6EE7B7',
+                  },
+                  {
+                    label:'Seguidores',
+                    value: mesActual?.seguidores_total ? mesActual.seguidores_total.toLocaleString() : '—',
+                    sub: mesActual?.seguidores ? `+${mesActual.seguidores} este mes` : 'sin variación registrada',
+                    grad:'linear-gradient(135deg, #4C0519, #9D174D)',
+                    icon:'👤', accent:'#FB7185',
                   },
                   {
                     label:'Solicitudes',

@@ -1134,6 +1134,7 @@ export default function ClientesAdmin() {
                   { key: 'guardados',        label: 'Guardados',    icon: '🔖' },
                   { key: 'compartidos',      label: 'Compartidos',  icon: '↗️' },
                   { key: 'seguidores',       label: 'Nuevos segs.', icon: '👥' },
+                  { key: 'seguidores_total', label: 'Segs. totales', icon: '👤' },
                   { key: 'engagement',       label: 'Engagement %', icon: '📈' },
                   { key: 'posts_publicados',  label: 'Posts pub.',    icon: '✅' },
                   { key: 'pct_mujeres',       label: 'Mujeres %',     icon: '♀' },
@@ -1163,6 +1164,7 @@ export default function ClientesAdmin() {
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}>
                                   {m.alcance     ? <span style={{ fontSize: '12px', color: '#6B7280' }}>👁️ {m.alcance.toLocaleString()}</span> : null}
                                   {m.likes       ? <span style={{ fontSize: '12px', color: '#6B7280' }}>❤️ {m.likes.toLocaleString()}</span> : null}
+                                  {m.seguidores_total ? <span style={{ fontSize: '12px', color: '#6B7280' }}>👤 {m.seguidores_total.toLocaleString()}</span> : null}
                                   {m.seguidores  ? <span style={{ fontSize: '12px', color: '#6B7280' }}>👥 +{m.seguidores}</span> : null}
                                   {m.engagement  ? <span style={{ fontSize: '12px', color: '#059669', fontWeight: 700 }}>📈 {m.engagement}%</span> : null}
                                 </div>

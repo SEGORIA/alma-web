@@ -99,7 +99,8 @@ export type MetricaMes = {
   comentarios?:       number
   guardados?:         number
   compartidos?:       number
-  seguidores?:        number
+  seguidores?:        number   // nuevos seguidores ganados en el mes
+  seguidores_total?:  number   // total de seguidores de la cuenta a fin de mes
   engagement?:        number
   posts_publicados?:  number
   // Audiencia
