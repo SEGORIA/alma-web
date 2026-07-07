@@ -8,6 +8,7 @@ import {
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
 } from '../data/clientes'
 import { contactoDefault } from '../data/config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 /* ── Brand tokens ───────────────────────────────────────── */
 const P  = '#6B21A8'
@@ -60,6 +61,7 @@ function injectLogo(html: string, logoUrl: string, marca: string): string {
 /* ── Main Component ──────────────────────────────────────── */
 export default function ClientePortal() {
   const { token } = useParams<{ token: string }>()
+  const isMobile  = useIsMobile()
   const [data,    setData]    = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab,     setTab]     = useState<'inicio' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos'>('inicio')
@@ -186,7 +188,7 @@ export default function ClientePortal() {
                 </div>
               )}
               {/* Brand name */}
-              <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff', flex: 1, letterSpacing: '-0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.marca}</span>
+              <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff', flex: 1, minWidth: 0, letterSpacing: '-0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.marca}</span>
               <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', flexShrink: 0 }}>Portal</span>
             </div>
             {/* Tabs */}
@@ -234,22 +236,22 @@ export default function ClientePortal() {
             </div>
 
             {/* Brand hero */}
-            <div style={{ padding:'12px 24px 28px', display:'flex', alignItems:'flex-start', gap:'20px', flexWrap:'wrap' }}>
+            <div style={{ padding: isMobile ? '10px 16px 20px' : '12px 24px 28px', display:'flex', alignItems:'flex-start', gap: isMobile ? '12px' : '20px', flexWrap:'wrap' }}>
               {/* Logo */}
               {data.logo_url ? (
-                <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.18)', padding:'8px', flexShrink:0, backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width: isMobile ? '52px' : '80px', height: isMobile ? '52px' : '80px', borderRadius:'18px', background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.18)', padding:'8px', flexShrink:0, backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center' }}>
                   <img src={data.logo_url} alt={data.marca} style={{ maxWidth:'100%', maxHeight:'100%', objectFit:'contain', borderRadius:'10px' }} />
                 </div>
               ) : (
-                <div style={{ width:'80px', height:'80px', borderRadius:'18px', background:'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'32px', fontWeight:900, color:'#fff', flexShrink:0, backdropFilter:'blur(8px)', letterSpacing:'-1px' }}>
+                <div style={{ width: isMobile ? '52px' : '80px', height: isMobile ? '52px' : '80px', borderRadius:'18px', background:'linear-gradient(135deg, rgba(139,92,246,0.4), rgba(109,40,217,0.6))', border:'1px solid rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize: isMobile ? '20px' : '32px', fontWeight:900, color:'#fff', flexShrink:0, backdropFilter:'blur(8px)', letterSpacing:'-1px' }}>
                   {(data.marca ?? '?')[0].toUpperCase()}
                 </div>
               )}
 
               {/* Nombre + Estado */}
-              <div style={{ flex:1, minWidth:'180px' }}>
+              <div style={{ flex:1, minWidth: isMobile ? '160px' : '180px' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'6px' }}>
-                  <h1 style={{ margin:0, color:'#fff', fontSize:'28px', fontWeight:900, letterSpacing:'-0.5px', lineHeight:1.1 }}>{data.marca}</h1>
+                  <h1 style={{ margin:0, color:'#fff', fontSize: isMobile ? '20px' : '28px', fontWeight:900, letterSpacing:'-0.5px', lineHeight:1.15 }}>{data.marca}</h1>
                   {estadoInfo && (
                     <span style={{ padding:'4px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.9)', fontSize:'11.5px', fontWeight:700, border:'1px solid rgba(255,255,255,0.15)', backdropFilter:'blur(8px)' }}>
                       {estadoInfo.icon} {estadoInfo.label}
@@ -274,13 +276,14 @@ export default function ClientePortal() {
                   background:'linear-gradient(135deg, rgba(250,204,21,0.10) 0%, rgba(250,204,21,0.05) 100%)',
                   border:'1px solid rgba(250,204,21,0.28)',
                   borderRadius:'16px',
-                  padding:'14px 18px',
+                  padding: isMobile ? '11px 14px' : '14px 18px',
                   backdropFilter:'blur(10px)',
-                  minWidth:'180px',
-                  maxWidth:'260px',
+                  minWidth: isMobile ? '0' : '180px',
+                  maxWidth: isMobile ? '100%' : '260px',
+                  width: isMobile ? '100%' : 'auto',
                 }}>
                   {/* Encabezado del plan */}
-                  <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom:'10px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'7px', marginBottom: isMobile ? '6px' : '10px' }}>
                     <div style={{ width:'22px', height:'22px', borderRadius:'50%', background:'rgba(250,204,21,0.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', flexShrink:0 }}>⭐</div>
                     <div>
                       {data.plan_mes?.nombre && (
@@ -295,14 +298,14 @@ export default function ClientePortal() {
                   {/* Items del plan */}
                   {(data.plan_mes?.incluye ?? []).length > 0 && (
                     <div style={{ display:'flex', flexDirection:'column', gap:'5px' }}>
-                      {(data.plan_mes!.incluye ?? []).slice(0, 5).map((item, i) => (
+                      {(data.plan_mes!.incluye ?? []).slice(0, isMobile ? 2 : 5).map((item, i) => (
                         <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:'6px' }}>
                           <span style={{ color:'rgba(250,204,21,0.7)', fontSize:'10px', marginTop:'2px', flexShrink:0, lineHeight:1.4 }}>✦</span>
                           <span style={{ fontSize:'11.5px', color:'rgba(255,255,255,0.65)', lineHeight:1.4, fontWeight:500 }}>{item}</span>
                         </div>
                       ))}
-                      {(data.plan_mes?.incluye ?? []).length > 5 && (
-                        <p style={{ margin:'2px 0 0', fontSize:'10.5px', color:'rgba(255,255,255,0.3)', fontWeight:500 }}>+{(data.plan_mes!.incluye ?? []).length - 5} más incluidos</p>
+                      {(data.plan_mes?.incluye ?? []).length > (isMobile ? 2 : 5) && (
+                        <p style={{ margin:'2px 0 0', fontSize:'10.5px', color:'rgba(255,255,255,0.3)', fontWeight:500 }}>+{(data.plan_mes!.incluye ?? []).length - (isMobile ? 2 : 5)} más incluidos</p>
                       )}
                     </div>
                   )}
@@ -414,7 +417,7 @@ export default function ClientePortal() {
               </div>
 
               {/* ══ STAT CARDS GRANDES ══ */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(196px,1fr))', gap:'14px' }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(auto-fill,minmax(196px,1fr))', gap: isMobile ? '10px' : '14px' }}>
                 {([
                   {
                     label:'Posts publicados',
@@ -453,16 +456,16 @@ export default function ClientePortal() {
                   },
                 ] as { label:string; value:string; sub:string; grad:string; icon:string; accent:string }[]).map(card => (
                   <div key={card.label} className="portal-card" style={{
-                    background:card.grad, borderRadius:'18px', padding:'22px 20px',
+                    background:card.grad, borderRadius: isMobile ? '14px' : '18px', padding: isMobile ? '14px 12px' : '22px 20px',
                     transition:'transform 0.2s, box-shadow 0.2s',
-                    cursor:'default',
+                    cursor:'default', minWidth:0,
                   }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'14px' }}>
-                      <p style={{ margin:0, fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.8px' }}>{card.label}</p>
-                      <span style={{ fontSize:'20px', lineHeight:1 }}>{card.icon}</span>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: isMobile ? '8px' : '14px' }}>
+                      <p style={{ margin:0, fontSize: isMobile ? '9.5px' : '11px', fontWeight:700, color:'rgba(255,255,255,0.5)', textTransform:'uppercase', letterSpacing:'0.8px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{card.label}</p>
+                      <span style={{ fontSize: isMobile ? '16px' : '20px', lineHeight:1, flexShrink:0, marginLeft:'6px' }}>{card.icon}</span>
                     </div>
-                    <p style={{ margin:'0 0 6px', fontSize:'32px', fontWeight:900, color:'#fff', lineHeight:1, letterSpacing:'-1px' }}>{card.value}</p>
-                    <p style={{ margin:0, fontSize:'12px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}>{card.sub}</p>
+                    <p style={{ margin:'0 0 4px', fontSize: isMobile ? '22px' : '32px', fontWeight:900, color:'#fff', lineHeight:1, letterSpacing:'-1px' }}>{card.value}</p>
+                    <p style={{ margin:0, fontSize: isMobile ? '10.5px' : '12px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}>{card.sub}</p>
                     <div style={{ marginTop:'14px', height:'2px', background:`rgba(255,255,255,0.08)`, borderRadius:'1px' }}>
                       <div style={{ height:'100%', width:'60%', background:card.accent, borderRadius:'1px', opacity:0.7 }} />
                     </div>
@@ -858,30 +861,30 @@ export default function ClientePortal() {
             const nextM = () => setCalMes(({ year:y, month:m }) => m === 11 ? { year:y+1, month:0 } : { year:y, month:m+1 })
 
             return (
-              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', background:'linear-gradient(160deg,#0E0322 0%,#1A0640 55%,#2D0C72 100%)', minHeight:'calc(100vh - 96px)', padding:'24px 28px 40px', animation:'fadeUp 0.35s ease' }}>
+              <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', background:'linear-gradient(160deg,#0E0322 0%,#1A0640 55%,#2D0C72 100%)', minHeight:'calc(100vh - 96px)', padding: isMobile ? '14px 8px 24px' : '24px 28px 40px', animation:'fadeUp 0.35s ease' }}>
 
                 {/* Header: toggle + navegación mes */}
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'24px', flexWrap:'wrap', gap:'12px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: isMobile ? '14px' : '24px', flexWrap:'wrap', gap:'10px' }}>
                   <div style={{ display:'flex', gap:'4px', background:'rgba(255,255,255,0.07)', borderRadius:'12px', padding:'3px' }}>
-                    <button onClick={() => setParrillaView('tablero')} style={{ padding:'7px 16px', borderRadius:'9px', background:'transparent', border:'none', color:'rgba(255,255,255,0.5)', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>📋 Tablero</button>
-                    <button style={{ padding:'7px 16px', borderRadius:'9px', background:'rgba(255,255,255,0.14)', border:'none', color:'#fff', fontSize:'12px', fontWeight:800, cursor:'default' }}>📅 Calendario</button>
+                    <button onClick={() => setParrillaView('tablero')} style={{ padding: isMobile ? '6px 12px' : '7px 16px', borderRadius:'9px', background:'transparent', border:'none', color:'rgba(255,255,255,0.5)', fontSize:'12px', fontWeight:700, cursor:'pointer' }}>📋 Tablero</button>
+                    <button style={{ padding: isMobile ? '6px 12px' : '7px 16px', borderRadius:'9px', background:'rgba(255,255,255,0.14)', border:'none', color:'#fff', fontSize:'12px', fontWeight:800, cursor:'default' }}>📅 Calendario</button>
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'14px' }}>
-                    <button onClick={prevM} style={{ width:'32px', height:'32px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>‹</button>
-                    <span style={{ fontSize:'14px', fontWeight:800, color:'#fff', textTransform:'capitalize', minWidth:'160px', textAlign:'center' }}>{monthLabel}</span>
-                    <button onClick={nextM} style={{ width:'32px', height:'32px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>›</button>
+                  <div style={{ display:'flex', alignItems:'center', gap: isMobile ? '8px' : '14px' }}>
+                    <button onClick={prevM} style={{ width:'30px', height:'30px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>‹</button>
+                    <span style={{ fontSize: isMobile ? '12.5px' : '14px', fontWeight:800, color:'#fff', textTransform:'capitalize', minWidth: isMobile ? '110px' : '160px', textAlign:'center' }}>{monthLabel}</span>
+                    <button onClick={nextM} style={{ width:'30px', height:'30px', borderRadius:'50%', background:'rgba(255,255,255,0.08)', border:'none', color:'#fff', fontSize:'16px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>›</button>
                   </div>
                 </div>
 
                 {/* Nombres de días */}
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'4px', marginBottom:'4px' }}>
-                  {['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(d => (
-                    <div key={d} style={{ textAlign:'center', fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.3)', padding:'4px 0', textTransform:'uppercase', letterSpacing:'0.5px' }}>{d}</div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap: isMobile ? '2px' : '4px', marginBottom:'4px' }}>
+                  {(isMobile ? ['D','L','M','X','J','V','S'] : ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']).map((d, i) => (
+                    <div key={i} style={{ textAlign:'center', fontSize: isMobile ? '9px' : '10px', fontWeight:800, color:'rgba(255,255,255,0.3)', padding:'4px 0', textTransform:'uppercase', letterSpacing:'0.5px' }}>{d}</div>
                   ))}
                 </div>
 
                 {/* Grid de días */}
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'4px' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap: isMobile ? '2px' : '4px' }}>
                   {cells.map((day, i) => {
                     const posts = day ? (postsByDay[day] ?? []) : []
                     const isToday = day !== null && todayD.getFullYear() === year && todayD.getMonth() === month && todayD.getDate() === day
@@ -891,24 +894,25 @@ export default function ClientePortal() {
                         key={i}
                         onClick={() => hasPosts && setCalModalPosts(posts)}
                         style={{
-                          minHeight:'72px', background: day ? (hasPosts ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)') : 'transparent',
-                          borderRadius:'10px', padding:'6px 5px 5px',
+                          minHeight: isMobile ? '44px' : '72px', background: day ? (hasPosts ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)') : 'transparent',
+                          borderRadius: isMobile ? '7px' : '10px', padding: isMobile ? '3px 2px 2px' : '6px 5px 5px',
                           cursor: hasPosts ? 'pointer' : 'default',
                           border: isToday ? '1.5px solid rgba(167,139,250,0.5)' : '1.5px solid transparent',
                           transition:'background 0.15s',
+                          minWidth:0, overflow:'hidden',
                           ...(hasPosts ? { ':hover': { background:'rgba(255,255,255,0.12)' } } : {}),
                         }}
                       >
                         {day !== null && (
                           <>
-                            <p style={{ margin:'0 0 5px', fontSize:'11px', fontWeight: isToday ? 900 : 500, color: isToday ? '#A78BFA' : 'rgba(255,255,255,0.45)', textAlign:'right', lineHeight:1 }}>{day}</p>
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'3px' }}>
+                            <p style={{ margin:'0 0 3px', fontSize: isMobile ? '9.5px' : '11px', fontWeight: isToday ? 900 : 500, color: isToday ? '#A78BFA' : 'rgba(255,255,255,0.45)', textAlign:'right', lineHeight:1 }}>{day}</p>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:'3px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
                               {posts.slice(0, 3).map(p => (
                                 <div key={p.id} title={`${p.red} · ${p.tipo}`} style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[p.red] ?? '#6B7280', flexShrink:0 }} />
                               ))}
                               {posts.length > 3 && <span style={{ fontSize:'9px', color:'rgba(255,255,255,0.4)', lineHeight:'9px', marginLeft:'1px' }}>+{posts.length-3}</span>}
                             </div>
-                            {posts.length > 0 && (
+                            {!isMobile && posts.length > 0 && (
                               <p style={{ margin:'4px 0 0', fontSize:'9px', color:'rgba(255,255,255,0.35)', lineHeight:1.2, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>
                                 {posts[0].tipo}{posts.length > 1 ? ` +${posts.length-1}` : ''}
                               </p>
@@ -1008,7 +1012,7 @@ export default function ClientePortal() {
                 width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px',
                 background:'linear-gradient(160deg, #0E0322 0%, #1A0640 55%, #2D0C72 100%)',
                 minHeight:'calc(100vh - 96px)',
-                padding:'24px 40px 40px',
+                padding: isMobile ? '16px 14px 24px' : '24px 40px 40px',
                 animation:'fadeUp 0.35s ease',
               }}>
                 {/* Título del tablero + toggle calendario */}
