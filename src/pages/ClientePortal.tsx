@@ -58,6 +58,29 @@ function injectLogo(html: string, logoUrl: string, marca: string): string {
     .replace(/<svg[^>]*class="logo-hero"[^>]*>[\s\S]*?<\/svg>/g, heroImg)
 }
 
+/* ── Sangría + scrollbar premium para el HTML de estrategia embebido ── */
+const RESPONSIVE_IFRAME_CSS = `
+<style id="alma-responsive-fix">
+  html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.18) transparent; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
+  @media (max-width: 640px) {
+    body { padding-left: 20px !important; padding-right: 20px !important; box-sizing: border-box !important; }
+  }
+</style>
+`
+function injectResponsiveFixes(html: string): string {
+  // Sin <meta viewport> el layout viewport por defecto es ancho (~980px) y
+  // el @media de RESPONSIVE_IFRAME_CSS nunca se activa dentro del iframe.
+  const viewportMeta = /name=["']viewport["']/.test(html) ? '' : '<meta name="viewport" content="width=device-width, initial-scale=1">'
+  const injection = viewportMeta + RESPONSIVE_IFRAME_CSS
+  return html.includes('</head>')
+    ? html.replace('</head>', `${injection}</head>`)
+    : `${injection}${html}`
+}
+
 /* ── Main Component ──────────────────────────────────────── */
 export default function ClientePortal() {
   const { token } = useParams<{ token: string }>()
@@ -768,9 +791,9 @@ export default function ClientePortal() {
           if (activeParrillaMesId) {
             const mes = parrillaMeses.find(m => m.id === activeParrillaMesId)
             if (mes?.html_contenido) {
-              const injected = data.logo_url
+              const injected = injectResponsiveFixes(data.logo_url
                 ? injectLogo(mes.html_contenido, data.logo_url, data.marca ?? '')
-                : mes.html_contenido
+                : mes.html_contenido)
               return (
                 <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px' }}>
                   {/* Barra de retorno */}
@@ -810,9 +833,9 @@ export default function ClientePortal() {
           // ── Vista HTML legacy (accedida vía botón desde el tablero) ──
           if (activeHtmlId && htmlsLegacy.length > 0) {
             const current = htmlsLegacy.find(h => h.id === activeHtmlId) ?? htmlsLegacy[0]
-            const injected = data.logo_url
+            const injected = injectResponsiveFixes(data.logo_url
               ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
-              : current.contenido
+              : current.contenido)
             return (
               <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', animation:'fadeUp 0.35s ease' }}>
                 <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
