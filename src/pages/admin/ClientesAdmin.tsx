@@ -1449,7 +1449,8 @@ export default function ClientesAdmin() {
                         Qué incluye (una línea = un ítem)
                         <textarea
                           value={(form.plan_mes?.incluye ?? []).join('\n')}
-                          onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, incluye: e.target.value.split('\n').filter(l => l.trim()) } }))}
+                          onChange={e => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, incluye: e.target.value.split('\n') } }))}
+                          onBlur={() => setForm(f => ({ ...f, plan_mes: { ...f.plan_mes, incluye: (f.plan_mes?.incluye ?? []).filter(l => l.trim()) } }))}
                           rows={5}
                           placeholder={'8 posts mensuales\n4 reels\n2 stories diarias\n1 informe de resultados'}
                           style={{ ...inputStyle, resize: 'vertical', marginTop: '4px' }}
