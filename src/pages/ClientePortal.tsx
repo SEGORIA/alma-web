@@ -369,7 +369,6 @@ export default function ClientePortal() {
           const parrilla   = data.parrilla ?? []
           const publicados = parrilla.filter(p => p.estado === 'publicado')
           const conMet     = publicados.filter(p => p.metricas && Object.values(p.metricas).some(v => v != null && (v as number) > 0))
-          const pendSol    = (data.solicitudes ?? []).filter(s => s.estado === 'pendiente').length
 
           // Parrilla del mes actual (tablero Trello) — para el acceso directo
           const today           = new Date()
@@ -469,13 +468,6 @@ export default function ClientePortal() {
                     sub: mesActual?.seguidores ? `+${mesActual.seguidores} este mes` : 'sin variación registrada',
                     grad:'linear-gradient(135deg, #4C0519, #9D174D)',
                     icon:'👤', accent:'#FB7185',
-                  },
-                  {
-                    label:'Solicitudes',
-                    value: String((data.solicitudes ?? []).length),
-                    sub: pendSol > 0 ? `${pendSol} pendiente${pendSol > 1 ? 's' : ''}` : 'sin pendientes',
-                    grad:'linear-gradient(135deg, #431407, #92400E)',
-                    icon:'💬', accent:'#FCD34D',
                   },
                 ] as { label:string; value:string; sub:string; grad:string; icon:string; accent:string }[]).map(card => (
                   <div key={card.label} className="portal-card" style={{
