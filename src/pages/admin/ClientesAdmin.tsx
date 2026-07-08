@@ -24,6 +24,52 @@ function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
+/* ── Compresión de imágenes base64 embebidas en HTML ───────
+   Los HTML de estrategia suelen traer imágenes en data-URI que disparan
+   el límite de 1 MiB por documento de Firestore ("invalid nested entity").
+   Se reescalan/recodifican en el navegador antes de guardar. */
+const HTML_MAX_BYTES  = 900_000  // margen bajo el límite de 1 MiB (el doc lleva más campos)
+const IMG_COMPRESS_MIN = 60_000  // solo comprimir data-URIs mayores a esto
+
+function compressDataUri(uri: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const MAX_W  = 1200
+      const scale  = Math.min(1, MAX_W / img.naturalWidth)
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.max(1, Math.round(img.naturalWidth  * scale))
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * scale))
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('canvas no disponible')); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      // WebP conserva transparencia; si el navegador no lo soporta, JPEG sobre fondo blanco
+      const webp = canvas.toDataURL('image/webp', 0.72)
+      if (webp.startsWith('data:image/webp')) { resolve(webp); return }
+      ctx.globalCompositeOperation = 'destination-over'
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.72))
+    }
+    img.onerror = () => reject(new Error('no se pudo decodificar la imagen'))
+    img.src = uri
+  })
+}
+
+async function compressHtmlDataImages(html: string): Promise<string> {
+  const uris = [...new Set(
+    [...html.matchAll(/data:image\/[a-zA-Z+.-]+;base64,[A-Za-z0-9+/=]+/g)].map(m => m[0])
+  )].filter(u => u.length > IMG_COMPRESS_MIN)
+  let out = html
+  for (const uri of uris) {
+    try {
+      const compressed = await compressDataUri(uri)
+      if (compressed.length < uri.length) out = out.split(uri).join(compressed)
+    } catch { /* dejar la imagen original */ }
+  }
+  return out
+}
+
 const EMPTY_FORM: Omit<Cliente, '_id'> = {
   nombre: '', email: '', marca: '',
   servicios: [], estado: 'activo',
@@ -89,6 +135,7 @@ export default function ClientesAdmin() {
   const [newMesLabel2,          setNewMesLabel2]           = useState('')
   const [newMesMesValue,        setNewMesMesValue]         = useState('')
   const [trelloMesHtmlUploading,setTrelloMesHtmlUploading] = useState<string | null>(null)  // id del mes que está subiendo
+  const [trelloMesHtmlMsg,      setTrelloMesHtmlMsg]       = useState<Record<string, { ok: boolean; texto: string }>>({})  // feedback por mes
   const [newExtraData,          setNewExtraData]           = useState<Record<string, { label: string; url: string; nota: string }>>({})
 
   /* accesos */
@@ -293,10 +340,30 @@ export default function ClientesAdmin() {
 
   async function uploadTrelloMesHtml(mesId: string, file: File) {
     setTrelloMesHtmlUploading(mesId)
+    setTrelloMesHtmlMsg(prev => { const { [mesId]: _omit, ...rest } = prev; return rest })
     try {
-      const texto = await file.text()
+      const original = await file.text()
+      // Comprimir imágenes base64 embebidas si el HTML amenaza el límite de Firestore
+      const texto = original.length > HTML_MAX_BYTES
+        ? await compressHtmlDataImages(original)
+        : original
+      if (texto.length > HTML_MAX_BYTES) {
+        setTrelloMesHtmlMsg(prev => ({ ...prev, [mesId]: {
+          ok: false,
+          texto: `El HTML pesa ${(texto.length / 1024).toFixed(0)} KB incluso tras comprimir imágenes (límite ~${(HTML_MAX_BYTES / 1024).toFixed(0)} KB). Reduce las imágenes o súbelas a Drive y enlázalas.`,
+        }}))
+        return
+      }
       updateTrelloMes(mesId, { html_contenido: texto })
-    } catch { /* ignore */ } finally {
+      if (texto.length < original.length) {
+        setTrelloMesHtmlMsg(prev => ({ ...prev, [mesId]: {
+          ok: true,
+          texto: `Imágenes comprimidas: ${(original.length / 1024).toFixed(0)} KB → ${(texto.length / 1024).toFixed(0)} KB.`,
+        }}))
+      }
+    } catch {
+      setTrelloMesHtmlMsg(prev => ({ ...prev, [mesId]: { ok: false, texto: 'No se pudo leer el archivo HTML.' } }))
+    } finally {
       setTrelloMesHtmlUploading(null)
     }
   }
@@ -1493,8 +1560,13 @@ export default function ClientesAdmin() {
                                               onChange={e => { const f = e.target.files?.[0]; if (f) uploadTrelloMesHtml(mes.id, f); e.target.value = '' }}
                                               style={{ ...inputStyle, cursor:'pointer', padding:'7px 12px', marginTop:'4px' }}
                                             />
-                                            {trelloMesHtmlUploading === mes.id && <span style={{ fontSize:'11px', color:ACC2, marginTop:'4px', display:'block' }}>Procesando…</span>}
+                                            {trelloMesHtmlUploading === mes.id && <span style={{ fontSize:'11px', color:ACC2, marginTop:'4px', display:'block' }}>Procesando… (comprimiendo imágenes si es necesario)</span>}
                                           </label>
+                                        )}
+                                        {trelloMesHtmlMsg[mes.id] && (
+                                          <p style={{ margin:'6px 0 0', fontSize:'11.5px', lineHeight:1.5, color: trelloMesHtmlMsg[mes.id].ok ? GRN : ROSE }}>
+                                            {trelloMesHtmlMsg[mes.id].ok ? '✅' : '⚠️'} {trelloMesHtmlMsg[mes.id].texto}
+                                          </p>
                                         )}
                                       </div>
                                     </div>
