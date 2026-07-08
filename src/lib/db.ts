@@ -28,9 +28,16 @@ import type { Tarea } from '../data/tareas'
 /* ── Helpers ─────────────────────────────────────────────── */
 
 /** Elimina recursivamente los valores `undefined` de un objeto antes de enviarlo
- *  a Firestore (que rechaza `undefined` pero acepta `null` o campo ausente). */
+ *  a Firestore (que rechaza `undefined` pero acepta `null` o campo ausente).
+ *  También aplana arrays anidados directamente dentro de otro array: Firestore
+ *  rechaza esa forma con "invalid-argument: invalid nested entity", y ningún
+ *  campo de nuestro modelo está diseñado como array-de-arrays (puede aparecer
+ *  por datos legacy corruptos), así que aplanar es seguro y no pierde datos. */
 function stripUndefined(obj: unknown): unknown {
-  if (Array.isArray(obj)) return obj.map(stripUndefined)
+  if (Array.isArray(obj)) {
+    const cleaned = obj.map(stripUndefined)
+    return cleaned.some(Array.isArray) ? cleaned.flat(Infinity) : cleaned
+  }
   if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
     const out: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
