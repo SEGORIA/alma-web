@@ -73,6 +73,7 @@ export type ParrillaItem = {
   // Estado
   estado:      ParrillaEstado
   link?:       string        // link del post publicado
+  link_drive?: string        // link de Drive con el material de esta publicación
   // Métricas post-publicación
   metricas?:   ParrillaMetricas
 }

@@ -227,6 +227,7 @@ export default function ClientesAdmin() {
       cta:         newP.cta?.trim() || undefined,
       estado:      newP.estado ?? 'borrador',
       link:        newP.link?.trim() || undefined,
+      link_drive:  newP.link_drive?.trim() || undefined,
     }
     setForm(f => ({ ...f, parrilla: [...f.parrilla, item] }))
     setNewP({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
@@ -935,8 +936,8 @@ export default function ClientesAdmin() {
                           </label>
                         </div>
 
-                        {/* Fila 3: Estado, Link */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '10px', marginBottom: '16px' }}>
+                        {/* Fila 3: Estado, Link, Link Drive */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '10px', marginBottom: '16px' }}>
                           <label style={labelStyle}>
                             Estado
                             <select value={ep.estado ?? 'borrador'} onChange={e => setEditingParrillaData(d => ({ ...d, estado: e.target.value as ParrillaItem['estado'] }))} style={inputStyle}>
@@ -946,6 +947,10 @@ export default function ClientesAdmin() {
                           <label style={labelStyle}>
                             Link publicado
                             <input value={ep.link ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, link: e.target.value }))} style={inputStyle} placeholder="https://instagram.com/p/…" />
+                          </label>
+                          <label style={labelStyle}>
+                            🗂️ Link de Drive (material)
+                            <input value={ep.link_drive ?? ''} onChange={e => setEditingParrillaData(d => ({ ...d, link_drive: e.target.value || undefined }))} style={inputStyle} placeholder="https://drive.google.com/…" />
                           </label>
                         </div>
 
@@ -1103,7 +1108,7 @@ export default function ClientesAdmin() {
                         </select>
                       </label>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '10px', marginBottom: '10px' }}>
                       <label style={labelStyle}>
                         Hook / Título *
                         <input value={newP.descripcion ?? ''} onChange={e => setNewP(n => ({ ...n, descripcion: e.target.value }))} style={inputStyle} placeholder="El gancho principal del post" />
@@ -1120,6 +1125,10 @@ export default function ClientesAdmin() {
                         <select value={newP.estado ?? 'borrador'} onChange={e => setNewP(n => ({ ...n, estado: e.target.value as ParrillaItem['estado'] }))} style={inputStyle}>
                           {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
                         </select>
+                      </label>
+                      <label style={labelStyle}>
+                        🗂️ Link de Drive (material)
+                        <input value={newP.link_drive ?? ''} onChange={e => setNewP(n => ({ ...n, link_drive: e.target.value || undefined }))} style={inputStyle} placeholder="https://drive.google.com/…" />
                       </label>
                     </div>
                     <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 10px' }}>

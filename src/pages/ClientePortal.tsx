@@ -997,6 +997,11 @@ export default function ClientePortal() {
                                 ))}
                               </div>
                             )}
+                            {post.link_drive && (
+                              <a href={post.link_drive} target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:'7px', marginTop:'10px', marginRight:'10px', padding:'8px 16px', borderRadius:'9px', background:'rgba(16,185,129,0.14)', border:'1px solid rgba(16,185,129,0.3)', color:'#34D399', fontSize:'12.5px', fontWeight:800, textDecoration:'none' }}>
+                                🗂️ Ver material en Drive
+                              </a>
+                            )}
                             {post.link && <a href={post.link} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:'10px', fontSize:'12px', color:'#60A5FA', fontWeight:700 }}>Ver publicación →</a>}
                           </div>
                         )
