@@ -101,6 +101,16 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   )
 }
 
+function Row({ label, value }: { label: string; value?: string }) {
+  if (!value || value === '—') return null
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <p style={{ fontSize: '10px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ fontSize: '13px', color: '#374151', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{value}</p>
+    </div>
+  )
+}
+
 /* ── BriefModal ─────────────────────────────────────────────── */
 function BriefModal({ brief, onClose, onEstado, onUpdate }: {
   brief: Brief
@@ -152,16 +162,6 @@ function BriefModal({ brief, onClose, onEstado, onUpdate }: {
     onUpdate(draft)
     setEditing(false)
     setSaving(false)
-  }
-
-  function Row({ label, value }: { label: string; value?: string }) {
-    if (!value || value === '—') return null
-    return (
-      <div style={{ marginBottom: '14px' }}>
-        <p style={{ fontSize: '10px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 4px' }}>{label}</p>
-        <p style={{ fontSize: '13px', color: '#374151', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{value}</p>
-      </div>
-    )
   }
 
   const inp: React.CSSProperties = {

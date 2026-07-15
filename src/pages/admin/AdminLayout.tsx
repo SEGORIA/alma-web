@@ -49,80 +49,63 @@ function SectionLabel({ text }: { text: string }) {
   )
 }
 
-/* ── Layout ───────────────────────────────────────────────── */
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { logout, user }   = useAuth()
-  const location           = useLocation()
-  const navigate           = useNavigate()
-  const isMobile           = useIsMobile()
-  const [open, setOpen]    = useState(false)
-  const [pend, setPend]    = useState<Pendientes | null>(null)
+/* ── NavLink individual ── */
+function NavItem({ label, to, badgeKey, pathname, pend, onNavigate }: NavEntry & {
+  pathname: string; pend: Pendientes | null; onNavigate: () => void
+}) {
+  const isExact = to === '/admin'
+  const active  = isExact
+    ? pathname === '/admin'
+    : pathname.startsWith(to)
+  const badge = badgeKey && pend ? pend[badgeKey] : 0
 
-  const onWebRoute = WEB_PREFIXES.some(p => location.pathname.startsWith(p))
-  const [webOpen, setWebOpen] = useState(onWebRoute)
+  return (
+    <Link
+      to={to}
+      onClick={onNavigate}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '9px 13px', borderRadius: '10px',
+        textDecoration: 'none', fontSize: '13.5px', fontWeight: active ? 700 : 500,
+        color: active ? '#fff' : '#9CA3AF',
+        background: active ? P : 'transparent',
+        transition: 'all 0.15s ease',
+      }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+    >
+      <span>{label}</span>
+      {badge > 0 && (
+        <span style={{
+          minWidth: '19px', height: '19px', borderRadius: '10px',
+          background: active ? 'rgba(255,255,255,0.22)' : '#DC2626',
+          color: '#fff', fontSize: '10.5px', fontWeight: 800,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          padding: '0 5px', flexShrink: 0,
+        }}>
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
+    </Link>
+  )
+}
 
-  // Auto-expand grupo web al navegar a una ruta hija
-  useEffect(() => {
-    if (onWebRoute) setWebOpen(true)
-  }, [location.pathname, onWebRoute])
-
-  // Conteos para badges (cacheados 60s a nivel de módulo)
-  useEffect(() => {
-    getPendientes().then(setPend).catch(() => {})
-  }, [location.pathname])
-
-  const handleLogout = async () => {
-    await logout()
-    navigate('/admin/login')
-  }
-
-  /* ── NavLink individual ── */
-  const NavItem = ({ label, to, badgeKey }: NavEntry) => {
-    const isExact = to === '/admin'
-    const active  = isExact
-      ? location.pathname === '/admin'
-      : location.pathname.startsWith(to)
-    const badge = badgeKey && pend ? pend[badgeKey] : 0
-
-    return (
-      <Link
-        to={to}
-        onClick={() => setOpen(false)}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '9px 13px', borderRadius: '10px',
-          textDecoration: 'none', fontSize: '13.5px', fontWeight: active ? 700 : 500,
-          color: active ? '#fff' : '#9CA3AF',
-          background: active ? P : 'transparent',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
-        onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
-      >
-        <span>{label}</span>
-        {badge > 0 && (
-          <span style={{
-            minWidth: '19px', height: '19px', borderRadius: '10px',
-            background: active ? 'rgba(255,255,255,0.22)' : '#DC2626',
-            color: '#fff', fontSize: '10.5px', fontWeight: 800,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            padding: '0 5px', flexShrink: 0,
-          }}>
-            {badge > 99 ? '99+' : badge}
-          </span>
-        )}
-      </Link>
-    )
-  }
-
-  /* ── Contenido del sidebar ── */
-  const SidebarContent = () => (
+/* ── Contenido del sidebar ── */
+function SidebarContent({
+  isMobile, onClose, pathname, pend, onNavigate, onWebRoute, webOpen, setWebOpen, user, onLogout,
+}: {
+  isMobile: boolean; onClose: () => void; pathname: string; pend: Pendientes | null
+  onNavigate: () => void; onWebRoute: boolean; webOpen: boolean
+  setWebOpen: React.Dispatch<React.SetStateAction<boolean>>
+  user: { email?: string | null } | null; onLogout: () => void
+}) {
+  return (
     <>
       {/* Logo */}
       <div style={{ padding: '24px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
         {isMobile && (
           <button
-            onClick={() => setOpen(false)}
+            onClick={onClose}
             style={{
               position: 'absolute', top: '16px', right: '16px',
               background: 'transparent', border: 'none', color: '#6B7280',
@@ -149,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <nav style={{ flex: 1, padding: '10px 10px', display: 'flex', flexDirection: 'column', gap: '1px', overflowY: 'auto' }}>
 
         {/* Dashboard */}
-        <NavItem label="📊 Dashboard" to="/admin" />
+        <NavItem label="📊 Dashboard" to="/admin" pathname={pathname} pend={pend} onNavigate={onNavigate} />
 
         {/* ── Página Web ── */}
         <SectionLabel text="Página Web" />
@@ -196,7 +179,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {webOpen && (
           <div style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {PAGINA_WEB.map(item => (
-              <NavItem key={item.to} {...item} />
+              <NavItem key={item.to} {...item} pathname={pathname} pend={pend} onNavigate={onNavigate} />
             ))}
           </div>
         )}
@@ -205,7 +188,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SectionLabel text="Negocio" />
 
         {NEGOCIO.map(item => (
-          <NavItem key={item.to} {...item} />
+          <NavItem key={item.to} {...item} pathname={pathname} pend={pend} onNavigate={onNavigate} />
         ))}
 
       </nav>
@@ -219,7 +202,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {user?.email}
         </p>
         <button
-          onClick={handleLogout}
+          onClick={onLogout}
           style={{
             width: '100%', padding: '9px 14px', borderRadius: '10px',
             background: 'rgba(239,68,68,0.1)', color: '#F87171',
@@ -248,6 +231,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </>
   )
+}
+
+/* ── Layout ───────────────────────────────────────────────── */
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { logout, user }   = useAuth()
+  const location           = useLocation()
+  const navigate           = useNavigate()
+  const isMobile           = useIsMobile()
+  const [open, setOpen]    = useState(false)
+  const [pend, setPend]    = useState<Pendientes | null>(null)
+
+  const onWebRoute = WEB_PREFIXES.some(p => location.pathname.startsWith(p))
+  const [webOpen, setWebOpen] = useState(onWebRoute)
+
+  // Auto-expand grupo web al navegar a una ruta hija
+  useEffect(() => {
+    if (onWebRoute) setWebOpen(true)
+  }, [location.pathname, onWebRoute])
+
+  // Conteos para badges (cacheados 60s a nivel de módulo)
+  useEffect(() => {
+    getPendientes().then(setPend).catch(() => {})
+  }, [location.pathname])
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/admin/login')
+  }
+
+  const closeDrawer = () => setOpen(false)
 
   /* ── Mobile ── */
   if (isMobile) {
@@ -280,7 +293,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Overlay */}
         {open && (
           <div
-            onClick={() => setOpen(false)}
+            onClick={closeDrawer}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
               zIndex: 60, backdropFilter: 'blur(3px)',
@@ -297,7 +310,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
           display: 'flex', flexDirection: 'column', overflowY: 'auto',
         }}>
-          <SidebarContent />
+          <SidebarContent
+            isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} pend={pend}
+            onNavigate={closeDrawer} onWebRoute={onWebRoute} webOpen={webOpen} setWebOpen={setWebOpen}
+            user={user} onLogout={handleLogout}
+          />
         </aside>
 
         <main style={{ flex: 1 }}>{children}</main>
@@ -316,7 +333,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         position: 'fixed', top: 0, left: 0, bottom: 0,
         zIndex: 50, overflowY: 'auto',
       }}>
-        <SidebarContent />
+        <SidebarContent
+          isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} pend={pend}
+          onNavigate={closeDrawer} onWebRoute={onWebRoute} webOpen={webOpen} setWebOpen={setWebOpen}
+          user={user} onLogout={handleLogout}
+        />
       </aside>
       <main style={{ marginLeft: '244px', flex: 1, minHeight: '100vh' }}>
         {children}
