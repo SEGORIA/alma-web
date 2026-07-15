@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
@@ -119,6 +119,50 @@ export default function ClientePortal() {
       if (d) trackPortalVisit(token)
     })
   }, [token])
+
+  // Los hooks siguientes deben ejecutarse SIEMPRE, antes de cualquier return
+  // condicional (loading/NotFound) — ver reglas de hooks de React.
+  // Meses del tablero, ordenados — memoizado para no re-ordenar en cada tecla
+  const parrillaMesesSorted = useMemo(
+    () => [...(data?.parrilla_meses ?? [])].sort((a, b) => a.mes.localeCompare(b.mes)),
+    [data?.parrilla_meses],
+  )
+  const htmlsLegacySorted = useMemo(
+    () => [...(data?.parrilla_htmls ?? [])].sort((a, b) => b.mes.localeCompare(a.mes)),
+    [data?.parrilla_htmls],
+  )
+
+  // HTML de estrategia inyectado (regex sobre HTML potencialmente grande) —
+  // memoizado para no reprocesarlo en cada render del componente completo.
+  const activeMesHtml = parrillaMesesSorted.find(m => m.id === activeParrillaMesId)
+  const injectedFullscreen = useMemo(() => {
+    if (!activeMesHtml?.html_contenido) return ''
+    return injectResponsiveFixes(data?.logo_url
+      ? injectLogo(activeMesHtml.html_contenido, data.logo_url, data?.marca ?? '')
+      : activeMesHtml.html_contenido)
+  }, [activeMesHtml?.html_contenido, data?.logo_url, data?.marca])
+
+  const activeHtmlLegacy = htmlsLegacySorted.find(h => h.id === activeHtmlId) ?? htmlsLegacySorted[0]
+  const injectedLegacy = useMemo(() => {
+    if (!activeHtmlLegacy?.contenido) return ''
+    return injectResponsiveFixes(data?.logo_url
+      ? injectLogo(activeHtmlLegacy.contenido, data.logo_url, data?.marca ?? '')
+      : activeHtmlLegacy.contenido)
+  }, [activeHtmlLegacy?.contenido, data?.logo_url, data?.marca])
+
+  // Agrupamiento de posts por día del calendario — memoizado por mes visible
+  const postsByDay = useMemo(() => {
+    const map: Record<number, ParrillaItem[]> = {}
+    ;(data?.parrilla ?? []).forEach(p => {
+      if (!p.fecha) return
+      const [y, m, d] = p.fecha.split('-').map(Number)
+      if (y === calMes.year && m === calMes.month + 1) {
+        if (!map[d]) map[d] = []
+        map[d].push(p)
+      }
+    })
+    return map
+  }, [data?.parrilla, calMes.year, calMes.month])
 
   if (loading) return <Loader />
   if (!data || !token) return <NotFound />
@@ -776,16 +820,14 @@ export default function ClientePortal() {
 
         {/* ── PARRILLA ── */}
         {tab === 'parrilla' && (() => {
-          const parrillaMeses = [...(data.parrilla_meses ?? [])].sort((a, b) => a.mes.localeCompare(b.mes))
-          const htmlsLegacy   = [...(data.parrilla_htmls  ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
+          const parrillaMeses = parrillaMesesSorted
+          const htmlsLegacy   = htmlsLegacySorted
 
           // ── Fullscreen HTML (tablero Trello — clic en card estrategia) ──
           if (activeParrillaMesId) {
-            const mes = parrillaMeses.find(m => m.id === activeParrillaMesId)
+            const mes = activeMesHtml
             if (mes?.html_contenido) {
-              const injected = injectResponsiveFixes(data.logo_url
-                ? injectLogo(mes.html_contenido, data.logo_url, data.marca ?? '')
-                : mes.html_contenido)
+              const injected = injectedFullscreen
               return (
                 <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px' }}>
                   {/* Barra de retorno */}
@@ -824,10 +866,8 @@ export default function ClientePortal() {
 
           // ── Vista HTML legacy (accedida vía botón desde el tablero) ──
           if (activeHtmlId && htmlsLegacy.length > 0) {
-            const current = htmlsLegacy.find(h => h.id === activeHtmlId) ?? htmlsLegacy[0]
-            const injected = injectResponsiveFixes(data.logo_url
-              ? injectLogo(current.contenido, data.logo_url, data.marca ?? '')
-              : current.contenido)
+            const current = activeHtmlLegacy
+            const injected = injectedLegacy
             return (
               <div style={{ width:'100vw', marginLeft:'calc(50% - 50vw - 20px)', marginTop:'-28px', marginBottom:'-28px', animation:'fadeUp 0.35s ease' }}>
                 <div style={{ background:'rgba(0,0,0,0.25)', backdropFilter:'blur(8px)', padding:'9px 20px', display:'flex', alignItems:'center', gap:'12px', borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
@@ -849,7 +889,6 @@ export default function ClientePortal() {
 
           // ── Calendario editorial ──
           if (parrillaView === 'calendario') {
-            const parrilla = data.parrilla ?? []
             const { year, month } = calMes
             const firstDay = new Date(year, month, 1).getDay()
             const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -857,15 +896,6 @@ export default function ClientePortal() {
             for (let i = 0; i < firstDay; i++) cells.push(null)
             for (let d = 1; d <= daysInMonth; d++) cells.push(d)
             while (cells.length % 7 !== 0) cells.push(null)
-            const postsByDay: Record<number, ParrillaItem[]> = {}
-            parrilla.forEach(p => {
-              if (!p.fecha) return
-              const [y, m, d] = p.fecha.split('-').map(Number)
-              if (y === year && m === month + 1) {
-                if (!postsByDay[d]) postsByDay[d] = []
-                postsByDay[d].push(p)
-              }
-            })
             const RED_COLOR: Record<string, string> = {
               'Instagram':'#E1306C','TikTok':'#010101','Facebook':'#1877F2',
               'YouTube':'#FF0000','LinkedIn':'#0A66C2','X':'#1DA1F2',
@@ -942,7 +972,7 @@ export default function ClientePortal() {
                 {/* Leyenda redes */}
                 <div style={{ marginTop:'20px', display:'flex', gap:'14px', flexWrap:'wrap' }}>
                   {Object.entries(RED_COLOR).map(([red, color]) => {
-                    if (!parrilla.some(p => p.red === red)) return null
+                    if (!(data.parrilla ?? []).some(p => p.red === red)) return null
                     return (
                       <div key={red} style={{ display:'flex', alignItems:'center', gap:'5px' }}>
                         <div style={{ width:'8px', height:'8px', borderRadius:'50%', background:color }} />
