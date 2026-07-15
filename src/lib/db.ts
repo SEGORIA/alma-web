@@ -33,7 +33,7 @@ import type { Tarea } from '../data/tareas'
  *  rechaza esa forma con "invalid-argument: invalid nested entity", y ningún
  *  campo de nuestro modelo está diseñado como array-de-arrays (puede aparecer
  *  por datos legacy corruptos), así que aplanar es seguro y no pierde datos. */
-function stripUndefined(obj: unknown): unknown {
+export function stripUndefined(obj: unknown): unknown {
   if (Array.isArray(obj)) {
     const cleaned = obj.map(stripUndefined)
     return cleaned.some(Array.isArray) ? cleaned.flat(Infinity) : cleaned
@@ -497,7 +497,8 @@ export async function getKitArchivos(): Promise<KitArchivo[]> {
 
 export async function createKitArchivo(data: Omit<KitArchivo, '_id'>): Promise<string> {
   const snap = await getDocs(kitCol())
-  const ref  = await addDoc(kitCol(), { ...data, orden: snap.size, createdAt: serverTimestamp() })
+  const clean = stripUndefined(data) as Omit<KitArchivo, '_id'>
+  const ref  = await addDoc(kitCol(), { ...clean, orden: snap.size, createdAt: serverTimestamp() })
   return ref.id
 }
 
@@ -643,6 +644,7 @@ function portalPayload(c: Partial<Cliente>): {
   telefono: string | null; servicios: string[]; estado: string
   entregables: Entregable[]; parrilla: ParrillaItem[]; solicitudes: Solicitud[]
   contrato_url: string | null; fecha_inicio: string | null
+  valor_contrato: string | null; moneda: string | null
   logo_url: string | null; metricas_historico: import('../data/clientes').MetricaMes[]
   acomp_eventos: boolean; grabaciones_mes: number
   plan_mes: import('../data/clientes').PlanMes | null
@@ -664,6 +666,8 @@ function portalPayload(c: Partial<Cliente>): {
     solicitudes:         c.solicitudes         ?? [],
     contrato_url:        c.contrato_url        ?? null,
     fecha_inicio:        c.fecha_inicio        ?? null,
+    valor_contrato:      c.valor_contrato      ?? null,
+    moneda:              c.moneda              ?? null,
     logo_url:            c.logo_url            ?? null,
     metricas_historico:  c.metricas_historico  ?? [],
     acomp_eventos:       c.acomp_eventos       ?? false,
@@ -708,7 +712,7 @@ export async function saveCliente(
     slug = `${slug}-${Math.random().toString(36).slice(2, 5)}`
   }
 
-  const payload = { ...data, access_token: slug }
+  const payload = stripUndefined({ ...data, access_token: slug }) as Omit<Cliente, '_id'> & { access_token: string }
   const ref     = await addDoc(clientesCol(), { ...payload, createdAt: serverTimestamp() })
   await setDoc(doc(db!, 'portales', slug), {
     ...portalPayload(payload),

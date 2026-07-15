@@ -5,6 +5,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getBriefFormConfig } from '../lib/db'
 import type { BriefFormConfig } from '../data/briefs'
 import { trackBriefSubmit } from '../lib/analytics'
+import { uploadFile, storageReady } from '../lib/storage'
 
 /* ── Config ─────────────────────────────────────────────────── */
 const V   = '#6E2DFF'  // violet
@@ -216,6 +217,8 @@ export default function BriefPage() {
   const fileInputRef            = useRef<HTMLInputElement>(null)
   const [fConfig, setFConfig]   = useState<BriefFormConfig | null>(null)
   const [customVals, setCustomVals] = useState<Record<string, string>>({})
+  const [uploadingFiles, setUploadingFiles] = useState(false)
+  const [fileError, setFileError] = useState<string | null>(null)
 
   useEffect(() => { getBriefFormConfig().then(setFConfig) }, [])
 
@@ -252,13 +255,37 @@ export default function BriefPage() {
     })
   }
 
-  function handleFiles(files: FileList | null) {
-    if (!files) return
-    const names = Array.from(files).map(f => `${f.name} (${(f.size / 1024).toFixed(1)} KB)`)
-    setForm(prev => ({
-      ...prev,
-      archivos: [...new Set([...prev.archivos, ...names])],
-    }))
+  async function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setFileError(null)
+    if (!storageReady) {
+      setFileError('La subida de archivos no está disponible en este momento. Usa el enlace externo (Drive, Dropbox, WeTransfer) más abajo.')
+      return
+    }
+    const list = Array.from(files)
+    const tooBig = list.filter(f => f.size > 10 * 1024 * 1024)
+    const valid  = list.filter(f => f.size <= 10 * 1024 * 1024)
+    if (tooBig.length > 0) {
+      setFileError(`${tooBig.map(f => f.name).join(', ')} supera(n) 10MB. Usa el enlace externo para archivos grandes.`)
+    }
+    if (valid.length === 0) return
+    setUploadingFiles(true)
+    try {
+      const results = await Promise.allSettled(valid.map(async f => {
+        const url = await uploadFile(f)
+        return `${f.name} — ${url}`
+      }))
+      const uploaded = results.filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled').map(r => r.value)
+      const failed   = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      if (failed.length > 0) {
+        setFileError(`No se pudieron subir ${failed.length} archivo(s). Intenta de nuevo o usa el enlace externo.`)
+      }
+      if (uploaded.length > 0) {
+        setForm(prev => ({ ...prev, archivos: [...new Set([...prev.archivos, ...uploaded])] }))
+      }
+    } finally {
+      setUploadingFiles(false)
+    }
   }
 
   function removeFile(i: number) {
@@ -759,28 +786,38 @@ export default function BriefPage() {
                   position: 'relative',
                   transition: 'border-color 0.25s, background 0.25s',
                 }}
-                onClick={() => fileInputRef.current?.click()}
-                onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
+                onClick={() => !uploadingFiles && fileInputRef.current?.click()}
+                onKeyDown={e => e.key === 'Enter' && !uploadingFiles && fileInputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = V; e.currentTarget.style.background = 'rgba(110,45,255,0.08)' }}
                 onDragLeave={e => { e.currentTarget.style.borderColor = 'rgba(110,45,255,0.35)'; e.currentTarget.style.background = 'rgba(42,42,51,0.6)' }}
-                onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); e.currentTarget.style.borderColor = 'rgba(110,45,255,0.35)'; e.currentTarget.style.background = 'rgba(42,42,51,0.6)' }}
+                onDrop={e => { e.preventDefault(); if (!uploadingFiles) handleFiles(e.dataTransfer.files); e.currentTarget.style.borderColor = 'rgba(110,45,255,0.35)'; e.currentTarget.style.background = 'rgba(42,42,51,0.6)' }}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
                   multiple
+                  disabled={uploadingFiles}
                   accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.ppt,.pptx,.zip,.mp4,.mov,.ai,.eps,.svg"
                   style={{ display: 'none' }}
-                  onChange={e => handleFiles(e.target.files)}
+                  onChange={e => { handleFiles(e.target.files); e.target.value = '' }}
                 />
-                <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.4 }}>✦</div>
-                <div style={{ fontSize: '13px', color: '#A0A0B0', lineHeight: 1.6 }}>
-                  <strong style={{ color: AME }}>Arrastra tus archivos aquí</strong><br />
-                  o haz clic para seleccionar<br />
-                  <span style={{ fontSize: '11px', opacity: 0.5 }}>
-                    Logo, brand kit, fotos, guías de estilo, presentaciones · Máx. 10MB por archivo
-                  </span>
-                </div>
+                {uploadingFiles ? (
+                  <div style={{ fontSize: '13px', color: AME }}>⏳ Subiendo archivo(s)…</div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '28px', marginBottom: '10px', opacity: 0.4 }}>✦</div>
+                    <div style={{ fontSize: '13px', color: '#A0A0B0', lineHeight: 1.6 }}>
+                      <strong style={{ color: AME }}>Arrastra tus archivos aquí</strong><br />
+                      o haz clic para seleccionar<br />
+                      <span style={{ fontSize: '11px', opacity: 0.5 }}>
+                        Logo, brand kit, fotos, guías de estilo, presentaciones · Máx. 10MB por archivo
+                      </span>
+                    </div>
+                  </>
+                )}
+                {fileError && (
+                  <p style={{ marginTop: '10px', fontSize: '11.5px', color: '#F87171' }}>⚠️ {fileError}</p>
+                )}
                 {form.archivos.length > 0 && (
                   <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
                     {form.archivos.map((f, i) => (
@@ -794,7 +831,7 @@ export default function BriefPage() {
                           display: 'flex', alignItems: 'center', gap: '6px',
                         }}
                       >
-                        ✦ {f}
+                        ✦ {f.split(' — ')[0]}
                         <button
                           type="button"
                           onClick={ev => { ev.stopPropagation(); removeFile(i) }}

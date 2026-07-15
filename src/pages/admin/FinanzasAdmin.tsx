@@ -5,7 +5,7 @@ import { db } from '../../lib/firebase'
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'
 import type { Cliente, MetricaMes } from '../../data/clientes'
 import {
-  getMovimientos, saveMovimiento, deleteMovimiento, getCuentasCobro,
+  getMovimientos, saveMovimiento, deleteMovimiento, getCuentasCobro, stripUndefined,
   type Movimiento, type MovimientoTipo, type CuentaCobro,
 } from '../../lib/db'
 import { toast, confirmar } from '../../components/admin/Feedback'
@@ -230,7 +230,7 @@ export default function FinanzasAdmin() {
     try {
       const hist = [...(selectedClient.metricas_historico ?? [])]
       const idx  = hist.findIndex(m => m.mes === mesValue && m.plataforma === platform)
-      const entry: MetricaMes = { mes: mesValue, plataforma: platform, ...form }
+      const entry = stripUndefined({ mes: mesValue, plataforma: platform, ...form }) as MetricaMes
       if (idx >= 0) hist[idx] = entry; else hist.push(entry)
       await updateDoc(doc(db, 'clientes', selectedId), { metricas_historico: hist, updatedAt: new Date().toISOString() })
       setClientes(cs => cs.map(c => c._id === selectedId ? { ...c, metricas_historico: hist } : c))

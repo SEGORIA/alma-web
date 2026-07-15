@@ -152,13 +152,35 @@ export default function ClientesAdmin() {
     getClientes().then(data => { setClientes(data); setLoading(false) })
   }, [])
 
+  /* Limpia todos los sub-formularios al abrir/cambiar de cliente en el modal,
+     evitando que quede una tarjeta "editando" (o una contraseña tecleada) del
+     cliente anterior. */
+  function resetSubForms() {
+    setNewP({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
+    setEditingParrillaId(null)
+    setEditingParrillaData({})
+    setNewMes({ mes: '' })
+    setEditMes(null)
+    setLogoUploading(false); setLogoError('')
+    setNewHtmlLabel(''); setNewHtmlMes(''); setHtmlUploading(false); setHtmlUploadError('')
+    setExpandedTrelloMesId(null)
+    setNewMesLabel2(''); setNewMesMesValue('')
+    setTrelloMesHtmlUploading(null); setTrelloMesHtmlMsg({})
+    setNewExtraData({})
+    setNewAcceso({ plataforma:'', usuario:'', password:'', url:'', notas:'' })
+    setShowNewPwd(false); setEditAccesoId(null); setShowEditPwd(false)
+  }
+
   /* ── handlers ── */
   function handleNew() {
+    resetSubForms()
     setForm({ ...EMPTY_FORM })   // sin token; se genera desde la marca al guardar
     setEditId(null); setTab('perfil'); setSaveMsg(''); setShowModal(true)
+    setRespuestas({})
   }
 
   function handleEdit(c: Cliente) {
+    resetSubForms()
     setForm({ ...c })
     setEditId(c._id!)
     setTab('perfil'); setSaveMsg(''); setShowModal(true)
@@ -290,7 +312,14 @@ export default function ClientesAdmin() {
     if (!newHtmlLabel.trim() || !newHtmlMes.trim()) return
     setHtmlUploading(true); setHtmlUploadError('')
     try {
-      const texto = await file.text()
+      const original = await file.text()
+      const texto = original.length > HTML_MAX_BYTES
+        ? await compressHtmlDataImages(original)
+        : original
+      if (texto.length > HTML_MAX_BYTES) {
+        setHtmlUploadError(`El HTML pesa ${(texto.length / 1024).toFixed(0)} KB incluso tras comprimir imágenes (límite ~${(HTML_MAX_BYTES / 1024).toFixed(0)} KB). Reduce las imágenes o súbelas a Drive y enlázalas.`)
+        return
+      }
       const item: ParrillaHtml = {
         id:        newId(),
         mes:       newHtmlMes,
