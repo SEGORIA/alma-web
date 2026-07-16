@@ -213,7 +213,7 @@ export default function Academia() {
               Explorar la Academia →
             </a>
             <a
-              href="https://edu.almaagenciacreativa.com/recursos"
+              href="https://edu.almaagenciacreativa.com"
               target="_blank" rel="noopener noreferrer"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
