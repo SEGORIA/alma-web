@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { ADM } from '../../lib/adminTheme'
@@ -99,7 +99,9 @@ function RecursoForm({ initial, onSave, onCancel }: {
 
 export default function AcademiaAdmin() {
   const isMobile = useIsMobile()
-  const [tab, setTab] = useState<Tab>('cursos')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab: Tab = searchParams.get('tab') === 'recursos' ? 'recursos' : 'cursos'
+  const setTab = (t: Tab) => setSearchParams(t === 'recursos' ? { tab: 'recursos' } : {}, { replace: true })
 
   const [cursos, setCursos]   = useState<Curso[]>([])
   const [recursos, setRecursos] = useState<Recurso[]>([])

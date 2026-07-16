@@ -31,6 +31,13 @@ const NEGOCIO: NavEntry[] = [
   { label: '📅 Calendario',         to: '/admin/calendario' },
 ]
 
+/* Academia (edu.almaagenciacreativa.com) — su propia sección, con las áreas
+   que se gestionan del LMS. Cada sub-ítem abre la pestaña vía ?tab. */
+const ACADEMIA: NavEntry[] = [
+  { label: '📚 Cursos',          to: '/admin/academia' },
+  { label: '🎁 Recursos gratis', to: '/admin/academia?tab=recursos' },
+]
+
 const WEB_PREFIXES = PAGINA_WEB.map(i => i.to)
 
 /* ── Helpers ──────────────────────────────────────────────── */
@@ -91,13 +98,19 @@ function NavItem({ label, to, badgeKey, pathname, pend, onNavigate }: NavEntry &
 
 /* ── Contenido del sidebar ── */
 function SidebarContent({
-  isMobile, onClose, pathname, pend, onNavigate, onWebRoute, webOpen, setWebOpen, user, onLogout,
+  isMobile, onClose, pathname, search, pend, onNavigate,
+  onWebRoute, webOpen, setWebOpen,
+  onAcademiaRoute, academiaOpen, setAcademiaOpen,
+  user, onLogout,
 }: {
-  isMobile: boolean; onClose: () => void; pathname: string; pend: Pendientes | null
+  isMobile: boolean; onClose: () => void; pathname: string; search: string; pend: Pendientes | null
   onNavigate: () => void; onWebRoute: boolean; webOpen: boolean
   setWebOpen: React.Dispatch<React.SetStateAction<boolean>>
+  onAcademiaRoute: boolean; academiaOpen: boolean
+  setAcademiaOpen: React.Dispatch<React.SetStateAction<boolean>>
   user: { email?: string | null } | null; onLogout: () => void
 }) {
+  const academiaTab = search.includes('tab=recursos') ? 'recursos' : 'cursos'
   return (
     <>
       {/* Logo */}
@@ -183,8 +196,61 @@ function SidebarContent({
           </div>
         )}
 
-        {/* Academia (edu.almaagenciacreativa.com) — otro sitio público, junto a "Sitio web" */}
-        <NavItem label="🎓 Academia" to="/admin/academia" pathname={pathname} pend={pend} onNavigate={onNavigate} />
+        {/* ── Academia ── */}
+        <SectionLabel text="Academia" />
+
+        {/* Grupo colapsable (mismo patrón que "Sitio web") */}
+        <button
+          onClick={() => setAcademiaOpen(o => !o)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', padding: '9px 13px',
+            borderRadius: '10px', border: 'none', cursor: 'pointer',
+            fontSize: '13.5px', fontWeight: 600,
+            background: onAcademiaRoute && !academiaOpen ? `${P}30` : 'transparent',
+            color: onAcademiaRoute ? '#C4B5FD' : '#9CA3AF',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = onAcademiaRoute && !academiaOpen ? `${P}30` : 'transparent'
+          }}
+        >
+          <span>🎓 Academia</span>
+          <span style={{
+            fontSize: '15px', lineHeight: 1, opacity: 0.5,
+            transform: academiaOpen ? 'rotate(90deg)' : 'rotate(0)',
+            transition: 'transform 0.22s ease', display: 'inline-block',
+          }}>›</span>
+        </button>
+
+        {academiaOpen && (
+          <div style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {ACADEMIA.map(item => {
+              const isRecursos = item.to.includes('tab=recursos')
+              const active = onAcademiaRoute && (isRecursos ? academiaTab === 'recursos' : academiaTab === 'cursos')
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={onNavigate}
+                  style={{
+                    display: 'flex', alignItems: 'center', padding: '9px 13px',
+                    borderRadius: '10px', textDecoration: 'none',
+                    fontSize: '13.5px', fontWeight: active ? 700 : 500,
+                    color: active ? '#fff' : '#9CA3AF',
+                    background: active ? P : 'transparent',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        )}
 
         {/* ── Negocio ── */}
         <SectionLabel text="Negocio" />
@@ -247,10 +313,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const onWebRoute = WEB_PREFIXES.some(p => location.pathname.startsWith(p))
   const [webOpen, setWebOpen] = useState(onWebRoute)
 
-  // Auto-expand grupo web al navegar a una ruta hija
+  const onAcademiaRoute = location.pathname.startsWith('/admin/academia')
+  const [academiaOpen, setAcademiaOpen] = useState(onAcademiaRoute)
+
+  // Auto-expand grupos al navegar a una ruta hija
   useEffect(() => {
     if (onWebRoute) setWebOpen(true)
-  }, [location.pathname, onWebRoute])
+    if (onAcademiaRoute) setAcademiaOpen(true)
+  }, [location.pathname, onWebRoute, onAcademiaRoute])
 
   // Conteos para badges (cacheados 60s a nivel de módulo)
   useEffect(() => {
@@ -313,8 +383,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           display: 'flex', flexDirection: 'column', overflowY: 'auto',
         }}>
           <SidebarContent
-            isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} pend={pend}
+            isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} search={location.search} pend={pend}
             onNavigate={closeDrawer} onWebRoute={onWebRoute} webOpen={webOpen} setWebOpen={setWebOpen}
+            onAcademiaRoute={onAcademiaRoute} academiaOpen={academiaOpen} setAcademiaOpen={setAcademiaOpen}
             user={user} onLogout={handleLogout}
           />
         </aside>
@@ -336,8 +407,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         zIndex: 50, overflowY: 'auto',
       }}>
         <SidebarContent
-          isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} pend={pend}
+          isMobile={isMobile} onClose={closeDrawer} pathname={location.pathname} search={location.search} pend={pend}
           onNavigate={closeDrawer} onWebRoute={onWebRoute} webOpen={webOpen} setWebOpen={setWebOpen}
+          onAcademiaRoute={onAcademiaRoute} academiaOpen={academiaOpen} setAcademiaOpen={setAcademiaOpen}
           user={user} onLogout={handleLogout}
         />
       </aside>
