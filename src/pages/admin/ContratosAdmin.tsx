@@ -6,6 +6,7 @@ import type { LegalDocUrl } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
 import { CLIENTE_ESTADOS } from '../../data/clientes'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { toast } from '../../components/admin/Feedback'
 import { ADM } from '../../lib/adminTheme'
 
 const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, TEAL, GRN, BLUE, INPUT_BG, GHOST, SOFT } = ADM
@@ -81,18 +82,30 @@ export default function ContratosAdmin() {
   async function saveContratoUrl(c: Cliente) {
     if (!c._id) return
     setSaving(true)
-    await updateCliente(c._id, { contrato_url: editUrl.trim() || undefined })
-    setClientes(prev => prev.map(x => x._id === c._id ? { ...x, contrato_url: editUrl.trim() || undefined } : x))
-    setEditingId(null); setSaving(false)
+    try {
+      await updateCliente(c._id, { contrato_url: editUrl.trim() || undefined })
+      setClientes(prev => prev.map(x => x._id === c._id ? { ...x, contrato_url: editUrl.trim() || undefined } : x))
+      setEditingId(null)
+    } catch {
+      toast.err('No se pudo guardar el contrato. Intenta de nuevo.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function saveDocUrl(key: string) {
     setSavingDoc(true)
     const updated = { ...docUrls, [key]: editDocUrl.trim() }
-    setDocUrls(updated)
     const arr: LegalDocUrl[] = Object.entries(updated).filter(([, v]) => v).map(([k, v]) => ({ key: k, url: v }))
-    await saveLegalDocsUrls(arr)
-    setEditingDoc(null); setSavingDoc(false)
+    try {
+      await saveLegalDocsUrls(arr)
+      setDocUrls(updated)
+      setEditingDoc(null)
+    } catch {
+      toast.err('No se pudo guardar el documento. Intenta de nuevo.')
+    } finally {
+      setSavingDoc(false)
+    }
   }
 
   /* ════════════════════════════════════════════════════════ */
