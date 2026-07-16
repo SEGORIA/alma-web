@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
 
 const APPS_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbw5ta5-0VXxIvavzKNLxnpCp0rDx8NyvtTAn45cWySqZM6H21ziERvvABuRlFsi5k92/exec'
@@ -35,7 +36,7 @@ interface BriefPayload {
 
 /* ── Helper: row HTML ─────────────────────────────────────────── */
 function row(label: string, value?: string, highlight = false): string {
-  const val = value && value !== '—' ? value : '<span style="color:#9CA3AF;font-style:italic;">No proporcionado</span>'
+  const val = value && value !== '—' ? escapeHtml(value) : '<span style="color:#9CA3AF;font-style:italic;">No proporcionado</span>'
   const bg  = highlight ? '#F5F3FF' : '#F9FAFB'
   return `
     <tr>
@@ -56,7 +57,7 @@ function buildAdminEmail(p: BriefPayload): string {
   <div style="background:linear-gradient(135deg,#3B0764,#6B21A8,#9333EA);border-radius:20px 20px 0 0;padding:32px 28px;">
     <p style="margin:0 0 8px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">ALMA AGENCIA CREATIVA</p>
     <h1 style="margin:0 0 6px;color:#fff;font-size:24px;font-weight:900;">Nuevo Briefing recibido</h1>
-    <p style="margin:0;color:rgba(255,255,255,0.75);font-size:14px;">de <strong>${p.nombre}</strong> — <em>${p.marca}</em></p>
+    <p style="margin:0;color:rgba(255,255,255,0.75);font-size:14px;">de <strong>${escapeHtml(p.nombre)}</strong> — <em>${escapeHtml(p.marca)}</em></p>
   </div>
 
   <!-- Body -->
@@ -64,7 +65,7 @@ function buildAdminEmail(p: BriefPayload): string {
 
     <!-- Quick actions -->
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;">
-      <a href="mailto:${p.email}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#6B21A8;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">Responder email</a>
+      <a href="mailto:${escapeHtml(p.email)}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#6B21A8;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">Responder email</a>
       ${p.telefono && p.telefono !== '—' ? `<a href="https://wa.me/${p.telefono.replace(/\D/g,'')}?text=${encodeURIComponent(`Hola ${p.nombre}, recibimos tu briefing para ${p.marca}. Nos pondremos en contacto pronto.`)}" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">WhatsApp</a>` : ''}
       <a href="https://www.almaagenciacreativa.com/admin/brief" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#F3F4F6;color:#374151;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">Ver en Admin</a>
     </div>
@@ -112,9 +113,10 @@ function buildAdminEmail(p: BriefPayload): string {
 
     <h3 style="font-size:12px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;padding-top:16px;border-top:2px solid #F5F3FF;">Presencia Digital y Accesos</h3>
     <table style="width:100%;border-collapse:collapse;margin-bottom:24px;border-radius:10px;overflow:hidden;">
-      ${row('Presencia en redes',       p.presencia_redes,          true)}
-      ${row('Credenciales redes',       p.credenciales_redes)}
-      ${row('Credenciales plataformas', p.credenciales_plataformas, true)}
+      ${row('Presencia en redes', p.presencia_redes, true)}
+      ${row('Credenciales', (p.credenciales_redes || p.credenciales_plataformas)
+        ? '🔒 Ver en el Admin o en Google Sheets (no se incluyen en este correo)'
+        : undefined)}
     </table>
 
     <h3 style="font-size:12px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;padding-top:16px;border-top:2px solid #F5F3FF;">Archivos y Cierre</h3>
@@ -171,11 +173,13 @@ async function syncToSheets(p: BriefPayload): Promise<void> {
 /* ── Handler ──────────────────────────────────────────────────── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin',  '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  setCors(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' })
+
+  if (isRateLimited(getClientIp(req))) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' })
+  }
 
   const p = req.body as BriefPayload
 

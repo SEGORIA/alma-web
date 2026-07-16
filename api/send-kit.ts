@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
 
 interface KitArchivoLean {
   nombre:       string
@@ -38,8 +39,8 @@ function buildLeadEmail(email: string, archivos: KitArchivoLean[]): string {
         ">
           <span style="font-size:22px;">${iconoTipo(a.tipo)}</span>
           <div style="flex:1;">
-            <p style="margin:0; font-weight:700; font-size:14px; color:#111827;">${a.nombre}</p>
-            ${a.descripcion ? `<p style="margin:4px 0 0; font-size:12px; color:#6B7280;">${a.descripcion}</p>` : ''}
+            <p style="margin:0; font-weight:700; font-size:14px; color:#111827;">${escapeHtml(a.nombre)}</p>
+            ${a.descripcion ? `<p style="margin:4px 0 0; font-size:12px; color:#6B7280;">${escapeHtml(a.descripcion)}</p>` : ''}
           </div>
           <span style="font-size:20px; color:#6B21A8;">↓</span>
         </a>`).join('')
@@ -55,7 +56,7 @@ function buildLeadEmail(email: string, archivos: KitArchivoLean[]): string {
     <div style="background:linear-gradient(135deg,#3B0764,#6B21A8,#9333EA); border-radius:20px 20px 0 0; padding:32px 28px; text-align:center;">
       <p style="margin:0 0 8px; color:rgba(255,255,255,0.7); font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;">ALMA AGENCIA CREATIVA</p>
       <h1 style="margin:0; color:#fff; font-size:26px; font-weight:900; letter-spacing:-0.5px;">🎁 Tu kit está listo</h1>
-      <p style="margin:10px 0 0; color:rgba(255,255,255,0.75); font-size:14px;">Hola ${email}, aquí están tus recursos</p>
+      <p style="margin:10px 0 0; color:rgba(255,255,255,0.75); font-size:14px;">Hola ${escapeHtml(email)}, aquí están tus recursos</p>
     </div>
 
     <!-- Body -->
@@ -119,15 +120,15 @@ function buildAdminEmail(email: string, telefono: string | undefined, archivos: 
       <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
         <tr>
           <td style="padding:10px 14px; background:#F5F3FF; border-radius:8px 8px 0 0; font-size:12px; font-weight:700; color:#6B21A8; text-transform:uppercase; letter-spacing:0.5px;">Email</td>
-          <td style="padding:10px 14px; background:#F5F3FF; border-radius:8px 8px 0 0; font-size:14px; font-weight:700; color:#111827;">${email}</td>
+          <td style="padding:10px 14px; background:#F5F3FF; border-radius:8px 8px 0 0; font-size:14px; font-weight:700; color:#111827;">${escapeHtml(email)}</td>
         </tr>
         <tr>
           <td style="padding:10px 14px; font-size:12px; font-weight:700; color:#6B21A8; text-transform:uppercase; letter-spacing:0.5px; border-top:1px solid #E5E7EB;">Teléfono / WA</td>
-          <td style="padding:10px 14px; font-size:14px; font-weight:700; color:#111827; border-top:1px solid #E5E7EB;">${telefono ?? 'No proporcionado'}</td>
+          <td style="padding:10px 14px; font-size:14px; font-weight:700; color:#111827; border-top:1px solid #E5E7EB;">${telefono ? escapeHtml(telefono) : 'No proporcionado'}</td>
         </tr>
         <tr>
           <td style="padding:10px 14px; background:#F9FAFB; border-radius:0 0 8px 8px; font-size:12px; font-weight:700; color:#6B21A8; text-transform:uppercase; letter-spacing:0.5px; border-top:1px solid #E5E7EB;">Kit enviado</td>
-          <td style="padding:10px 14px; background:#F9FAFB; border-radius:0 0 8px 8px; font-size:14px; color:#374151; border-top:1px solid #E5E7EB;">${archivos.length > 0 ? archivos.map(a => a.nombre).join(', ') : 'Sin archivos'}</td>
+          <td style="padding:10px 14px; background:#F9FAFB; border-radius:0 0 8px 8px; font-size:14px; color:#374151; border-top:1px solid #E5E7EB;">${archivos.length > 0 ? escapeHtml(archivos.map(a => a.nombre).join(', ')) : 'Sin archivos'}</td>
         </tr>
       </table>
 
@@ -136,7 +137,7 @@ function buildAdminEmail(email: string, telefono: string | undefined, archivos: 
         <a href="${waLink}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 18px; background:#25D366; color:#fff; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
           💬 WhatsApp
         </a>` : ''}
-        <a href="mailto:${email}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 18px; background:#6B21A8; color:#fff; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
+        <a href="mailto:${escapeHtml(email)}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 18px; background:#6B21A8; color:#fff; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
           ✉️ Responder email
         </a>
         <a href="https://alma-web-xi.vercel.app/admin/leads" style="display:inline-flex; align-items:center; gap:6px; padding:10px 18px; background:#F3F4F6; color:#374151; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px;">
@@ -153,19 +154,20 @@ function buildAdminEmail(email: string, telefono: string | undefined, archivos: 
 /* ── Handler ──────────────────────────────────────────────────── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin',  '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  setCors(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  if (isRateLimited(getClientIp(req))) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' })
+  }
+
   const { email, telefono, archivos = [] } = req.body as Body
 
-  if (!email || !email.includes('@')) {
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Email inválido' })
   }
 

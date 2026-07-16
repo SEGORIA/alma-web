@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
 
 interface SolicitudPayload {
   nombre_cliente:  string
@@ -23,13 +24,13 @@ function buildHtml(p: SolicitudPayload): string {
   <div style="background:linear-gradient(135deg,#3B0764,#6B21A8,#9333EA);border-radius:20px 20px 0 0;padding:28px 28px;">
     <p style="margin:0 0 6px;color:rgba(255,255,255,0.7);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">ALMA AGENCIA CREATIVA</p>
     <h1 style="margin:0 0 6px;color:#fff;font-size:22px;font-weight:900;">Nueva solicitud de cliente</h1>
-    <p style="margin:0;color:rgba(255,255,255,0.8);font-size:14px;">de <strong>${p.nombre_cliente}</strong> — <em>${p.marca}</em></p>
+    <p style="margin:0;color:rgba(255,255,255,0.8);font-size:14px;">de <strong>${escapeHtml(p.nombre_cliente)}</strong> — <em>${escapeHtml(p.marca)}</em></p>
   </div>
 
   <div style="background:#fff;border-radius:0 0 20px 20px;padding:24px;border:1px solid #E5E7EB;border-top:none;">
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-      <a href="mailto:${p.email_cliente}" style="display:inline-flex;align-items:center;padding:9px 16px;background:#6B21A8;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:12.5px;">Responder email</a>
+      <a href="mailto:${escapeHtml(p.email_cliente)}" style="display:inline-flex;align-items:center;padding:9px 16px;background:#6B21A8;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;font-size:12.5px;">Responder email</a>
       <a href="${adminUrl}" style="display:inline-flex;align-items:center;padding:9px 16px;background:#F3F4F6;color:#374151;border-radius:10px;text-decoration:none;font-weight:700;font-size:12.5px;">Ver en Admin</a>
       <a href="${portalUrl}" style="display:inline-flex;align-items:center;padding:9px 16px;background:#F3F4F6;color:#374151;border-radius:10px;text-decoration:none;font-weight:700;font-size:12.5px;">Portal del cliente</a>
     </div>
@@ -37,28 +38,28 @@ function buildHtml(p: SolicitudPayload): string {
     <table style="width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;">
       <tr>
         <td style="padding:10px 14px;background:#F5F3FF;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Cliente</td>
-        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${p.nombre_cliente}</td>
+        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${escapeHtml(p.nombre_cliente)}</td>
       </tr>
       <tr>
         <td style="padding:10px 14px;background:#fff;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Marca</td>
-        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${p.marca}</td>
+        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${escapeHtml(p.marca)}</td>
       </tr>
       <tr>
         <td style="padding:10px 14px;background:#F5F3FF;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Email</td>
-        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${p.email_cliente}</td>
+        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${escapeHtml(p.email_cliente)}</td>
       </tr>
       <tr>
         <td style="padding:10px 14px;background:#fff;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Tipo</td>
-        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;font-weight:700;">${p.tipo}</td>
+        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;font-weight:700;">${escapeHtml(p.tipo)}</td>
       </tr>
       <tr>
         <td style="padding:10px 14px;background:#F5F3FF;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Descripción</td>
-        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;white-space:pre-wrap;">${p.descripcion}</td>
+        <td style="padding:10px 14px;background:#F5F3FF;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;white-space:pre-wrap;">${escapeHtml(p.descripcion)}</td>
       </tr>
       ${p.material_ref ? `
       <tr>
         <td style="padding:10px 14px;background:#fff;font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;border-top:1px solid #E5E7EB;vertical-align:top;">Material ref.</td>
-        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${p.material_ref}</td>
+        <td style="padding:10px 14px;background:#fff;font-size:13px;color:#374151;border-top:1px solid #E5E7EB;">${escapeHtml(p.material_ref)}</td>
       </tr>` : ''}
     </table>
 
@@ -73,11 +74,13 @@ function buildHtml(p: SolicitudPayload): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin',  '*')
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  setCors(req, res)
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST')    return res.status(405).json({ error: 'Method not allowed' })
+
+  if (isRateLimited(getClientIp(req))) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Intenta de nuevo en un minuto.' })
+  }
 
   const p = req.body as SolicitudPayload
 
