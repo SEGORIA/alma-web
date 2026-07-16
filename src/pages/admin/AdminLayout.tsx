@@ -19,7 +19,7 @@ const PAGINA_WEB: NavEntry[] = [
 ]
 
 /* Orden según el flujo comercial: brief → cotización → contrato
-   → cliente → cobro → finanzas. Academia al final. */
+   → cliente → cobro → finanzas. */
 const NEGOCIO: NavEntry[] = [
   { label: '📋 Brief',              to: '/admin/brief', badgeKey: 'briefsNuevos' },
   { label: '📊 Cotizaciones',       to: '/admin/cotizaciones' },
@@ -29,7 +29,6 @@ const NEGOCIO: NavEntry[] = [
   { label: '💼 Finanzas',           to: '/admin/finanzas' },
   { label: '✅ Tareas',             to: '/admin/tareas' },
   { label: '📅 Calendario',         to: '/admin/calendario' },
-  { label: '🎓 Academia',           to: '/admin/academia' },
 ]
 
 const WEB_PREFIXES = PAGINA_WEB.map(i => i.to)
@@ -183,6 +182,9 @@ function SidebarContent({
             ))}
           </div>
         )}
+
+        {/* Academia (edu.almaagenciacreativa.com) — otro sitio público, junto a "Sitio web" */}
+        <NavItem label="🎓 Academia" to="/admin/academia" pathname={pathname} pend={pend} onNavigate={onNavigate} />
 
         {/* ── Negocio ── */}
         <SectionLabel text="Negocio" />
