@@ -6,6 +6,7 @@ import { Y } from '../../tokens'
 import type { Articulo } from '../../data/articulos'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { AdminListHeader, AdminEmptyState } from '../../components/admin/AdminListPage'
 import { ADM } from '../../lib/adminTheme'
 
 const { DIM, BDR, MUT, WHT } = ADM
@@ -35,48 +36,20 @@ export default function BlogAdmin() {
       <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: WHT, marginBottom: '4px', letterSpacing: '-0.5px' }}>
-              ✍️ Blog
-            </h1>
-            <p style={{ fontSize: '14px', color: MUT }}>
-              {articulos.length} artículo{articulos.length !== 1 ? 's' : ''} publicado{articulos.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <Link
-            to="/admin/blog/nuevo"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: P, color: '#fff',
-              padding: '11px 22px', borderRadius: '12px',
-              textDecoration: 'none', fontWeight: 700, fontSize: '14px',
-            }}
-          >
-            + Nuevo artículo
-          </Link>
-        </div>
+        <AdminListHeader
+          icon="✍️" title="Blog" count={articulos.length} countLabel="artículo publicado"
+          ctaLabel="+ Nuevo artículo" ctaTo="/admin/blog/nuevo" color={P}
+        />
 
         {/* Lista */}
         {loading ? (
           <ListSkeleton rows={4} />
         ) : articulos.length === 0 ? (
-          <div style={{
-            background: DIM, borderRadius: '16px', padding: '48px',
-            textAlign: 'center', border: `1px solid ${BDR}`,
-          }}>
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>📝</span>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: WHT, marginBottom: '8px' }}>
-              No hay artículos aún
-            </p>
-            <p style={{ fontSize: '14px', color: MUT, marginBottom: '24px' }}>
-              Crea tu primer artículo o migra los datos desde el dashboard.
-            </p>
-            <Link to="/admin/blog/nuevo" style={{ color: P, fontWeight: 700, fontSize: '14px' }}>
-              + Crear primer artículo →
-            </Link>
-          </div>
+          <AdminEmptyState
+            icon="📝" title="No hay artículos aún"
+            subtitle="Crea tu primer artículo o migra los datos desde el dashboard."
+            ctaLabel="+ Crear primer artículo →" ctaTo="/admin/blog/nuevo" color={P}
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {articulos.map(a => (

@@ -6,6 +6,7 @@ import { getProyectos, deleteProyecto } from '../../lib/db'
 import type { Proyecto } from '../../data/portafolio'
 import { confirmar } from '../../components/admin/Feedback'
 import { CardGridSkeleton } from '../../components/admin/Loading'
+import { AdminListHeader, AdminEmptyState } from '../../components/admin/AdminListPage'
 import { ADM } from '../../lib/adminTheme'
 
 const { DIM, BDR, MUT, WHT } = ADM
@@ -35,48 +36,20 @@ export default function PortafolioAdmin() {
       <div style={{ padding: 'clamp(20px, 4vw, 40px) clamp(16px, 3vw, 32px)' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: MUT }}>ALMA · AGENCIA CREATIVA</p>
-            <h1 style={{ fontSize: '24px', fontWeight: 900, color: WHT, marginBottom: '4px', letterSpacing: '-0.5px' }}>
-              🖼️ Portafolio
-            </h1>
-            <p style={{ fontSize: '14px', color: MUT }}>
-              {proyectos.length} proyecto{proyectos.length !== 1 ? 's' : ''} en el portafolio
-            </p>
-          </div>
-          <Link
-            to="/admin/portafolio/nuevo"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: '#6B21A8', color: '#fff',
-              padding: '11px 22px', borderRadius: '12px',
-              textDecoration: 'none', fontWeight: 700, fontSize: '14px',
-            }}
-          >
-            + Nuevo proyecto
-          </Link>
-        </div>
+        <AdminListHeader
+          icon="🖼️" title="Portafolio" count={proyectos.length} countLabel="proyecto"
+          ctaLabel="+ Nuevo proyecto" ctaTo="/admin/portafolio/nuevo" color="#6B21A8"
+        />
 
         {/* Grid */}
         {loading ? (
           <CardGridSkeleton cards={6} />
         ) : proyectos.length === 0 ? (
-          <div style={{
-            background: DIM, borderRadius: '16px', padding: '48px',
-            textAlign: 'center', border: `1px solid ${BDR}`,
-          }}>
-            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🖼️</span>
-            <p style={{ fontSize: '16px', fontWeight: 700, color: WHT, marginBottom: '8px' }}>
-              No hay proyectos aún
-            </p>
-            <p style={{ fontSize: '14px', color: MUT, marginBottom: '24px' }}>
-              Agrega proyectos o migra los datos desde el dashboard.
-            </p>
-            <Link to="/admin/portafolio/nuevo" style={{ color: '#6B21A8', fontWeight: 700, fontSize: '14px' }}>
-              + Agregar primer proyecto →
-            </Link>
-          </div>
+          <AdminEmptyState
+            icon="🖼️" title="No hay proyectos aún"
+            subtitle="Agrega proyectos o migra los datos desde el dashboard."
+            ctaLabel="+ Agregar primer proyecto →" ctaTo="/admin/portafolio/nuevo" color="#6B21A8"
+          />
         ) : (
           <div style={{
             display: 'grid',
