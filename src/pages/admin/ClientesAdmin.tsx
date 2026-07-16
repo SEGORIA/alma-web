@@ -11,6 +11,7 @@ import {
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
 } from '../../data/clientes'
 import { ListSkeleton } from '../../components/admin/Loading'
+import { toast, confirmar } from '../../components/admin/Feedback'
 import { ADM } from '../../lib/adminTheme'
 
 const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, BLUE, INPUT_BG, GHOST, SOFT } = ADM
@@ -144,9 +145,6 @@ export default function ClientesAdmin() {
   const [editAccesoId, setEditAccesoId] = useState<string | null>(null)
   const [showEditPwd,  setShowEditPwd]  = useState(false)
 
-  /* confirm delete */
-  const [confirmId, setConfirmId] = useState<string | null>(null)
-
   /* load */
   useEffect(() => {
     getClientes().then(data => { setClientes(data); setLoading(false) })
@@ -228,9 +226,16 @@ export default function ClientesAdmin() {
   }
 
   async function handleDelete(id: string) {
-    await deleteCliente(id)
-    setClientes(prev => prev.filter(c => c._id !== id))
-    setConfirmId(null)
+    if (!(await confirmar({
+      mensaje: '¿Eliminar cliente? Esta acción eliminará también el acceso al portal. No se puede deshacer.',
+    }))) return
+    try {
+      await deleteCliente(id)
+      setClientes(prev => prev.filter(c => c._id !== id))
+      toast.ok('Cliente eliminado.')
+    } catch {
+      toast.err('No se pudo eliminar el cliente. Intenta de nuevo.')
+    }
   }
 
   function addParrillaItem() {
@@ -452,11 +457,16 @@ export default function ClientesAdmin() {
       estado:    s.estado,
       respuesta: respuestas[s.id] ?? s.respuesta,
     }
-    await updateSolicitudEnCliente(editId, token, s.id, changes)
-    setForm(f => ({
-      ...f,
-      solicitudes: f.solicitudes.map(x => x.id === s.id ? { ...x, ...changes } : x),
-    }))
+    try {
+      await updateSolicitudEnCliente(editId, token, s.id, changes)
+      setForm(f => ({
+        ...f,
+        solicitudes: f.solicitudes.map(x => x.id === s.id ? { ...x, ...changes } : x),
+      }))
+      toast.ok('Respuesta guardada.')
+    } catch {
+      toast.err('No se pudo guardar la respuesta. Intenta de nuevo.')
+    }
   }
 
   /* ── filtered list ── */
@@ -605,7 +615,7 @@ export default function ClientesAdmin() {
                 key={c._id}
                 cliente={c}
                 onEdit={() => handleEdit(c)}
-                onDelete={() => setConfirmId(c._id!)}
+                onDelete={() => handleDelete(c._id!)}
                 portalBase={PORTAL_BASE}
               />
             ))}
@@ -613,23 +623,6 @@ export default function ClientesAdmin() {
         )}
       </div>
 
-      {/* ── Confirm delete ── */}
-      {confirmId && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-          zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{ background: DIM, border: `0.5px solid ${BDR2}`, borderRadius: '8px', padding: '28px 32px', maxWidth: '380px', width: '90%', textAlign: 'center' }}>
-            <p style={{ fontSize: '32px', margin: '0 0 12px', color: ROSE }}>!</p>
-            <p style={{ fontWeight: 800, fontSize: '16px', color: WHT, margin: '0 0 8px' }}>¿Eliminar cliente?</p>
-            <p style={{ fontSize: '13px', color: MUT, margin: '0 0 24px' }}>Esta acción eliminará también el acceso al portal. No se puede deshacer.</p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button onClick={() => setConfirmId(null)} style={{ padding: '10px 22px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: WHT, cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Cancelar</button>
-              <button onClick={() => handleDelete(confirmId)} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: ROSE, color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Eliminar</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ══ MODAL ═════════════════════════════════════════════ */}
       {showModal && (
