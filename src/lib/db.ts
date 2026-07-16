@@ -48,6 +48,41 @@ export function stripUndefined(obj: unknown): unknown {
   return obj
 }
 
+/** Factory para colecciones "simples" (sin fallback a datos estáticos ni
+ *  merge/dedup especial): getAll ordenado + create + update + delete, todos
+ *  con el mismo guard `firebaseReady` y el mismo try/catch que ya usaban
+ *  Cotizaciones, Cuentas de Cobro, Movimientos, Leads y Tareas por separado. */
+function makeCrud<T extends { _id?: string }>(
+  collectionName: string,
+  orderField: string,
+  orderDir: 'asc' | 'desc' = 'desc',
+) {
+  const col = () => collection(db!, collectionName)
+  return {
+    col,
+    async getAll(): Promise<T[]> {
+      if (!firebaseReady || !db) return []
+      try {
+        const snap = await getDocs(query(col(), orderBy(orderField, orderDir)))
+        return snap.docs.map(d => ({ ...(d.data() as T), _id: d.id }))
+      } catch { return [] }
+    },
+    async create(data: Omit<T, '_id'>, extraFields: Record<string, unknown> = {}): Promise<string> {
+      if (!db) throw new Error('DB not ready')
+      const ref = await addDoc(col(), { ...data, ...extraFields })
+      return ref.id
+    },
+    async update(id: string, data: Partial<T>): Promise<void> {
+      if (!firebaseReady || !db) return
+      await updateDoc(doc(db!, collectionName, id), { ...data, updatedAt: serverTimestamp() })
+    },
+    async remove(id: string): Promise<void> {
+      if (!firebaseReady || !db) return
+      await deleteDoc(doc(db!, collectionName, id))
+    },
+  }
+}
+
 function articulosCol()   { return collection(db!, 'articulos') }
 function portafolioCol()  { return collection(db!, 'portafolio') }
 function planesCol()      { return collection(db!, 'precios_planes') }
@@ -62,7 +97,6 @@ function kitCol()         { return collection(db!, 'kit_archivos') }
 function leadsCol()       { return collection(db!, 'leads') }
 function briefsCol()      { return collection(db!, 'briefs') }
 function briefConfigDoc() { return doc(db!, 'brief_config', 'v1') }
-function tareasCol()      { return collection(db!, 'tareas') }
 
 /* ══ ARTÍCULOS ══════════════════════════════════════════════ */
 
@@ -525,23 +559,15 @@ export async function saveLead(email: string, telefono?: string): Promise<void> 
   } catch { /* silencioso — no bloquear al usuario */ }
 }
 
-export async function getLeads(): Promise<Lead[]> {
-  if (!firebaseReady || !db) return []
-  try {
-    const snap = await getDocs(query(leadsCol(), orderBy('createdAt', 'desc')))
-    return snap.docs.map(d => ({ ...(d.data() as Lead), _id: d.id }))
-  } catch {
-    return []
-  }
+const leadsCrud = makeCrud<Lead>('leads', 'createdAt', 'desc')
+
+export const getLeads = leadsCrud.getAll
+
+export function updateLeadEstado(id: string, estado: Lead['estado']) {
+  return leadsCrud.update(id, { estado } as Partial<Lead>)
 }
 
-export async function updateLeadEstado(id: string, estado: Lead['estado']) {
-  await updateDoc(doc(db!, 'leads', id), { estado, updatedAt: serverTimestamp() })
-}
-
-export async function deleteLead(id: string) {
-  await deleteDoc(doc(db!, 'leads', id))
-}
+export const deleteLead = leadsCrud.remove
 
 /* ══ BRIEFS ═════════════════════════════════════════════════ */
 
@@ -864,64 +890,37 @@ export interface Cotizacion {
 
 /* ══ TAREAS ═════════════════════════════════════════════════ */
 
-export async function getTareas(): Promise<Tarea[]> {
-  if (!firebaseReady || !db) return []
-  try {
-    const snap = await getDocs(query(tareasCol(), orderBy('createdAt', 'desc')))
-    return snap.docs.map(d => ({ ...(d.data() as Tarea), _id: d.id }))
-  } catch {
-    return []
-  }
-}
+const tareasCrud = makeCrud<Tarea>('tareas', 'createdAt', 'desc')
+
+export const getTareas = tareasCrud.getAll
 
 export async function getTareasByResponsable(responsableId: string): Promise<Tarea[]> {
   if (!firebaseReady || !db) return []
   try {
-    const snap = await getDocs(query(tareasCol(), where('responsableId', '==', responsableId)))
+    const snap = await getDocs(query(tareasCrud.col(), where('responsableId', '==', responsableId)))
     return snap.docs.map(d => ({ ...(d.data() as Tarea), _id: d.id }))
   } catch {
     return []
   }
 }
 
-export async function createTarea(data: Omit<Tarea, '_id'>): Promise<string> {
-  const ref = await addDoc(tareasCol(), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
-  return ref.id
+export function createTarea(data: Omit<Tarea, '_id'>): Promise<string> {
+  return tareasCrud.create(data, { createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
 }
 
-export async function updateTarea(id: string, data: Partial<Tarea>) {
-  await updateDoc(doc(db!, 'tareas', id), { ...data, updatedAt: serverTimestamp() })
+export const updateTarea = tareasCrud.update
+export const deleteTarea = tareasCrud.remove
+
+const cotizacionesCrud = makeCrud<Cotizacion>('cotizaciones', 'creadoEn', 'desc')
+
+export const getCotizaciones = cotizacionesCrud.getAll
+
+export function saveCotizacion(data: Omit<Cotizacion, '_id'>): Promise<string> {
+  return cotizacionesCrud.create(data, { creadoEn: serverTimestamp() })
 }
 
-export async function deleteTarea(id: string) {
-  await deleteDoc(doc(db!, 'tareas', id))
-}
-
-function cotizacionesCol() { return collection(db!, 'cotizaciones') }
-
-export async function getCotizaciones(): Promise<Cotizacion[]> {
-  if (!firebaseReady || !db) return []
-  try {
-    const snap = await getDocs(query(cotizacionesCol(), orderBy('creadoEn', 'desc')))
-    return snap.docs.map(d => ({ ...(d.data() as Cotizacion), _id: d.id }))
-  } catch { return [] }
-}
-
-export async function saveCotizacion(data: Omit<Cotizacion, '_id'>): Promise<string> {
-  if (!db) throw new Error('DB not ready')
-  const ref = await addDoc(cotizacionesCol(), { ...data, creadoEn: serverTimestamp() })
-  return ref.id
-}
-
-export async function updateCotizacion(id: string, data: Partial<Cotizacion>): Promise<void> {
-  if (!firebaseReady || !db) return
-  await updateDoc(doc(db!, 'cotizaciones', id), { ...data, updatedAt: serverTimestamp() })
-}
-
-export async function deleteCotizacion(id: string): Promise<void> {
-  if (!firebaseReady || !db) return
-  await deleteDoc(doc(db!, 'cotizaciones', id))
-}
+export const updateCotizacion = cotizacionesCrud.update
+export const deleteCotizacion = cotizacionesCrud.remove
 
 /* ══ CUENTAS DE COBRO ═══════════════════════════════════════ */
 
@@ -947,31 +946,16 @@ export interface CuentaCobro {
   notas: string
 }
 
-function cuentasCobroCol() { return collection(db!, 'cuentas_cobro') }
+const cuentasCobroCrud = makeCrud<CuentaCobro>('cuentas_cobro', 'creadoEn', 'desc')
 
-export async function getCuentasCobro(): Promise<CuentaCobro[]> {
-  if (!firebaseReady || !db) return []
-  try {
-    const snap = await getDocs(query(cuentasCobroCol(), orderBy('creadoEn', 'desc')))
-    return snap.docs.map(d => ({ ...(d.data() as CuentaCobro), _id: d.id }))
-  } catch { return [] }
+export const getCuentasCobro = cuentasCobroCrud.getAll
+
+export function saveCuentaCobro(data: Omit<CuentaCobro, '_id'>): Promise<string> {
+  return cuentasCobroCrud.create(data, { creadoEn: serverTimestamp() })
 }
 
-export async function saveCuentaCobro(data: Omit<CuentaCobro, '_id'>): Promise<string> {
-  if (!db) throw new Error('DB not ready')
-  const ref = await addDoc(cuentasCobroCol(), { ...data, creadoEn: serverTimestamp() })
-  return ref.id
-}
-
-export async function updateCuentaCobro(id: string, data: Partial<CuentaCobro>): Promise<void> {
-  if (!firebaseReady || !db) return
-  await updateDoc(doc(db!, 'cuentas_cobro', id), { ...data, updatedAt: serverTimestamp() })
-}
-
-export async function deleteCuentaCobro(id: string): Promise<void> {
-  if (!firebaseReady || !db) return
-  await deleteDoc(doc(db!, 'cuentas_cobro', id))
-}
+export const updateCuentaCobro = cuentasCobroCrud.update
+export const deleteCuentaCobro = cuentasCobroCrud.remove
 
 /* ══ FINANZAS — Movimientos (ingresos / gastos) ═════════════ */
 
@@ -987,26 +971,15 @@ export interface Movimiento {
   clienteId?:  string
 }
 
-function movimientosCol() { return collection(db!, 'finanzas_movimientos') }
+const movimientosCrud = makeCrud<Movimiento>('finanzas_movimientos', 'fecha', 'desc')
 
-export async function getMovimientos(): Promise<Movimiento[]> {
-  if (!firebaseReady || !db) return []
-  try {
-    const snap = await getDocs(query(movimientosCol(), orderBy('fecha', 'desc')))
-    return snap.docs.map(d => ({ ...(d.data() as Movimiento), _id: d.id }))
-  } catch { return [] }
+export const getMovimientos = movimientosCrud.getAll
+
+export function saveMovimiento(data: Omit<Movimiento, '_id'>): Promise<string> {
+  return movimientosCrud.create(data, { creadoEn: serverTimestamp() })
 }
 
-export async function saveMovimiento(data: Omit<Movimiento, '_id'>): Promise<string> {
-  if (!db) throw new Error('DB not ready')
-  const ref = await addDoc(movimientosCol(), { ...data, creadoEn: serverTimestamp() })
-  return ref.id
-}
-
-export async function deleteMovimiento(id: string): Promise<void> {
-  if (!firebaseReady || !db) return
-  await deleteDoc(doc(db!, 'finanzas_movimientos', id))
-}
+export const deleteMovimiento = movimientosCrud.remove
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 
