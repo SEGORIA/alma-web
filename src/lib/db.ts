@@ -22,6 +22,8 @@ import type { Brief, BriefFormConfig } from '../data/briefs'
 import { DEFAULT_BRIEF_CONFIG } from '../data/briefs'
 import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../data/clientes'
 import type { Tarea } from '../data/tareas'
+import type { Curso, Recurso } from '../data/academia'
+import { RECURSOS_SEED_HACKS_IG } from '../data/academia'
 
 
 
@@ -81,6 +83,22 @@ function makeCrud<T extends { _id?: string }>(
       await deleteDoc(doc(db!, collectionName, id))
     },
   }
+}
+
+/* ══ ADMINS (allowlist) ═════════════════════════════════════
+   `RequireAuth` (App.tsx) valida que el usuario autenticado con Firebase Auth
+   exista además en esta colección (doc id = uid) antes de dejarlo entrar a
+   /admin/*. Necesario porque Academia va a permitir auto-registro público de
+   estudiantes en el MISMO proyecto de Firebase Auth — sin este chequeo,
+   cualquier estudiante registrado podría loguearse en /admin/login y entrar. */
+const _adminCache = new Map<string, Promise<boolean>>()
+
+export function isAdmin(uid: string): Promise<boolean> {
+  if (!firebaseReady || !db) return Promise.resolve(false)
+  if (!_adminCache.has(uid)) {
+    _adminCache.set(uid, getDoc(doc(db!, 'admins', uid)).then(s => s.exists()).catch(() => false))
+  }
+  return _adminCache.get(uid)!
 }
 
 function articulosCol()   { return collection(db!, 'articulos') }
@@ -980,6 +998,57 @@ export function saveMovimiento(data: Omit<Movimiento, '_id'>): Promise<string> {
 }
 
 export const deleteMovimiento = movimientosCrud.remove
+
+/* ══ ACADEMIA — CURSOS ══════════════════════════════════════ */
+
+const cursosCrud = makeCrud<Curso>('cursos', 'createdAt', 'desc')
+
+export const getCursos = cursosCrud.getAll
+
+export async function getCurso(id: string): Promise<Curso | null> {
+  if (!firebaseReady || !db) return null
+  try {
+    const snap = await getDoc(doc(db!, 'cursos', id))
+    if (!snap.exists()) return null
+    return { ...(snap.data() as Curso), _id: snap.id }
+  } catch { return null }
+}
+
+export function createCurso(data: Omit<Curso, '_id'>): Promise<string> {
+  return cursosCrud.create(stripUndefined(data) as Omit<Curso, '_id'>, { createdAt: serverTimestamp() })
+}
+
+export function updateCurso(id: string, data: Partial<Curso>): Promise<void> {
+  return cursosCrud.update(id, stripUndefined(data) as Partial<Curso>)
+}
+
+export const deleteCurso = cursosCrud.remove
+
+/* ══ ACADEMIA — RECURSOS GRATIS ═════════════════════════════ */
+
+const recursosCrud = makeCrud<Recurso>('recursos', 'orden', 'asc')
+
+export const getRecursos = recursosCrud.getAll
+
+export function createRecurso(data: Omit<Recurso, '_id'>): Promise<string> {
+  return recursosCrud.create(stripUndefined(data) as Omit<Recurso, '_id'>, { createdAt: serverTimestamp() })
+}
+
+export function updateRecurso(id: string, data: Partial<Recurso>): Promise<void> {
+  return recursosCrud.update(id, stripUndefined(data) as Partial<Recurso>)
+}
+
+export const deleteRecurso = recursosCrud.remove
+
+/** Puebla la colección `recursos` con los 7 Hacks de Instagram que hoy viven
+ *  hardcodeados en el sitio público (alma-edu) — pensada para un solo uso,
+ *  desde el botón en /admin/academia, cuando la colección está vacía. */
+export async function seedRecursosHacksIG(): Promise<void> {
+  if (!db) throw new Error('DB not ready')
+  for (const r of RECURSOS_SEED_HACKS_IG) {
+    await recursosCrud.create(r, { createdAt: serverTimestamp() })
+  }
+}
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */
 

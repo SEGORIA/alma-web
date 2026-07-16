@@ -32,7 +32,7 @@ import EquipoPage      from './pages/EquipoPage'
 import NotFoundPage    from './pages/NotFoundPage'
 import BriefPageDirect   from './pages/BriefPage'
 import ClientePortalPage from './pages/ClientePortal'
-import { getConfig, getContactoInfo } from './lib/db'
+import { getConfig, getContactoInfo, isAdmin } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
 import { useAuth }  from './hooks/useAuth'
@@ -64,6 +64,7 @@ const ClientesAdmin       = lazy(() => import('./pages/admin/ClientesAdmin'))
 const CotizacionesAdmin   = lazy(() => import('./pages/admin/CotizacionesAdmin'))
 const CuentasCobroAdmin   = lazy(() => import('./pages/admin/CuentasCobroAdmin'))
 const AcademiaAdmin       = lazy(() => import('./pages/admin/AcademiaAdmin'))
+const AcademiaCursoEditor = lazy(() => import('./pages/admin/AcademiaCursoEditor'))
 const TareasAdmin         = lazy(() => import('./pages/admin/TareasAdmin'))
 const CalendarioAdmin     = lazy(() => import('./pages/admin/CalendarioAdmin'))
 const EquipoPortalPage    = lazy(() => import('./pages/EquipoPortal'))
@@ -577,8 +578,17 @@ function PageLoader() {
 /* ── Protected route ─────────────────────────────────────── */
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  if (loading) return <PageLoader />
-  return user ? <>{children}</> : <Navigate to="/admin/login" replace />
+  const [adminOk, setAdminOk]     = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!user) { setAdminOk(null); return }
+    let active = true
+    isAdmin(user.uid).then(ok => { if (active) setAdminOk(ok) })
+    return () => { active = false }
+  }, [user])
+
+  if (loading || (user && adminOk === null)) return <PageLoader />
+  return (user && adminOk) ? <>{children}</> : <Navigate to="/admin/login" replace />
 }
 
 /* ── Brief subdomain wrapper: registra page_view en GA4 ─── */
@@ -643,6 +653,7 @@ export default function App() {
         <Route path="/admin/cotizaciones" element={<RequireAuth><CotizacionesAdmin /></RequireAuth>} />
         <Route path="/admin/cuentas-cobro" element={<RequireAuth><CuentasCobroAdmin /></RequireAuth>} />
         <Route path="/admin/academia"      element={<RequireAuth><AcademiaAdmin /></RequireAuth>} />
+        <Route path="/admin/academia/:id"  element={<RequireAuth><AcademiaCursoEditor /></RequireAuth>} />
         <Route path="/admin/tareas"        element={<RequireAuth><TareasAdmin /></RequireAuth>} />
         <Route path="/admin/calendario"    element={<RequireAuth><CalendarioAdmin /></RequireAuth>} />
       </Routes>
