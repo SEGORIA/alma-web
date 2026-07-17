@@ -72,8 +72,8 @@ export default async function handler(req: any, res: any) {
   const action = body.action as string
 
   try {
-    const auth = adminAuth()
-    const db   = adminDb()
+    const auth = await adminAuth()
+    const db   = await adminDb()
 
     switch (action) {
       /* ── Listar alumnos con su progreso ── */
