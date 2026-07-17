@@ -189,6 +189,29 @@ export type AccesoItem = {
   createdAt?: string
 }
 
+// ── Biblioteca de marca (assets por cliente) ──────────────
+
+export type BrandAssetCategoria = 'logo' | 'brandkit' | 'fuente' | 'plantilla' | 'foto' | 'video' | 'otro'
+
+export const BRAND_ASSET_CATEGORIAS: { value: BrandAssetCategoria; label: string; icon: string }[] = [
+  { value: 'logo',      label: 'Logos',       icon: '🅰️' },
+  { value: 'brandkit',  label: 'Brand kit',   icon: '🎨' },
+  { value: 'fuente',    label: 'Tipografías', icon: '✍️' },
+  { value: 'plantilla', label: 'Plantillas',  icon: '🧩' },
+  { value: 'foto',      label: 'Fotos',       icon: '📷' },
+  { value: 'video',     label: 'Videos',      icon: '🎬' },
+  { value: 'otro',      label: 'Otros',       icon: '📎' },
+]
+
+export type BrandAsset = {
+  id:           string
+  categoria:    BrandAssetCategoria
+  nombre:       string
+  url:          string
+  descripcion?: string
+  createdAt?:   string
+}
+
 export type ClienteEstado = 'activo' | 'pausado' | 'finalizado' | 'prospecto'
 
 export type Cliente = {
@@ -221,6 +244,7 @@ export type Cliente = {
   parrilla_htmls?: ParrillaHtml[]
   parrilla_meses?: ParrillaMes[]    // Tablero Trello por mes
   accesos?:        AccesoItem[]     // Credenciales de plataformas
+  brand_assets?:   BrandAsset[]     // Biblioteca de marca (logos, kit, fuentes…)
   // Servicios adicionales
   acomp_eventos?: boolean             // acompañamiento a eventos incluido
   grabaciones_mes?: number            // grabaciones programadas por mes

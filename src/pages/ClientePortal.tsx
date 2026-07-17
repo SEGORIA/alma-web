@@ -6,6 +6,7 @@ import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
 import {
   PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
+  BRAND_ASSET_CATEGORIAS,
 } from '../data/clientes'
 import { contactoDefault } from '../data/config'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -1430,14 +1431,15 @@ export default function ClientePortal() {
         {/* ── ANÁLISIS DE MARCA ── */}
         {tab === 'marca' && (() => {
           const am = data.analisis_marca
-          if (!am) return (
+          const assets = data.brand_assets ?? []
+          if (!am && assets.length === 0) return (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
               <p style={{ fontSize: '40px', margin: '0 0 12px' }}>🎨</p>
               <p style={{ color: '#6B7280', fontSize: '15px' }}>El análisis de marca estará disponible aquí muy pronto.</p>
             </div>
           )
 
-          const sections: { field: keyof typeof am; icon: string; title: string }[] = [
+          const sections: { field: keyof NonNullable<typeof am>; icon: string; title: string }[] = [
             { field: 'resumen',      icon: '📋', title: 'Resumen de la marca' },
             { field: 'colores',      icon: '🎨', title: 'Colores corporativos' },
             { field: 'tipografias',  icon: '✍️', title: 'Tipografías' },
@@ -1451,7 +1453,7 @@ export default function ClientePortal() {
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', animation: 'fadeUp 0.35s ease' }}>
-              {sections.map(s => {
+              {am && sections.map(s => {
                 const val = am[s.field]
                 if (!val) return null
                 return (
@@ -1461,6 +1463,36 @@ export default function ClientePortal() {
                   </div>
                 )
               })}
+
+              {/* Biblioteca de marca */}
+              {assets.length > 0 && (
+                <div style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                  <p style={{ margin: '0 0 14px', fontSize: '11px', fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🖼️ Biblioteca de marca</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {BRAND_ASSET_CATEGORIAS.map(cat => {
+                      const items = assets.filter(a => a.categoria === cat.value)
+                      if (items.length === 0) return null
+                      return (
+                        <div key={cat.value}>
+                          <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 800, color: '#6B7280' }}>{cat.icon} {cat.label}</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {items.map(a => (
+                              <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', background: '#F9FAFB', border: '1px solid #E5E7EB', textDecoration: 'none' }}>
+                                <span style={{ fontSize: '20px', flexShrink: 0 }}>{cat.icon}</span>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.nombre}</p>
+                                  {a.descripcion && <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.descripcion}</p>}
+                                </div>
+                                <span style={{ fontSize: '18px', color: P, flexShrink: 0 }}>↓</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )
         })()}

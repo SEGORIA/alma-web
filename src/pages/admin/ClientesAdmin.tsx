@@ -5,11 +5,13 @@ import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
 } from '../../lib/db'
-import type { Cliente, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem } from '../../data/clientes'
+import type { Cliente, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem, BrandAsset, BrandAssetCategoria } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES,
   PARRILLA_ESTADOS, SOLICITUD_TIPOS, SOLICITUD_ESTADOS, PILARES_CONTENIDO,
+  BRAND_ASSET_CATEGORIAS,
 } from '../../data/clientes'
+import FileUploader from '../../components/FileUploader'
 import { ListSkeleton } from '../../components/admin/Loading'
 import { toast, confirmar } from '../../components/admin/Feedback'
 import { ADM } from '../../lib/adminTheme'
@@ -19,7 +21,7 @@ const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, BLUE, INP
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos'
+type ModalTab = 'perfil' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos' | 'biblioteca'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -141,6 +143,7 @@ export default function ClientesAdmin() {
 
   /* accesos */
   const [newAcceso, setNewAcceso] = useState<Omit<AccesoItem, 'id' | 'createdAt'>>({ plataforma:'', usuario:'', password:'', url:'', notas:'' })
+  const [newAsset, setNewAsset] = useState<Omit<BrandAsset, 'id' | 'createdAt'>>({ categoria:'logo', nombre:'', url:'', descripcion:'' })
   const [showNewPwd, setShowNewPwd] = useState(false)
   const [editAccesoId, setEditAccesoId] = useState<string | null>(null)
   const [showEditPwd,  setShowEditPwd]  = useState(false)
@@ -450,6 +453,24 @@ export default function ClientesAdmin() {
     setForm(f => ({ ...f, accesos: (f.accesos ?? []).map(a => a.id === id ? { ...a, ...patch } : a) }))
   }
 
+  function addAsset() {
+    if (!newAsset.nombre.trim() || !newAsset.url.trim()) return
+    const item: BrandAsset = {
+      id:          newId(),
+      categoria:   newAsset.categoria,
+      nombre:      newAsset.nombre.trim(),
+      url:         newAsset.url.trim(),
+      descripcion: newAsset.descripcion?.trim() || undefined,
+      createdAt:   new Date().toISOString(),
+    }
+    setForm(f => ({ ...f, brand_assets: [...(f.brand_assets ?? []), item] }))
+    setNewAsset({ categoria: newAsset.categoria, nombre:'', url:'', descripcion:'' })
+  }
+
+  function removeAsset(id: string) {
+    setForm(f => ({ ...f, brand_assets: (f.brand_assets ?? []).filter(a => a.id !== id) }))
+  }
+
   async function saveSolicitudRespuesta(s: Solicitud) {
     if (!editId) return
     const token = form.access_token ?? ''
@@ -663,6 +684,7 @@ export default function ClientesAdmin() {
                 { key: 'metricas',    label: `📊 Métricas (${(form.metricas_historico ?? []).length})` },
                 { key: 'portal',      label: '🔗 Portal' },
                 { key: 'accesos',     label: `🔐 Accesos (${(form.accesos ?? []).length})` },
+                { key: 'biblioteca',  label: `🖼️ Biblioteca (${(form.brand_assets ?? []).length})` },
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
                   key={t.key}
@@ -1833,6 +1855,68 @@ export default function ClientesAdmin() {
                   </div>
                 )
               })()}
+
+              {tab === 'biblioteca' && (
+                <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'4px 0 6px' }}>
+                    <span style={{ fontSize:'12px', fontWeight:800, color: WHT, letterSpacing:'0.3px' }}>🖼️ Biblioteca de marca</span>
+                    <div style={{ flex:1, height:'1px', background: BDR }} />
+                  </div>
+                  <p style={{ fontSize:'11.5px', color: MUT, margin:'0 0 4px', lineHeight:1.5 }}>
+                    Logos, brand kit, tipografías y plantillas de la marca. El cliente los ve en la pestaña 🎨 Marca de su portal.
+                  </p>
+
+                  {/* Lista agrupada por categoría */}
+                  {BRAND_ASSET_CATEGORIAS.map(cat => {
+                    const items = (form.brand_assets ?? []).filter(a => a.categoria === cat.value)
+                    if (items.length === 0) return null
+                    return (
+                      <div key={cat.value} style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                        <p style={{ fontSize:'10.5px', fontWeight:700, color: MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 2px' }}>{cat.icon} {cat.label}</p>
+                        {items.map(a => (
+                          <div key={a.id} style={{ display:'flex', alignItems:'center', gap:'10px', background: DIM, border:`0.5px solid ${BDR}`, borderRadius:'8px', padding:'10px 12px' }}>
+                            <span style={{ fontSize:'16px', flexShrink:0 }}>{cat.icon}</span>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <p style={{ margin:0, fontSize:'13px', color: WHT, fontWeight:700, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.nombre}</p>
+                              {a.descripcion && <p style={{ margin:'1px 0 0', fontSize:'11px', color: MUT, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.descripcion}</p>}
+                            </div>
+                            <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ padding:'5px 12px', borderRadius:'6px', border:`0.5px solid ${C1}40`, background:`${C1}12`, color: C1, textDecoration:'none', fontSize:'11px', fontWeight:700, flexShrink:0 }}>Abrir</a>
+                            <button onClick={() => removeAsset(a.id)} style={{ padding:'5px 9px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color: ROSE, flexShrink:0 }}>🗑</button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+
+                  {(form.brand_assets ?? []).length === 0 && (
+                    <p style={{ fontSize:'12px', color: MUT, margin:'0', textAlign:'center', padding:'8px' }}>Aún no hay elementos en la biblioteca.</p>
+                  )}
+
+                  {/* Formulario nuevo asset */}
+                  <div style={{ background:BK, border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                    <p style={{ fontSize:'11px', fontWeight:700, color: MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Agregar elemento</p>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
+                      <label style={labelStyle}>
+                        Categoría
+                        <select value={newAsset.categoria} onChange={e => setNewAsset(p => ({ ...p, categoria: e.target.value as BrandAssetCategoria }))} style={{ ...inputStyle, cursor:'pointer' }}>
+                          {BRAND_ASSET_CATEGORIAS.map(c => <option key={c.value} value={c.value}>{c.icon} {c.label}</option>)}
+                        </select>
+                      </label>
+                      <label style={labelStyle}>Nombre *<input value={newAsset.nombre} onChange={e => setNewAsset(p => ({ ...p, nombre: e.target.value }))} style={inputStyle} placeholder="Logo principal, Manual de marca…" /></label>
+                    </div>
+                    <label style={{ ...labelStyle, marginBottom:'10px' }}>Descripción (opcional)<input value={newAsset.descripcion ?? ''} onChange={e => setNewAsset(p => ({ ...p, descripcion: e.target.value }))} style={inputStyle} placeholder="Uso, formato, contexto…" /></label>
+                    <label style={{ ...labelStyle, marginBottom:'10px' }}>URL del archivo *<input value={newAsset.url} onChange={e => setNewAsset(p => ({ ...p, url: e.target.value }))} style={inputStyle} placeholder="Pega un enlace (Drive, Canva, Figma…) o sube abajo" /></label>
+                    <div style={{ marginBottom:'12px' }}>
+                      <FileUploader onUploaded={(url, nombre) => setNewAsset(p => ({ ...p, url, nombre: p.nombre || nombre }))} />
+                    </div>
+                    <button
+                      disabled={!newAsset.nombre.trim() || !newAsset.url.trim()}
+                      onClick={addAsset}
+                      style={{ padding:'8px 20px', borderRadius:'6px', border:'none', background: newAsset.nombre.trim() && newAsset.url.trim() ? C1 : BDR2, color: newAsset.nombre.trim() && newAsset.url.trim() ? '#fff' : MUT, fontWeight:700, fontSize:'12px', cursor: newAsset.nombre.trim() && newAsset.url.trim() ? 'pointer' : 'not-allowed' }}
+                    >+ Agregar a la biblioteca</button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal footer */}
