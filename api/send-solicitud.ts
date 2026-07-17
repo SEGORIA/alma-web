@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from '../server-utils/http'
 
 interface SolicitudPayload {
   nombre_cliente:  string

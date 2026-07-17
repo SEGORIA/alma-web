@@ -1,11 +1,10 @@
 /* Helper compartido de Firebase Admin SDK para los endpoints de api/*.
-   El prefijo "_" hace que Vercel NO lo trate como una ruta pública.
+   Vive FUERA de api/ por la misma razón que server-utils/http.ts: un archivo
+   compartido dentro de api/ (sobre todo con prefijo "_") puede quedar
+   excluido del empaquetado de la función serverless en producción.
 
-   Los módulos de firebase-admin se cargan de forma PEREZOSA (dynamic import):
-   importarlos en el nivel superior hacía que la función serverless fallara al
-   arrancar (FUNCTION_INVOCATION_FAILED) por el peso de su árbol de dependencias.
-   Así el módulo carga siempre, y las peticiones rechazadas antes de necesitar
-   Admin SDK (p. ej. sin token) ni siquiera lo importan.
+   Los módulos de firebase-admin se cargan de forma PEREZOSA (dynamic import)
+   para no pesar el arranque de funciones que no los necesitan.
 
    Requiere la variable FIREBASE_SERVICE_ACCOUNT con el JSON completo de la
    cuenta de servicio (Firebase → Configuración → Cuentas de servicio). */

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from '../server-utils/http'
 
 const APPS_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbw5ta5-0VXxIvavzKNLxnpCp0rDx8NyvtTAn45cWySqZM6H21ziERvvABuRlFsi5k92/exec'

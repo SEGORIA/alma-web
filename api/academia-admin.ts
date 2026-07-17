@@ -3,8 +3,8 @@
    Usa Firebase Admin SDK para gestionar cuentas y Gmail SMTP para correos. */
 
 import nodemailer from 'nodemailer'
-import { setCors } from './_utils'
-import { adminReady, adminAuth, adminDb, verifyAdmin } from './_admin'
+import { setCors } from '../server-utils/http'
+import { adminReady, adminAuth, adminDb, verifyAdmin } from '../server-utils/admin'
 
 /* ── Tipos ligeros ─────────────────────────────────────────── */
 interface CursoLean { titulo: string; totalLecciones: number }

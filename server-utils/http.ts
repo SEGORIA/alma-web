@@ -1,6 +1,13 @@
 /* Utilidades compartidas por los endpoints de api/*.ts.
-   El prefijo "_" hace que Vercel NO trate este archivo como una ruta —
-   es solo código compartido, no un endpoint público. */
+
+   IMPORTANTE: este archivo vive FUERA de api/ a propósito. Un archivo
+   compartido con prefijo "_" dentro de api/ (ej. api/_utils.ts) puede quedar
+   excluido del empaquetado de la función serverless en producción — Vercel
+   trata esa carpeta con reglas especiales de enrutamiento que a veces
+   también afectan qué archivos se incluyen en el bundle final, causando
+   "Cannot find module '/var/task/api/_utils'" en runtime aunque el import
+   funcione perfecto en local. Al vivir aquí, fuera de api/, el bundler
+   simplemente lo traza como cualquier otra dependencia y lo incluye. */
 
 /* ── CORS ──────────────────────────────────────────────────────
    Antes los 3 endpoints aceptaban peticiones desde CUALQUIER sitio
@@ -20,7 +27,7 @@ export function setCors(req: any, res: any): void {
     res.setHeader('Access-Control-Allow-Origin', origin)
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Vary', 'Origin')
 }
 

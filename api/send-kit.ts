@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
-import { setCors, escapeHtml, isRateLimited, getClientIp } from './_utils'
+import { setCors, escapeHtml, isRateLimited, getClientIp } from '../server-utils/http'
 
 interface KitArchivoLean {
   nombre:       string
