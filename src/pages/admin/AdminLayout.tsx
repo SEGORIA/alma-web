@@ -32,10 +32,12 @@ const NEGOCIO: NavEntry[] = [
 ]
 
 /* Academia (edu.almaagenciacreativa.com) — su propia sección, con las áreas
-   que se gestionan del LMS. Cada sub-ítem abre la pestaña vía ?tab. */
-const ACADEMIA: NavEntry[] = [
-  { label: '📚 Cursos',          to: '/admin/academia' },
-  { label: '🎁 Recursos gratis', to: '/admin/academia?tab=recursos' },
+   que se gestionan del LMS. Cursos/Recursos abren la pestaña vía ?tab;
+   Alumnos es una página aparte. */
+const ACADEMIA: { id: string; label: string; to: string }[] = [
+  { id: 'cursos',   label: '📚 Cursos',          to: '/admin/academia' },
+  { id: 'recursos', label: '🎁 Recursos gratis', to: '/admin/academia?tab=recursos' },
+  { id: 'alumnos',  label: '👩‍🎓 Alumnos',         to: '/admin/academia/alumnos' },
 ]
 
 const WEB_PREFIXES = PAGINA_WEB.map(i => i.to)
@@ -227,8 +229,11 @@ function SidebarContent({
         {academiaOpen && (
           <div style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {ACADEMIA.map(item => {
-              const isRecursos = item.to.includes('tab=recursos')
-              const active = onAcademiaRoute && (isRecursos ? academiaTab === 'recursos' : academiaTab === 'cursos')
+              const onAlumnos = pathname.startsWith('/admin/academia/alumnos')
+              const active =
+                item.id === 'alumnos'  ? onAlumnos
+              : item.id === 'recursos' ? (onAcademiaRoute && !onAlumnos && academiaTab === 'recursos')
+              :                          (onAcademiaRoute && !onAlumnos && academiaTab === 'cursos')
               return (
                 <Link
                   key={item.to}
