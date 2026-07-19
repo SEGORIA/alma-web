@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { getPortalByToken, addSolicitudToPortal } from '../lib/db'
+import { getPortalByToken, addSolicitudToPortal, getIdeasByCliente, createIdea, votarIdea } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
 import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
 import {
@@ -8,6 +8,8 @@ import {
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
   BRAND_ASSET_CATEGORIAS,
 } from '../data/clientes'
+import type { Idea } from '../data/ideas'
+import { IDEA_ESTADOS } from '../data/ideas'
 import { contactoDefault } from '../data/config'
 import { useIsMobile } from '../hooks/useIsMobile'
 
@@ -88,13 +90,22 @@ export default function ClientePortal() {
   const isMobile  = useIsMobile()
   const [data,    setData]    = useState<PortalData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab,     setTab]     = useState<'inicio' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos'>('inicio')
+  const [tab,     setTab]     = useState<'inicio' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos' | 'ideas'>('inicio')
   const [showSolForm, setShowSolForm] = useState(false)
   const [solTipo,     setSolTipo]     = useState<Solicitud['tipo']>('cambio')
   const [solDesc,     setSolDesc]     = useState('')
   const [solRef,      setSolRef]      = useState('')
   const [sending,     setSending]     = useState(false)
   const [sent,        setSent]        = useState(false)
+  // Banco de ideas
+  const [ideas,          setIdeas]          = useState<Idea[]>([])
+  const [ideasLoading,   setIdeasLoading]   = useState(true)
+  const [showIdeaForm,   setShowIdeaForm]   = useState(false)
+  const [ideaTitulo,     setIdeaTitulo]     = useState('')
+  const [ideaDesc,       setIdeaDesc]       = useState('')
+  const [ideaPilar,      setIdeaPilar]      = useState('')
+  const [sendingIdea,    setSendingIdea]    = useState(false)
+  const [votedIdeas,     setVotedIdeas]     = useState<Set<string>>(new Set())
   // Parrilla
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
@@ -118,7 +129,16 @@ export default function ClientePortal() {
       setData(d)
       setLoading(false)
       if (d) trackPortalVisit(token)
+      if (d?.clienteId) {
+        getIdeasByCliente(d.clienteId).then(setIdeas).finally(() => setIdeasLoading(false))
+      } else {
+        setIdeasLoading(false)
+      }
     })
+    try {
+      const saved = localStorage.getItem(`alma_ideas_votadas_${token}`)
+      if (saved) setVotedIdeas(new Set(JSON.parse(saved)))
+    } catch { /* localStorage no disponible */ }
   }, [token])
 
   // Los hooks siguientes deben ejecutarse SIEMPRE, antes de cualquier return
@@ -205,12 +225,41 @@ export default function ClientePortal() {
     finally { setSending(false) }
   }
 
-  type PortalTab = 'inicio' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos'
+  async function submitIdea() {
+    if (!ideaTitulo.trim() || !data?.clienteId) return
+    setSendingIdea(true)
+    try {
+      await createIdea({
+        clienteId:   data.clienteId,
+        titulo:      ideaTitulo.trim(),
+        descripcion: ideaDesc.trim() || undefined,
+        pilar:       ideaPilar || undefined,
+        autorTipo:   'cliente',
+        autorNombre: data.nombre,
+        estado:      'propuesta',
+      })
+      const refreshed = await getIdeasByCliente(data.clienteId)
+      setIdeas(refreshed)
+      setIdeaTitulo(''); setIdeaDesc(''); setIdeaPilar(''); setShowIdeaForm(false)
+    } catch { /* silencioso */ }
+    finally { setSendingIdea(false) }
+  }
+
+  async function votarComoCliente(idea: Idea) {
+    if (votedIdeas.has(idea._id!)) return
+    setIdeas(prev => prev.map(i => i._id === idea._id ? { ...i, votos_cliente: (i.votos_cliente ?? 0) + 1 } : i))
+    const next = new Set(votedIdeas); next.add(idea._id!); setVotedIdeas(next)
+    try { localStorage.setItem(`alma_ideas_votadas_${token}`, JSON.stringify([...next])) } catch { /* localStorage no disponible */ }
+    votarIdea(idea._id!, 'cliente').catch(() => {})
+  }
+
+  type PortalTab = 'inicio' | 'parrilla' | 'plan' | 'marca' | 'solicitudes' | 'accesos' | 'ideas'
   const TABS: { key: PortalTab; label: string }[] = [
     { key: 'inicio',      label: '🏠 Inicio' },
     { key: 'parrilla',    label: `📅 Parrilla` },
     { key: 'plan',        label: '📦 Plan del mes' },
     { key: 'marca',       label: '🎨 Marca' },
+    { key: 'ideas',       label: `💡 Ideas (${ideas.length})` },
     { key: 'solicitudes', label: `💬 Solicitudes (${(data.solicitudes ?? []).length})` },
     ...((data.accesos ?? []).length > 0 ? [{ key: 'accesos' as PortalTab, label: '🔐 Accesos' }] : []),
   ]
@@ -1496,6 +1545,93 @@ export default function ClientePortal() {
             </div>
           )
         })()}
+
+        {tab === 'ideas' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeUp 0.35s ease' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6B7280' }}>
+                Propón ideas de contenido y vota las que más te gusten. Las aprobadas pasan a la parrilla.
+              </p>
+              <button
+                onClick={() => setShowIdeaForm(v => !v)}
+                style={{ padding: '10px 18px', borderRadius: '12px', border: 'none', background: P, color: '#fff', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
+              >
+                {showIdeaForm ? 'Cancelar' : '+ Proponer idea'}
+              </button>
+            </div>
+
+            {showIdeaForm && (
+              <div style={{ background: '#fff', borderRadius: '16px', padding: '20px', border: '1px solid #E5E7EB' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>Título *</label>
+                <input value={ideaTitulo} onChange={e => setIdeaTitulo(e.target.value)} placeholder="Ej: Reel mostrando el detrás de cámaras"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>Descripción</label>
+                <textarea rows={3} value={ideaDesc} onChange={e => setIdeaDesc(e.target.value)} placeholder="Cuéntanos más sobre tu idea…"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit' }} />
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#374151', marginBottom: '6px' }}>Pilar (opcional)</label>
+                <select value={ideaPilar} onChange={e => setIdeaPilar(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #E5E7EB', fontSize: '14px', marginBottom: '14px', boxSizing: 'border-box' }}>
+                  <option value="">— Sin pilar —</option>
+                  {PILARES_CONTENIDO.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+                <button
+                  onClick={submitIdea}
+                  disabled={!ideaTitulo.trim() || sendingIdea}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: 'none', background: ideaTitulo.trim() ? P : '#D1D5DB', color: '#fff', fontWeight: 700, fontSize: '14px', cursor: ideaTitulo.trim() && !sendingIdea ? 'pointer' : 'not-allowed' }}
+                >
+                  {sendingIdea ? 'Enviando…' : 'Enviar idea'}
+                </button>
+              </div>
+            )}
+
+            {ideasLoading ? (
+              <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: '14px', padding: '20px' }}>Cargando ideas…</p>
+            ) : ideas.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+                <p style={{ fontSize: '36px', margin: '0 0 10px' }}>💡</p>
+                <p style={{ color: '#6B7280', fontSize: '15px' }}>Aún no hay ideas propuestas. ¡Sé el primero!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {ideas.map(idea => {
+                  const estadoInfo = IDEA_ESTADOS.find(e => e.value === idea.estado)!
+                  const pilarInfo = PILARES_CONTENIDO.find(p => p.value === idea.pilar)
+                  const yaVotada = votedIdeas.has(idea._id!)
+                  return (
+                    <div key={idea._id} style={{ background: '#fff', borderRadius: '14px', padding: '16px 18px', border: '1px solid #E5E7EB', borderLeft: `3px solid ${estadoInfo.color}` }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>{idea.titulo}</span>
+                            <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', color: estadoInfo.color, background: `${estadoInfo.color}18` }}>{estadoInfo.label}</span>
+                          </div>
+                          {idea.descripcion && <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#6B7280' }}>{idea.descripcion}</p>}
+                          {pilarInfo && <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: pilarInfo.color }}>📌 {pilarInfo.label}</p>}
+                          <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9CA3AF' }}>{idea.autorTipo === 'equipo' ? '🏢 Propuesta por Alma' : '👤 Propuesta por ti'}</p>
+                        </div>
+                        <button
+                          onClick={() => votarComoCliente(idea)}
+                          disabled={yaVotada}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
+                            padding: '8px 14px', borderRadius: '10px', flexShrink: 0,
+                            border: `1.5px solid ${yaVotada ? '#D1D5DB' : P}`,
+                            background: yaVotada ? '#F9FAFB' : PL,
+                            color: yaVotada ? '#9CA3AF' : P,
+                            cursor: yaVotada ? 'default' : 'pointer', fontWeight: 800,
+                          }}
+                        >
+                          <span>👍</span>
+                          <span style={{ fontSize: '12px' }}>{idea.votos_cliente ?? 0}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

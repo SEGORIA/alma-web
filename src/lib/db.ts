@@ -1,6 +1,6 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, where, serverTimestamp, arrayUnion,
+  query, orderBy, where, serverTimestamp, arrayUnion, increment,
 } from 'firebase/firestore'
 import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
@@ -24,6 +24,7 @@ import type { Cliente, Entregable, ParrillaItem, Solicitud } from '../data/clien
 import type { Tarea } from '../data/tareas'
 import type { Curso, Recurso } from '../data/academia'
 import { RECURSOS_SEED_HACKS_IG } from '../data/academia'
+import type { Idea } from '../data/ideas'
 
 
 
@@ -1050,6 +1051,41 @@ export async function seedRecursosHacksIG(): Promise<void> {
   for (const r of RECURSOS_SEED_HACKS_IG) {
     await recursosCrud.create(r, { createdAt: serverTimestamp() })
   }
+}
+
+/* ══ BANCO DE IDEAS ═════════════════════════════════════════ */
+
+const ideasCrud = makeCrud<Idea>('ideas', 'createdAt', 'desc')
+
+/** Ideas de un cliente. Se ordenan en cliente (sin orderBy en la query para
+ *  no requerir índice compuesto), más recientes primero. */
+export async function getIdeasByCliente(clienteId: string): Promise<Idea[]> {
+  if (!firebaseReady || !db) return []
+  try {
+    const snap = await getDocs(query(ideasCrud.col(), where('clienteId', '==', clienteId)))
+    const items = snap.docs.map(d => ({ ...(d.data() as Idea), _id: d.id }))
+    return items.sort((a, b) => {
+      const ta = (a.createdAt as { seconds?: number })?.seconds ?? 0
+      const tb = (b.createdAt as { seconds?: number })?.seconds ?? 0
+      return tb - ta
+    })
+  } catch { return [] }
+}
+
+export function createIdea(data: Omit<Idea, '_id'>): Promise<string> {
+  return ideasCrud.create(stripUndefined(data) as Omit<Idea, '_id'>, {
+    votos_equipo: 0, votos_cliente: 0,
+    createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+  })
+}
+
+export const updateIdea = ideasCrud.update
+export const deleteIdea = ideasCrud.remove
+
+export async function votarIdea(id: string, tipo: 'equipo' | 'cliente'): Promise<void> {
+  if (!firebaseReady || !db) return
+  const field = tipo === 'equipo' ? 'votos_equipo' : 'votos_cliente'
+  await updateDoc(doc(db!, 'ideas', id), { [field]: increment(1), updatedAt: serverTimestamp() })
 }
 
 /* ══ SEED COMPLETO ══════════════════════════════════════════ */

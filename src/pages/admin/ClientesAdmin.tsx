@@ -4,7 +4,10 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import {
   getClientes, saveCliente, updateCliente, deleteCliente,
   updateSolicitudEnCliente, marcaToSlug, uploadClienteLogo,
+  getIdeasByCliente, createIdea, updateIdea, deleteIdea, votarIdea,
 } from '../../lib/db'
+import type { Idea, IdeaEstado } from '../../data/ideas'
+import { IDEA_ESTADOS } from '../../data/ideas'
 import type { Cliente, ParrillaItem, Solicitud, MetricaMes, AnalisisMarca, ParrillaHtml, ParrillaMes, ParrillaExtraItem, AccesoItem, BrandAsset, BrandAssetCategoria } from '../../data/clientes'
 import {
   CLIENTE_ESTADOS, SERVICIOS_DISPONIBLES,
@@ -21,7 +24,7 @@ const { BK, DIM, BDR, BDR2, MUT, WHT, C1, C1_BG, ACC2, ROSE, AMB, GRN, BLUE, INP
 /* ── Paleta oscura — estilo Finanzas ─────────────────────── */
 
 /* ── Helpers ─────────────────────────────────────────────── */
-type ModalTab = 'perfil' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos' | 'biblioteca'
+type ModalTab = 'perfil' | 'parrilla' | 'solicitudes' | 'metricas' | 'portal' | 'estrategia' | 'accesos' | 'biblioteca' | 'ideas'
 
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -144,6 +147,11 @@ export default function ClientesAdmin() {
   /* accesos */
   const [newAcceso, setNewAcceso] = useState<Omit<AccesoItem, 'id' | 'createdAt'>>({ plataforma:'', usuario:'', password:'', url:'', notas:'' })
   const [newAsset, setNewAsset] = useState<Omit<BrandAsset, 'id' | 'createdAt'>>({ categoria:'logo', nombre:'', url:'', descripcion:'' })
+
+  /* banco de ideas (colección aparte, se carga al abrir el cliente) */
+  const [ideas,        setIdeas]        = useState<Idea[]>([])
+  const [ideasLoading, setIdeasLoading] = useState(false)
+  const [newIdea, setNewIdea] = useState({ titulo: '', descripcion: '', pilar: '' })
   const [showNewPwd, setShowNewPwd] = useState(false)
   const [editAccesoId, setEditAccesoId] = useState<string | null>(null)
   const [showEditPwd,  setShowEditPwd]  = useState(false)
@@ -189,6 +197,61 @@ export default function ClientesAdmin() {
     const r: Record<string, string> = {}
     c.solicitudes.forEach(s => { if (s.respuesta) r[s.id] = s.respuesta })
     setRespuestas(r)
+    loadIdeas(c._id!)
+  }
+
+  async function loadIdeas(clienteId: string) {
+    setIdeasLoading(true)
+    setIdeas(await getIdeasByCliente(clienteId))
+    setIdeasLoading(false)
+  }
+
+  async function addIdeaEquipo() {
+    if (!editId || !newIdea.titulo.trim()) return
+    await createIdea({
+      clienteId: editId,
+      titulo: newIdea.titulo.trim(),
+      descripcion: newIdea.descripcion.trim() || undefined,
+      pilar: newIdea.pilar || undefined,
+      autorTipo: 'equipo',
+      autorNombre: 'Equipo Alma',
+      estado: 'propuesta',
+    })
+    setNewIdea({ titulo: '', descripcion: '', pilar: '' })
+    loadIdeas(editId)
+  }
+
+  async function votarIdeaEquipo(id: string) {
+    await votarIdea(id, 'equipo')
+    if (editId) loadIdeas(editId)
+  }
+
+  async function cambiarEstadoIdea(id: string, estado: IdeaEstado) {
+    await updateIdea(id, { estado })
+    if (editId) loadIdeas(editId)
+  }
+
+  async function eliminarIdea(id: string) {
+    if (!(await confirmar('¿Eliminar esta idea?'))) return
+    await deleteIdea(id)
+    if (editId) loadIdeas(editId)
+  }
+
+  async function convertirIdea(idea: Idea) {
+    if (!editId) return
+    const item: ParrillaItem = {
+      id: newId(),
+      fecha: '',
+      red: 'Instagram',
+      tipo: 'Post',
+      descripcion: idea.titulo,
+      pilar: idea.pilar,
+      estado: 'borrador',
+    }
+    setForm(f => ({ ...f, parrilla: [...f.parrilla, item] }))
+    await updateIdea(idea._id!, { estado: 'convertida', parrillaItemId: item.id })
+    toast.ok('Idea convertida — complétala en la pestaña Parrilla y guarda el cliente')
+    loadIdeas(editId)
   }
 
   async function handleLogoUpload(file: File) {
@@ -685,6 +748,7 @@ export default function ClientesAdmin() {
                 { key: 'portal',      label: '🔗 Portal' },
                 { key: 'accesos',     label: `🔐 Accesos (${(form.accesos ?? []).length})` },
                 { key: 'biblioteca',  label: `🖼️ Biblioteca (${(form.brand_assets ?? []).length})` },
+                ...(editId ? [{ key: 'ideas' as ModalTab, label: `💡 Ideas (${ideas.length})` }] : []),
               ] as { key: ModalTab; label: string }[]).map(t => (
                 <button
                   key={t.key}
@@ -1914,6 +1978,87 @@ export default function ClientesAdmin() {
                       onClick={addAsset}
                       style={{ padding:'8px 20px', borderRadius:'6px', border:'none', background: newAsset.nombre.trim() && newAsset.url.trim() ? C1 : BDR2, color: newAsset.nombre.trim() && newAsset.url.trim() ? '#fff' : MUT, fontWeight:700, fontSize:'12px', cursor: newAsset.nombre.trim() && newAsset.url.trim() ? 'pointer' : 'not-allowed' }}
                     >+ Agregar a la biblioteca</button>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'ideas' && editId && (
+                <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'10px', margin:'4px 0 6px' }}>
+                    <span style={{ fontSize:'12px', fontWeight:800, color: WHT, letterSpacing:'0.3px' }}>💡 Banco de ideas</span>
+                    <div style={{ flex:1, height:'1px', background: BDR }} />
+                  </div>
+                  <p style={{ fontSize:'11.5px', color: MUT, margin:'0 0 4px', lineHeight:1.5 }}>
+                    El equipo y el cliente (desde su portal) proponen y votan ideas de contenido. Las aprobadas se pueden convertir en un ítem de la parrilla.
+                  </p>
+
+                  {ideasLoading ? (
+                    <p style={{ fontSize:'12px', color: MUT, textAlign:'center', padding:'12px' }}>Cargando ideas…</p>
+                  ) : ideas.length === 0 ? (
+                    <p style={{ fontSize:'12px', color: MUT, textAlign:'center', padding:'8px' }}>Aún no hay ideas propuestas.</p>
+                  ) : (
+                    <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                      {ideas.map(idea => {
+                        const estadoInfo = IDEA_ESTADOS.find(e => e.value === idea.estado)!
+                        const pilarInfo = PILARES_CONTENIDO.find(p => p.value === idea.pilar)
+                        return (
+                          <div key={idea._id} style={{ background: DIM, border:`0.5px solid ${BDR}`, borderLeft:`3px solid ${estadoInfo.color}`, borderRadius:'8px', padding:'12px 14px' }}>
+                            <div style={{ display:'flex', alignItems:'flex-start', gap:'10px', marginBottom:'6px' }}>
+                              <div style={{ flex:1, minWidth:0 }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap', marginBottom:'2px' }}>
+                                  <span style={{ fontSize:'13px', fontWeight:700, color: WHT }}>{idea.titulo}</span>
+                                  <span style={{ fontSize:'9.5px', fontWeight:700, padding:'2px 7px', borderRadius:'20px', color: idea.autorTipo === 'equipo' ? ACC2 : GRN, background: idea.autorTipo === 'equipo' ? `${ACC2}18` : `${GRN}18` }}>
+                                    {idea.autorTipo === 'equipo' ? '🏢 Equipo' : '👤 Cliente'}
+                                  </span>
+                                  <span style={{ fontSize:'9.5px', fontWeight:700, padding:'2px 7px', borderRadius:'20px', color: estadoInfo.color, background:`${estadoInfo.color}18` }}>
+                                    {estadoInfo.label}
+                                  </span>
+                                </div>
+                                {idea.descripcion && <p style={{ margin:'2px 0 0', fontSize:'12px', color: MUT }}>{idea.descripcion}</p>}
+                                {pilarInfo && <p style={{ margin:'4px 0 0', fontSize:'11px', color: pilarInfo.color }}>📌 {pilarInfo.label}</p>}
+                              </div>
+                              <button onClick={() => eliminarIdea(idea._id!)} style={{ padding:'3px 8px', borderRadius:'4px', border:`0.5px solid ${ROSE}40`, background:'transparent', cursor:'pointer', fontSize:'11px', color: ROSE, flexShrink:0 }}>🗑</button>
+                            </div>
+                            <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
+                              <button onClick={() => votarIdeaEquipo(idea._id!)} style={{ padding:'4px 10px', borderRadius:'6px', border:`0.5px solid ${C1}40`, background:`${C1}12`, color: C1, fontSize:'11px', fontWeight:700, cursor:'pointer' }}>
+                                👍 Equipo ({idea.votos_equipo ?? 0})
+                              </button>
+                              <span style={{ fontSize:'11px', color: MUT }}>👤 Cliente ({idea.votos_cliente ?? 0})</span>
+                              {idea.estado !== 'convertida' && (
+                                <>
+                                  {idea.estado !== 'aprobada' && (
+                                    <button onClick={() => cambiarEstadoIdea(idea._id!, 'aprobada')} style={{ padding:'4px 10px', borderRadius:'6px', border:`0.5px solid ${GRN}40`, background:`${GRN}12`, color: GRN, fontSize:'11px', fontWeight:700, cursor:'pointer' }}>✅ Aprobar</button>
+                                  )}
+                                  {idea.estado !== 'descartada' && (
+                                    <button onClick={() => cambiarEstadoIdea(idea._id!, 'descartada')} style={{ padding:'4px 10px', borderRadius:'6px', border:`0.5px solid ${BDR2}`, background:'transparent', color: MUT, fontSize:'11px', fontWeight:700, cursor:'pointer' }}>✕ Descartar</button>
+                                  )}
+                                  <button onClick={() => convertirIdea(idea)} style={{ padding:'4px 10px', borderRadius:'6px', border:'none', background: C1, color:'#fff', fontSize:'11px', fontWeight:700, cursor:'pointer' }}>📅 Convertir a parrilla</button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Formulario nueva idea (equipo) */}
+                  <div style={{ background:BK, border:`1px dashed ${BDR2}`, borderRadius:'8px', padding:'16px' }}>
+                    <p style={{ fontSize:'11px', fontWeight:700, color: MUT, textTransform:'uppercase', letterSpacing:'0.5px', margin:'0 0 12px' }}>+ Proponer idea (equipo)</p>
+                    <label style={{ ...labelStyle, marginBottom:'10px' }}>Título *<input value={newIdea.titulo} onChange={e => setNewIdea(p => ({ ...p, titulo: e.target.value }))} style={inputStyle} placeholder="Ej: Reel detrás de cámaras" /></label>
+                    <label style={{ ...labelStyle, marginBottom:'10px' }}>Descripción<input value={newIdea.descripcion} onChange={e => setNewIdea(p => ({ ...p, descripcion: e.target.value }))} style={inputStyle} placeholder="Detalles de la idea…" /></label>
+                    <label style={{ ...labelStyle, marginBottom:'12px' }}>
+                      Pilar (opcional)
+                      <select value={newIdea.pilar} onChange={e => setNewIdea(p => ({ ...p, pilar: e.target.value }))} style={{ ...inputStyle, cursor:'pointer' }}>
+                        <option value="">— Sin pilar —</option>
+                        {PILARES_CONTENIDO.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                      </select>
+                    </label>
+                    <button
+                      disabled={!newIdea.titulo.trim()}
+                      onClick={addIdeaEquipo}
+                      style={{ padding:'8px 20px', borderRadius:'6px', border:'none', background: newIdea.titulo.trim() ? C1 : BDR2, color: newIdea.titulo.trim() ? '#fff' : MUT, fontWeight:700, fontSize:'12px', cursor: newIdea.titulo.trim() ? 'pointer' : 'not-allowed' }}
+                    >+ Proponer idea</button>
                   </div>
                 </div>
               )}
