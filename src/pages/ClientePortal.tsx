@@ -17,6 +17,12 @@ import { useIsMobile } from '../hooks/useIsMobile'
 const P  = '#6B21A8'
 const PL = 'rgba(107,33,168,0.10)'
 
+/* ── Ícono por tipo de contenido (junto al punto de red en el calendario) ── */
+const TIPO_ICONO: Record<string, string> = {
+  Reel: '🎬', Carrusel: '🎠', Post: '🖼️', Story: '⭕', Video: '📹',
+  Blog: '📝', Email: '📧', Otro: '📌',
+}
+
 /* ── Helpers ─────────────────────────────────────────────── */
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -1003,9 +1009,12 @@ export default function ClientePortal() {
                         {day !== null && (
                           <>
                             <p style={{ margin:'0 0 3px', fontSize: isMobile ? '9.5px' : '11px', fontWeight: isToday ? 900 : 500, color: isToday ? '#A78BFA' : 'rgba(255,255,255,0.45)', textAlign:'right', lineHeight:1 }}>{day}</p>
-                            <div style={{ display:'flex', flexWrap:'wrap', gap:'3px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap: isMobile ? '3px' : '6px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
                               {posts.slice(0, 3).map(p => (
-                                <div key={p.id} title={`${p.red} · ${p.tipo}`} style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[p.red] ?? '#6B7280', flexShrink:0 }} />
+                                <div key={p.id} title={`${p.red} · ${p.tipo}`} style={{ display:'flex', alignItems:'center', gap:'2px' }}>
+                                  <div style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[p.red] ?? '#6B7280', flexShrink:0 }} />
+                                  {!isMobile && <span style={{ fontSize:'8px', lineHeight:1 }}>{TIPO_ICONO[p.tipo] ?? '📌'}</span>}
+                                </div>
                               ))}
                               {posts.length > 3 && <span style={{ fontSize:'9px', color:'rgba(255,255,255,0.4)', lineHeight:'9px', marginLeft:'1px' }}>+{posts.length-3}</span>}
                             </div>
