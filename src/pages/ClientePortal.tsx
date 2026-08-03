@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { getPortalByToken, addSolicitudToPortal, getIdeasByCliente, createIdea, votarIdea } from '../lib/db'
+import { getPortalByToken, addSolicitudToPortal, getIdeasByCliente, createIdea, votarIdea, getRedColores } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
 import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
 import {
@@ -10,7 +10,7 @@ import {
 } from '../data/clientes'
 import type { Idea } from '../data/ideas'
 import { IDEA_ESTADOS } from '../data/ideas'
-import { contactoDefault } from '../data/config'
+import { contactoDefault, redColoresDefault } from '../data/config'
 import { useIsMobile } from '../hooks/useIsMobile'
 
 /* ── Brand tokens ───────────────────────────────────────── */
@@ -106,6 +106,7 @@ export default function ClientePortal() {
   const [ideaPilar,      setIdeaPilar]      = useState('')
   const [sendingIdea,    setSendingIdea]    = useState(false)
   const [votedIdeas,     setVotedIdeas]     = useState<Set<string>>(new Set())
+  const [redColores,     setRedColores]     = useState<Record<string, string>>(redColoresDefault)
   // Parrilla
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
@@ -140,6 +141,10 @@ export default function ClientePortal() {
       if (saved) setVotedIdeas(new Set(JSON.parse(saved)))
     } catch { /* localStorage no disponible */ }
   }, [token])
+
+  useEffect(() => {
+    getRedColores().then(setRedColores)
+  }, [])
 
   // Los hooks siguientes deben ejecutarse SIEMPRE, antes de cualquier return
   // condicional (loading/NotFound) — ver reglas de hooks de React.
@@ -946,10 +951,7 @@ export default function ClientePortal() {
             for (let i = 0; i < firstDay; i++) cells.push(null)
             for (let d = 1; d <= daysInMonth; d++) cells.push(d)
             while (cells.length % 7 !== 0) cells.push(null)
-            const RED_COLOR: Record<string, string> = {
-              'Instagram':'#E1306C','TikTok':'#010101','Facebook':'#1877F2',
-              'YouTube':'#FF0000','LinkedIn':'#0A66C2','X':'#1DA1F2',
-            }
+            const RED_COLOR = redColores
             const monthLabel = new Date(year, month, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
             const todayD = new Date()
             const prevM = () => setCalMes(({ year:y, month:m }) => m === 0 ? { year:y-1, month:11 } : { year:y, month:m-1 })
@@ -1009,7 +1011,7 @@ export default function ClientePortal() {
                             </div>
                             {!isMobile && posts.length > 0 && (
                               <p style={{ margin:'4px 0 0', fontSize:'9px', color:'rgba(255,255,255,0.35)', lineHeight:1.2, overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>
-                                {posts[0].tipo}{posts.length > 1 ? ` +${posts.length-1}` : ''}
+                                {posts[0].descripcion}{posts.length > 1 ? ` +${posts.length-1}` : ''}
                               </p>
                             )}
                           </>

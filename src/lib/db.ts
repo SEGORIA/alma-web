@@ -9,7 +9,7 @@ import { planesEstaticos, extrasEstaticos, categoriasEstaticas } from '../data/p
 import {
   seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
   contactoDefault, heroStatsDefault, heroSubtituloDefault,
-  principiosDefault, leadMagnetDefault, emisorDefault,
+  principiosDefault, leadMagnetDefault, emisorDefault, redColoresDefault,
 } from '../data/config'
 import { pasosEstaticos, equipoEstatico } from '../data/contenido'
 import type { Articulo } from '../data/articulos'
@@ -309,6 +309,7 @@ export async function getConfig(): Promise<SiteConfig> {
     principios:     principiosDefault,
     leadMagnet:     leadMagnetDefault,
     emisor:         emisorDefault,
+    redColores:     redColoresDefault,
   }
   if (!firebaseReady || !db) return fallback
   if (!_configPromise) {
@@ -325,6 +326,7 @@ export async function getConfig(): Promise<SiteConfig> {
           principios:     data.principios    ?? principiosDefault,
           leadMagnet:     data.leadMagnet    ?? leadMagnetDefault,
           emisor:         { ...emisorDefault, ...(data.emisor ?? {}) },
+          redColores:     { ...redColoresDefault, ...(data.redColores ?? {}) },
         }
       })
       .catch(() => fallback)
@@ -350,6 +352,16 @@ export async function getLeadMagnetConfig(): Promise<LeadMagnetConfig> {
 export async function updateLeadMagnetConfig(leadMagnet: LeadMagnetConfig) {
   invalidateConfigCache()
   await updateConfig({ leadMagnet })
+}
+
+export async function getRedColores(): Promise<Record<string, string>> {
+  const cfg = await getConfig()
+  return { ...redColoresDefault, ...(cfg.redColores ?? {}) }
+}
+
+export async function updateRedColores(redColores: Record<string, string>) {
+  invalidateConfigCache()
+  await updateConfig({ redColores })
 }
 
 export async function getContactoInfo(): Promise<ContactoInfo> {

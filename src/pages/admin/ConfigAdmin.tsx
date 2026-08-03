@@ -5,9 +5,11 @@ import {
   getTestimonios, createTestimonio, updateTestimonio, deleteTestimonio,
   getFaqs, createFaq, updateFaq, deleteFaq,
   seedConfig, seedArticulos, seedPortafolio, seedPrecios,
+  getRedColores, updateRedColores,
 } from '../../lib/db'
 import {
   seccionesInfo, seccionesDefault, clientesEstaticos, testimoniosEstaticos, faqsEstaticos,
+  redColoresDefault,
 } from '../../data/config'
 import type { SeccionesConfig, Testimonio, FaqItem } from '../../data/config'
 import { Y } from '../../tokens'
@@ -609,12 +611,108 @@ function TabApariencia() {
   )
 }
 
+/* ══ Tab — Colores de redes ═══════════════════════════════════ */
+function TabRedes() {
+  const [redes,  setRedes]  = useState<Record<string, string>>(redColoresDefault)
+  const [nuevo,  setNuevo]  = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved,  setSaved]  = useState(false)
+
+  useEffect(() => {
+    getRedColores().then(setRedes)
+  }, [])
+
+  async function save(next: Record<string, string>) {
+    setRedes(next)
+    setSaving(true); setSaved(false)
+    try {
+      await updateRedColores(next)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) { toast.err('Error al guardar: ' + err) }
+    setSaving(false)
+  }
+
+  function updateColor(nombre: string, color: string) {
+    save({ ...redes, [nombre]: color })
+  }
+
+  function remove(nombre: string) {
+    const next = { ...redes }
+    delete next[nombre]
+    save(next)
+  }
+
+  function add() {
+    const val = nuevo.trim()
+    if (!val || redes[val]) return
+    save({ ...redes, [val]: '#6B7280' })
+    setNuevo('')
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: '13px', color: MUT, marginBottom: '16px' }}>
+        Color del punto que identifica cada red social en el calendario de la parrilla (portal del cliente y calendario interno).
+      </p>
+
+      {saved && (
+        <div style={{ background: 'rgba(107,33,168,0.10)', color: C1, padding: '10px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+          ✅ Colores guardados
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+        {Object.entries(redes).map(([nombre, color]) => (
+          <div key={nombre} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <input
+              type="color"
+              value={color}
+              onChange={e => updateColor(nombre, e.target.value)}
+              disabled={saving}
+              style={{ width: '40px', height: '36px', padding: '2px', borderRadius: '8px', border: `1px solid ${BDR}`, cursor: 'pointer', flexShrink: 0 }}
+            />
+            <span style={{ flex: 1, fontSize: '14px', fontWeight: 600, color: WHT }}>{nombre}</span>
+            <span style={{ fontSize: '12px', color: MUT, fontFamily: 'monospace' }}>{color}</span>
+            <button
+              onClick={() => remove(nombre)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontWeight: 700, fontSize: '18px', padding: '4px 8px' }}
+              title="Eliminar"
+            >×</button>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <input
+          value={nuevo} onChange={e => setNuevo(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && add()}
+          placeholder="Nombre de la red (ej: Pinterest)..."
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <button
+          onClick={add}
+          disabled={!nuevo.trim() || saving}
+          style={{
+            background: P, color: '#fff', border: 'none',
+            padding: '9px 18px', borderRadius: '8px',
+            fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+          }}
+        >
+          + Agregar
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ══ Página principal ════════════════════════════════════════ */
 const TABS = [
   { id: 'secciones',    label: '🔲 Secciones' },
   { id: 'clientes',     label: '🏢 Clientes' },
   { id: 'testimonios',  label: '💬 Testimonios' },
   { id: 'faq',          label: '❓ FAQ' },
+  { id: 'redes',        label: '🎨 Colores de redes' },
   { id: 'apariencia',   label: '🌗 Apariencia' },
 ]
 
@@ -691,6 +789,7 @@ export default function ConfigAdmin() {
         {tab === 'clientes'    && <TabClientes />}
         {tab === 'testimonios' && <TabTestimonios />}
         {tab === 'faq'         && <TabFaq />}
+        {tab === 'redes'       && <TabRedes />}
         {tab === 'apariencia'  && <TabApariencia />}
 
       </div>

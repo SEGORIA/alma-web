@@ -81,6 +81,7 @@ export type SiteConfig = {
   principios?:    ManifiestoItem[]
   leadMagnet?:    LeadMagnetConfig
   emisor?:        EmisorInfo
+  redColores?:    Record<string, string>   // color por red social (Instagram, TikTok…) en calendarios de parrilla
 }
 
 // ── Secciones — información para el admin ─────────────────────
@@ -114,6 +115,15 @@ export const contactoDefault: ContactoInfo = {
   ubicacion: 'Manizales, Colombia',
   instagram: 'https://www.instagram.com/alma.agenciacreativa',
   academia:  'https://edu.almaagenciacreativa.com',
+}
+
+export const redColoresDefault: Record<string, string> = {
+  'Instagram': '#E1306C',
+  'TikTok':    '#010101',
+  'Facebook':  '#1877F2',
+  'YouTube':   '#FF0000',
+  'LinkedIn':  '#0A66C2',
+  'X':         '#1DA1F2',
 }
 
 export const heroStatsDefault: HeroStat[] = [

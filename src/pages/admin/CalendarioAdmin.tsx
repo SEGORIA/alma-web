@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from './AdminLayout'
-import { getClientes } from '../../lib/db'
+import { getClientes, getRedColores } from '../../lib/db'
 import type { Cliente, ParrillaItem } from '../../data/clientes'
+import { redColoresDefault } from '../../data/config'
 import { ADM } from '../../lib/adminTheme'
 
 const { BK, DIM, BDR, MUT, WHT, C1, C1_BG, INPUT_BG } = ADM
@@ -12,16 +13,6 @@ const CLIENT_COLORS = [
   '#7C3AED','#0284C7','#B45309','#047857','#B91C1C',
   '#9333EA','#0369A1','#92400E','#065F46','#991B1B',
 ]
-
-/* ── Colores por red social ──────────────────────────────────── */
-const RED_COLOR: Record<string, string> = {
-  'Instagram': '#E1306C',
-  'TikTok':    '#010101',
-  'Facebook':  '#1877F2',
-  'YouTube':   '#FF0000',
-  'LinkedIn':  '#0A66C2',
-  'X':         '#1DA1F2',
-}
 
 /* ── Tipos internos ──────────────────────────────────────────── */
 type PostConCliente = ParrillaItem & { clienteNombre: string; clienteColor: string; clienteId: string }
@@ -46,9 +37,11 @@ export default function CalendarioAdmin() {
   })
   const [modalPosts, setModalPosts] = useState<PostConCliente[] | null>(null)
   const [filtroCliente, setFiltroCliente] = useState<string>('') // '' = todos
+  const [RED_COLOR, setRedColor] = useState<Record<string, string>>(redColoresDefault)
 
   useEffect(() => {
     getClientes().then(list => { setClientes(list); setLoading(false) })
+    getRedColores().then(setRedColor)
   }, [])
 
   const { year, month } = mes
