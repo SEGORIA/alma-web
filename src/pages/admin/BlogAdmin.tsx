@@ -23,6 +23,7 @@ export default function BlogAdmin() {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { load() }, [])
 
   const handleDelete = async (id: string, titulo: string) => {

@@ -299,8 +299,15 @@ function Landing() {
     }
   }, [])
 
-  // Cierra el menú móvil al pasar a viewport de escritorio
+  // El menú solo existe en móvil: al pasar a escritorio deja de estar visible
+  // aunque `menuOpen` siga en true (y así el overflow:hidden del body se libera).
+  const menuVisible = isMobile && menuOpen
+
+  // Además se resetea el estado, o al volver a móvil (rotar una tablet cruza el
+  // breakpoint) el menú reaparecería solo. No es derivable en render: `menuOpen`
+  // lo controla el usuario con el botón.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isMobile) setMenuOpen(false)
   }, [isMobile])
 
@@ -330,9 +337,9 @@ function Landing() {
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    document.body.style.overflow = menuVisible ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
-  }, [menuOpen])
+  }, [menuVisible])
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -459,7 +466,7 @@ function Landing() {
 
         {/* Mobile menu */}
         <AnimatePresence>
-          {isMobile && menuOpen && (
+          {menuVisible && (
             <motion.div
               key="mobile-menu"
               id="mobile-menu"
@@ -579,14 +586,19 @@ function PageLoader() {
 /* ── Protected route ─────────────────────────────────────── */
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  const [adminOk, setAdminOk]     = useState<boolean | null>(null)
+  const [adminCheck, setAdminCheck] = useState<{ uid: string; ok: boolean } | null>(null)
 
   useEffect(() => {
-    if (!user) { setAdminOk(null); return }
+    if (!user) return
     let active = true
-    isAdmin(user.uid).then(ok => { if (active) setAdminOk(ok) })
+    isAdmin(user.uid).then(ok => { if (active) setAdminCheck({ uid: user.uid, ok }) })
     return () => { active = false }
   }, [user])
+
+  // El resultado se guarda junto al uid al que pertenece: si la sesión cambia
+  // (logout, o login directo con otra cuenta) el check anterior deja de valer y
+  // volvemos al loader en vez de arrastrar un `true` de la sesión previa.
+  const adminOk = user && adminCheck?.uid === user.uid ? adminCheck.ok : null
 
   if (loading || (user && adminOk === null)) return <PageLoader />
   return (user && adminOk) ? <>{children}</> : <Navigate to="/admin/login" replace />

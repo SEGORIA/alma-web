@@ -168,11 +168,6 @@ export default function FinanzasAdmin() {
   )
 
   /* ── Load clients ────────────────────────────────────── */
-  useEffect(() => {
-    if (clientes.length === 0) loadClients()
-    if (tab === 'finanzas' && !finLoaded) loadFin()
-  }, [tab])
-
   async function loadFin() {
     setLoadingFin(true)
     try {
@@ -197,13 +192,21 @@ export default function FinanzasAdmin() {
     finally { setLoadingCl(false) }
   }
 
+  // Las dos cargas van declaradas arriba a propósito: el analizador de hooks no
+  // acepta el hoisting de `function` y exige declararlas antes de usarlas aquí.
+  // Los guardas internos hacen que re-ejecutar el efecto sea idempotente.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
+    if (clientes.length === 0) loadClients()
+    if (tab === 'finanzas' && !finLoaded) loadFin()
+  }, [tab, clientes.length, finLoaded])
+
   /* ── Métricas helpers ────────────────────────────────── */
   function loadExistingEntry(cl: Cliente, mes: string, plat: string) {
     const existing = (cl.metricas_historico ?? []).find(
       m => m.mes === mes && m.plataforma === plat
     )
     if (existing) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { mes: _m, plataforma: _p, ...rest } = existing
       setForm(rest)
       setEditKey(`${mes}|${plat}`)

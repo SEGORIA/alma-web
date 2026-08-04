@@ -334,6 +334,7 @@ function TabTestimonios() {
   async function reload() {
     const t = await getTestimonios(); setTestimonios(t)
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload() }, [])
 
   async function handleSave(data: Omit<Testimonio, '_id'>) {
@@ -454,6 +455,7 @@ function TabFaq() {
   async function reload() {
     const f = await getFaqs(); setFaqs(f)
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload() }, [])
 
   async function handleSave(data: Omit<FaqItem, '_id'>) {

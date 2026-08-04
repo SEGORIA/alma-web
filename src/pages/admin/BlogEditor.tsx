@@ -195,8 +195,7 @@ export default function BlogEditor() {
   const [docId,     setDocId]     = useState<string | null>(null)
 
   useEffect(() => {
-    if (isNew) return
-    setLoading(true)
+    if (isNew) return   // `loading` ya arranca en !isNew
     getArticulos().then(arts => {
       const found = arts.find(a => a._id === id || a.slug === id)
       if (found) {

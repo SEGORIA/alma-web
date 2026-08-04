@@ -165,8 +165,7 @@ export default function AcademiaCursoEditor() {
   const [modulos, setModulos]           = useState<Modulo[]>([])
 
   useEffect(() => {
-    if (isNew || !id) return
-    setLoading(true)
+    if (isNew || !id) return   // `loading` ya arranca en !isNew
     getCurso(id).then(c => {
       if (c) {
         setTitulo(c.titulo)

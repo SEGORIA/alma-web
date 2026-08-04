@@ -277,6 +277,7 @@ export default function PreciosAdmin() {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload() }, [])
 
   /* ── Plan handlers ── */

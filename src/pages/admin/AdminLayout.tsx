@@ -321,8 +321,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const onAcademiaRoute = location.pathname.startsWith('/admin/academia')
   const [academiaOpen, setAcademiaOpen] = useState(onAcademiaRoute)
 
-  // Auto-expand grupos al navegar a una ruta hija
+  // Auto-expand grupos al navegar a una ruta hija. No se puede derivar en render
+  // (`webOpen || onWebRoute`) porque entonces el usuario no podría plegar el grupo
+  // mientras está dentro de una de sus rutas: es estado derivado *y* conmutable.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (onWebRoute) setWebOpen(true)
     if (onAcademiaRoute) setAcademiaOpen(true)
   }, [location.pathname, onWebRoute, onAcademiaRoute])

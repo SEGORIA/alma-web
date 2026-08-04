@@ -33,8 +33,6 @@ function CropModal({
   const [minZoom, setMinZoom] = useState(1)
   const [loading, setLoading] = useState(false)
   const pinchStartRef = useRef<number | null>(null)
-  const zoomRef       = useRef(zoom)
-  zoomRef.current     = zoom
 
   /* ── Carga de imagen ─── */
   const onLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -90,7 +88,7 @@ function CropModal({
       const dy   = e.touches[0].clientY - e.touches[1].clientY
       const dist = Math.sqrt(dx * dx + dy * dy)
       const ratio    = dist / pinchStartRef.current
-      const newZoom  = Math.min(Math.max(zoomRef.current * ratio, minZoom), minZoom * 3)
+      const newZoom  = Math.min(Math.max(zoom * ratio, minZoom), minZoom * 3)
       pinchStartRef.current = dist
       setZoom(newZoom)
       setPos(p => clamp(p, newZoom))

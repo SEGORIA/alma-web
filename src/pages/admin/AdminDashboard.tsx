@@ -250,7 +250,9 @@ export default function AdminDashboard() {
         }).catch(() => {})
       }
     }
-  }, [])
+    // LOOKER_ENV es una constante de build (import.meta.env): nunca cambia entre
+    // renders, así que declararla aquí no provoca re-ejecuciones.
+  }, [LOOKER_ENV])
 
   const hora = new Date().getHours()
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches'

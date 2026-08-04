@@ -130,7 +130,7 @@ export default function EquipoPortal() {
   const [tareas, setTareas] = useState<Tarea[]>([])
 
   useEffect(() => {
-    if (!pin) { setLoading(false); return }
+    if (!pin) return   // sin PIN se renderiza <PinEntry/> antes del loader
     let active = true
     getEquipo().then(async equipo => {
       const m = equipo.find(e => e.pin && e.pin === pin) ?? null

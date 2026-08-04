@@ -40,8 +40,7 @@ export default function PortafolioEditor() {
   const [csTestimonialAutor, setCsTestimonialAutor] = useState('')
 
   useEffect(() => {
-    if (isNew) return
-    setLoading(true)
+    if (isNew) return   // `loading` ya arranca en !isNew
     getProyectos().then(proyectos => {
       const found = proyectos.find(p => p._id === id || p.titulo === id)
       if (found) {

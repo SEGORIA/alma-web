@@ -123,7 +123,10 @@ function BriefModal({ brief, onClose, onEstado, onUpdate }: {
   const [draft, setDraft]     = useState<Brief>({ ...brief })
   const [saving, setSaving]   = useState(false)
 
-  // Sync draft when brief prop changes (e.g. estado update from outside)
+  // Sync draft when brief prop changes (e.g. estado update from outside), pero solo
+  // fuera del modo edición: el borrador es estado local que el usuario está tocando,
+  // no se puede derivar del prop en render sin pisar lo que lleva escrito.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (!editing) setDraft({ ...brief }) }, [brief, editing])
 
   const EDIT_FIELDS: { key: keyof Brief; label: string; multi?: boolean }[] = [
@@ -648,6 +651,9 @@ export default function BriefAdmin() {
   const thisWeek = briefs.filter(b => {
     try {
       const d = (b.createdAt as { toDate?: () => Date }).toDate?.() ?? new Date(b.createdAt as string)
+      // Contador cosmético "de esta semana": unos ms de desfase entre renders
+      // no cambian nada visible.
+      // eslint-disable-next-line react-hooks/purity
       return (Date.now() - d.getTime()) < 7 * 24 * 3600 * 1000
     } catch { return false }
   }).length

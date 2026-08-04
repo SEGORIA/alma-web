@@ -67,6 +67,7 @@ export default function AlumnosAdmin() {
       setLoading(false)
     }
   }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { load() }, [])
 
   const filtrados = alumnos.filter(a =>

@@ -85,12 +85,10 @@ export default function CotizacionesAdmin() {
     })
   }, [])
 
-  /* ── Calcular totales al cambiar items / iva ── */
-  useEffect(() => {
-    const sub = form.items.reduce((s, i) => s + i.subtotal, 0)
-    const tot = form.iva ? sub + sub * (form.ivaPct / 100) : sub
-    setForm(f => ({ ...f, subtotal: sub, total: tot }))
-  }, [form.items, form.iva, form.ivaPct]) // eslint-disable-line
+  /* ── Totales derivados de los items (no se guardan en el estado del form:
+        se calculan en cada render y se inyectan al guardar) ── */
+  const subtotal = form.items.reduce((s, i) => s + i.subtotal, 0)
+  const total    = form.iva ? subtotal + subtotal * (form.ivaPct / 100) : subtotal
 
   /* ── Seleccionar cliente ── */
   function selectCliente(id: string) {
@@ -131,12 +129,13 @@ export default function CotizacionesAdmin() {
     if (!form.clienteNombre.trim() || !form.numero.trim()) return
     setSaving(true)
     try {
+      const payload = { ...form, subtotal, total }
       if (editId) {
-        await updateCotizacion(editId, form)
-        setCots(prev => prev.map(c => c._id === editId ? { ...form, _id: editId } : c))
+        await updateCotizacion(editId, payload)
+        setCots(prev => prev.map(c => c._id === editId ? { ...payload, _id: editId } : c))
       } else {
-        const id = await saveCotizacion(form)
-        setCots(prev => [{ ...form, _id: id }, ...prev])
+        const id = await saveCotizacion(payload)
+        setCots(prev => [{ ...payload, _id: id }, ...prev])
       }
       setView('list'); setEditId(null); setForm(EMPTY_COT())
     } finally {
@@ -260,7 +259,7 @@ export default function CotizacionesAdmin() {
               <button onClick={() => { setView('list'); setEditId(null) }} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 ← Volver
               </button>
-              <button onClick={() => printCot({ ...form, _id: editId ?? '' } as Cotizacion)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
+              <button onClick={() => printCot({ ...form, subtotal, total, _id: editId ?? '' } as Cotizacion)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 🖨️ Vista previa PDF
               </button>
               <button onClick={handleSave} disabled={saving} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
@@ -460,17 +459,17 @@ export default function CotizacionesAdmin() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px' }}>
                       <span style={{ fontSize: '11px', color: MUT }}>Subtotal</span>
-                      <span style={{ fontSize: '11px', color: WHT, fontWeight: 600 }}>{fmtCOP(form.subtotal)}</span>
+                      <span style={{ fontSize: '11px', color: WHT, fontWeight: 600 }}>{fmtCOP(subtotal)}</span>
                     </div>
                     {form.iva && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px' }}>
                         <span style={{ fontSize: '11px', color: MUT }}>IVA ({form.ivaPct}%)</span>
-                        <span style={{ fontSize: '11px', color: WHT, fontWeight: 600 }}>{fmtCOP(form.subtotal * form.ivaPct / 100)}</span>
+                        <span style={{ fontSize: '11px', color: WHT, fontWeight: 600 }}>{fmtCOP(subtotal * form.ivaPct / 100)}</span>
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px', paddingTop: '8px', borderTop: `1.5px solid ${BDR2}` }}>
                       <span style={{ fontSize: '13px', fontWeight: 700, color: WHT }}>Total</span>
-                      <span style={{ fontSize: '16px', fontWeight: 300, color: ACC2 }}>{fmtCOP(form.total)}</span>
+                      <span style={{ fontSize: '16px', fontWeight: 300, color: ACC2 }}>{fmtCOP(total)}</span>
                     </div>
                   </div>
                 </div>

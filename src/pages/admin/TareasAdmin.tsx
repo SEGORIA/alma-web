@@ -665,6 +665,7 @@ export default function TareasAdmin() {
     setTareas(t); setEquipo(e)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload().finally(() => setLoading(false)) }, [])
 
   const filtered = tareas.filter(t =>

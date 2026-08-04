@@ -30,12 +30,17 @@ export type ConfirmOpts = {
 let _push:    ((kind: ToastKind, msg: string) => void) | null = null
 let _confirm: ((opts: ConfirmOpts) => Promise<boolean>) | null = null
 
+// El registro singleton vive junto a su Host a propósito: separarlo obligaría a
+// tocar el import de ~20 páginas admin por una regla que solo afecta al HMR en
+// desarrollo.
+// eslint-disable-next-line react-refresh/only-export-components
 export const toast = {
-  ok:   (msg: string) => { _push ? _push('ok', msg)   : window.alert(msg) },
-  err:  (msg: string) => { _push ? _push('err', msg)  : window.alert(msg) },
-  info: (msg: string) => { _push ? _push('info', msg) : window.alert(msg) },
+  ok:   (msg: string) => { if (_push) _push('ok', msg);   else window.alert(msg) },
+  err:  (msg: string) => { if (_push) _push('err', msg);  else window.alert(msg) },
+  info: (msg: string) => { if (_push) _push('info', msg); else window.alert(msg) },
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- ver nota en `toast`
 export function confirmar(opts: string | ConfirmOpts): Promise<boolean> {
   const o = typeof opts === 'string' ? { mensaje: opts } : opts
   return _confirm ? _confirm(o) : Promise.resolve(window.confirm(o.mensaje))

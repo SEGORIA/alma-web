@@ -52,6 +52,7 @@ export default function LeadsAdmin() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
     load()
     getConfig().then(cfg => setPhone(cfg.contactoInfo?.whatsapp ?? contactoDefault.whatsapp))
   }, [])

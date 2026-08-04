@@ -41,14 +41,21 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Cierra el menú móvil al pasar a viewport de escritorio
+  // El menú solo existe en móvil: al pasar a escritorio deja de estar visible
+  // aunque `menuOpen` siga en true (y así el scroll lock también se libera).
+  const menuVisible = isMobile && menuOpen
+
+  // Además se resetea el estado, o al volver a móvil (rotar una tablet cruza el
+  // breakpoint) el menú reaparecería solo. No es derivable en render: `menuOpen`
+  // lo controla el usuario con el botón.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isMobile) setMenuOpen(false)
   }, [isMobile])
 
   // Scroll lock seguro para Android e iOS (overflow:hidden solo rompe touch events en Android)
   useEffect(() => {
-    if (menuOpen) {
+    if (menuVisible) {
       const scrollY = window.scrollY
       document.body.style.position = 'fixed'
       document.body.style.top = `-${scrollY}px`
@@ -65,7 +72,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
       document.body.style.top = ''
       document.body.style.width = ''
     }
-  }, [menuOpen])
+  }, [menuVisible])
 
   const linkStyle = (active: boolean): React.CSSProperties => ({
     color:          active ? P : '#374151',
@@ -177,7 +184,7 @@ export default function SiteNav({ activePath }: { activePath?: string }) {
       </div>
 
       {/* Mobile menu */}
-      {isMobile && menuOpen && (
+      {menuVisible && (
         <div style={{
           background: '#fff', borderTop: '1px solid rgba(107,33,168,0.08)',
           padding: '12px 24px 24px',

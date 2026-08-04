@@ -147,11 +147,9 @@ export default function CuentasCobroAdmin() {
     setView('form')
   }
 
-  /* ── Recalcular total ── */
-  useEffect(() => {
-    const tot = form.conceptos.reduce((s, c) => s + c.valor, 0)
-    setForm(f => ({ ...f, total: tot }))
-  }, [form.conceptos]) // eslint-disable-line
+  /* ── Total derivado de los conceptos (no vive en el estado del form: se
+        calcula en cada render y se inyecta al guardar) ── */
+  const total = form.conceptos.reduce((s, c) => s + c.valor, 0)
 
   /* ── Seleccionar cliente ── */
   function selectCliente(id: string) {
@@ -185,12 +183,13 @@ export default function CuentasCobroAdmin() {
     if (!form.clienteNombre.trim()) { toast.err('Falta el nombre / contacto del cliente. Vincula un cliente registrado o escríbelo en “Ingreso manual”.'); return }
     setSaving(true)
     try {
+      const payload = { ...form, total }
       if (editId) {
-        await updateCuentaCobro(editId, form)
-        setCuentas(prev => prev.map(c => c._id === editId ? { ...form, _id: editId } : c))
+        await updateCuentaCobro(editId, payload)
+        setCuentas(prev => prev.map(c => c._id === editId ? { ...payload, _id: editId } : c))
       } else {
-        const id = await saveCuentaCobro(form)
-        setCuentas(prev => [{ ...form, _id: id }, ...prev])
+        const id = await saveCuentaCobro(payload)
+        setCuentas(prev => [{ ...payload, _id: id }, ...prev])
       }
       setView('list'); setEditId(null); setForm(EMPTY_CC())
       toast.ok(editId ? 'Cuenta de cobro actualizada.' : 'Cuenta de cobro guardada.')
@@ -382,7 +381,7 @@ export default function CuentasCobroAdmin() {
               <button onClick={() => { setView('list'); setEditId(null) }} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${BDR2}`, background: 'transparent', color: MUT, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 ← Volver
               </button>
-              <button onClick={() => openPreview({ ...form, _id: editId ?? '' } as CuentaCobro)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
+              <button onClick={() => openPreview({ ...form, total, _id: editId ?? '' } as CuentaCobro)} style={{ padding: '9px 18px', borderRadius: '4px', border: `0.5px solid ${TEAL}`, background: 'transparent', color: TEAL, fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>
                 🖨️ Vista previa PDF
               </button>
               <button onClick={handleSave} disabled={saving} style={{ padding: '10px 22px', borderRadius: '4px', border: 'none', background: `linear-gradient(135deg,${C1},${ACC2})`, color: '#fff', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>
@@ -569,7 +568,7 @@ export default function CuentasCobroAdmin() {
                 <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: `0.5px solid ${BDR}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '13px', fontWeight: 700, color: WHT }}>Total a cobrar</span>
-                    <span style={{ fontSize: '20px', fontWeight: 300, color: ACC2 }}>{fmtCOP(form.total)}</span>
+                    <span style={{ fontSize: '20px', fontWeight: 300, color: ACC2 }}>{fmtCOP(total)}</span>
                   </div>
                 </div>
               </div>

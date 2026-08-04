@@ -6,13 +6,11 @@ import { auth, firebaseReady } from '../lib/firebase'
 
 export function useAuth() {
   const [user,    setUser]    = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Sin Firebase no hay nada que esperar: se arranca ya resuelto (sin sesión).
+  const [loading, setLoading] = useState(firebaseReady && !!auth)
 
   useEffect(() => {
-    if (!firebaseReady || !auth) {
-      setLoading(false)
-      return
-    }
+    if (!firebaseReady || !auth) return
     const unsub = onAuthStateChanged(auth, u => {
       setUser(u)
       setLoading(false)

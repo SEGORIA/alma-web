@@ -251,6 +251,7 @@ function TabProceso() {
   const isMigrated = pasos.some(p => !!p._id)
 
   async function reload() { setPasos(await getPasos()) }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload() }, [])
 
   async function handleClean() {
@@ -431,6 +432,7 @@ function TabEquipo() {
   const isMigrated = equipo.some(m => !!m._id)
 
   async function reload() { setEquipo(await getEquipo()) }
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch inicial al montar
   useEffect(() => { reload() }, [])
 
   async function handleClean() {

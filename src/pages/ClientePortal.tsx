@@ -105,7 +105,13 @@ export default function ClientePortal() {
   const [ideaDesc,       setIdeaDesc]       = useState('')
   const [ideaPilar,      setIdeaPilar]      = useState('')
   const [sendingIdea,    setSendingIdea]    = useState(false)
-  const [votedIdeas,     setVotedIdeas]     = useState<Set<string>>(new Set())
+  // Los votos ya emitidos se leen de localStorage una sola vez, al inicializar.
+  const [votedIdeas,     setVotedIdeas]     = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(`alma_ideas_votadas_${token}`)
+      return saved ? new Set<string>(JSON.parse(saved)) : new Set<string>()
+    } catch { return new Set<string>() }   // localStorage no disponible
+  })
   const [redColores,     setRedColores]     = useState<Record<string, string>>(redColoresDefault)
   // Parrilla
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
@@ -125,7 +131,7 @@ export default function ClientePortal() {
   }
 
   useEffect(() => {
-    if (!token) { setLoading(false); return }
+    if (!token) return
     getPortalByToken(token).then(d => {
       setData(d)
       setLoading(false)
@@ -136,10 +142,6 @@ export default function ClientePortal() {
         setIdeasLoading(false)
       }
     })
-    try {
-      const saved = localStorage.getItem(`alma_ideas_votadas_${token}`)
-      if (saved) setVotedIdeas(new Set(JSON.parse(saved)))
-    } catch { /* localStorage no disponible */ }
   }, [token])
 
   useEffect(() => {
@@ -160,21 +162,29 @@ export default function ClientePortal() {
 
   // HTML de estrategia inyectado (regex sobre HTML potencialmente grande) —
   // memoizado para no reprocesarlo en cada render del componente completo.
+  // Los campos se extraen a locales para que la dependencia sea exactamente el
+  // valor usado dentro del memo (con `data?.x` inline el analizador infiere `data`
+  // entero y da por perdida la memoización).
+  const logoUrl = data?.logo_url
+  const marca   = data?.marca ?? ''
+
   const activeMesHtml = parrillaMesesSorted.find(m => m.id === activeParrillaMesId)
+  const activeMesHtmlContenido = activeMesHtml?.html_contenido
   const injectedFullscreen = useMemo(() => {
-    if (!activeMesHtml?.html_contenido) return ''
-    return injectResponsiveFixes(data?.logo_url
-      ? injectLogo(activeMesHtml.html_contenido, data.logo_url, data?.marca ?? '')
-      : activeMesHtml.html_contenido)
-  }, [activeMesHtml?.html_contenido, data?.logo_url, data?.marca])
+    if (!activeMesHtmlContenido) return ''
+    return injectResponsiveFixes(logoUrl
+      ? injectLogo(activeMesHtmlContenido, logoUrl, marca)
+      : activeMesHtmlContenido)
+  }, [activeMesHtmlContenido, logoUrl, marca])
 
   const activeHtmlLegacy = htmlsLegacySorted.find(h => h.id === activeHtmlId) ?? htmlsLegacySorted[0]
+  const activeHtmlLegacyContenido = activeHtmlLegacy?.contenido
   const injectedLegacy = useMemo(() => {
-    if (!activeHtmlLegacy?.contenido) return ''
-    return injectResponsiveFixes(data?.logo_url
-      ? injectLogo(activeHtmlLegacy.contenido, data.logo_url, data?.marca ?? '')
-      : activeHtmlLegacy.contenido)
-  }, [activeHtmlLegacy?.contenido, data?.logo_url, data?.marca])
+    if (!activeHtmlLegacyContenido) return ''
+    return injectResponsiveFixes(logoUrl
+      ? injectLogo(activeHtmlLegacyContenido, logoUrl, marca)
+      : activeHtmlLegacyContenido)
+  }, [activeHtmlLegacyContenido, logoUrl, marca])
 
   // Agrupamiento de posts por día del calendario — memoizado por mes visible
   const postsByDay = useMemo(() => {
@@ -190,8 +200,11 @@ export default function ClientePortal() {
     return map
   }, [data?.parrilla, calMes.year, calMes.month])
 
+  // Sin token no hay nada que cargar: se resuelve aquí, antes del loader, para
+  // no quedar mostrando el spinner de una petición que nunca se lanzó.
+  if (!token) return <NotFound />
   if (loading) return <Loader />
-  if (!data || !token) return <NotFound />
+  if (!data) return <NotFound />
 
   const estadoInfo = CLIENTE_ESTADOS.find(e => e.value === data.estado)
 
