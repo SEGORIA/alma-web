@@ -51,6 +51,14 @@ export function stripUndefined(obj: unknown): unknown {
   return obj
 }
 
+/** Registra errores de Firestore que de otro modo quedarían completamente
+ *  silenciados detrás de un fallback (array vacío, datos estáticos, null…).
+ *  Sin esto, un problema real de permisos o configuración se ve exactamente
+ *  igual que "no hay datos todavía", lo que hace muy difícil diagnosticarlo. */
+function logFirestoreError(context: string, err: unknown): void {
+  console.error(`[db] ${context}:`, err)
+}
+
 /** Factory para colecciones "simples" (sin fallback a datos estáticos ni
  *  merge/dedup especial): getAll ordenado + create + update + delete, todos
  *  con el mismo guard `firebaseReady` y el mismo try/catch que ya usaban
@@ -68,7 +76,7 @@ function makeCrud<T extends { _id?: string }>(
       try {
         const snap = await getDocs(query(col(), orderBy(orderField, orderDir)))
         return snap.docs.map(d => ({ ...(d.data() as T), _id: d.id }))
-      } catch { return [] }
+      } catch (err) { logFirestoreError(`makeCrud(${collectionName}).getAll`, err); return [] }
     },
     async create(data: Omit<T, '_id'>, extraFields: Record<string, unknown> = {}): Promise<string> {
       if (!db) throw new Error('DB not ready')
@@ -97,7 +105,10 @@ const _adminCache = new Map<string, Promise<boolean>>()
 export function isAdmin(uid: string): Promise<boolean> {
   if (!firebaseReady || !db) return Promise.resolve(false)
   if (!_adminCache.has(uid)) {
-    _adminCache.set(uid, getDoc(doc(db!, 'admins', uid)).then(s => s.exists()).catch(() => false))
+    _adminCache.set(uid, getDoc(doc(db!, 'admins', uid)).then(s => s.exists()).catch(err => {
+      logFirestoreError('isAdmin', err)
+      return false
+    }))
   }
   return _adminCache.get(uid)!
 }
@@ -125,7 +136,8 @@ export async function getArticulos(): Promise<Articulo[]> {
     const snap = await getDocs(query(articulosCol(), orderBy('orden', 'asc')))
     if (snap.empty) return staticArticulos
     return snap.docs.map(d => ({ ...(d.data() as Articulo), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getArticulos', err)
     return staticArticulos
   }
 }
@@ -137,7 +149,8 @@ export async function getArticulo(slug: string): Promise<Articulo | null> {
     const found = snap.docs.find(d => d.data().slug === slug)
     if (found) return { ...(found.data() as Articulo), _id: found.id }
     return staticArticulos.find(a => a.slug === slug) ?? null
-  } catch {
+  } catch (err) {
+    logFirestoreError('getArticulo', err)
     return staticArticulos.find(a => a.slug === slug) ?? null
   }
 }
@@ -169,7 +182,8 @@ export async function getProyectos(): Promise<Proyecto[]> {
     const snap = await getDocs(query(portafolioCol(), orderBy('orden', 'asc')))
     if (snap.empty) return proyectosEstaticos
     return snap.docs.map(d => ({ ...(d.data() as Proyecto), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getProyectos', err)
     return proyectosEstaticos
   }
 }
@@ -205,7 +219,8 @@ export async function getPlanes(): Promise<Plan[]> {
     const missingStatic = planesEstaticos.filter(p => !dbTabIds.has(p.tabId))
     const merged = [...fromDB, ...missingStatic].sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
     return merged.length > 0 ? merged : planesEstaticos
-  } catch {
+  } catch (err) {
+    logFirestoreError('getPlanes', err)
     return planesEstaticos
   }
 }
@@ -231,7 +246,8 @@ export async function getExtras(): Promise<Extra[]> {
     const snap = await getDocs(query(extrasCol(), orderBy('orden', 'asc')))
     if (snap.empty) return extrasEstaticos
     return snap.docs.map(d => ({ ...(d.data() as Extra), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getExtras', err)
     return extrasEstaticos
   }
 }
@@ -261,7 +277,8 @@ export async function getCategorias(): Promise<ServicioCategoria[]> {
     const missingStatic = categoriasEstaticas.filter(c => !dbIds.has(c.id))
     const merged = [...fromDB, ...missingStatic].sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
     return merged.length > 0 ? merged : categoriasEstaticas
-  } catch {
+  } catch (err) {
+    logFirestoreError('getCategorias', err)
     return categoriasEstaticas
   }
 }
@@ -329,7 +346,10 @@ export async function getConfig(): Promise<SiteConfig> {
           redColores:     { ...redColoresDefault, ...(data.redColores ?? {}) },
         }
       })
-      .catch(() => fallback)
+      .catch(err => {
+        logFirestoreError('getConfig', err)
+        return fallback
+      })
   }
   return _configPromise
 }
@@ -396,7 +416,8 @@ export async function getTestimonios(): Promise<Testimonio[]> {
     const snap = await getDocs(query(testimoniosCol(), orderBy('orden', 'asc')))
     if (snap.empty) return testimoniosEstaticos
     return snap.docs.map(d => ({ ...(d.data() as Testimonio), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getTestimonios', err)
     return testimoniosEstaticos
   }
 }
@@ -422,7 +443,8 @@ export async function getFaqs(): Promise<FaqItem[]> {
     const snap = await getDocs(query(faqsCol(), orderBy('orden', 'asc')))
     if (snap.empty) return faqsEstaticos
     return snap.docs.map(d => ({ ...(d.data() as FaqItem), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getFaqs', err)
     return faqsEstaticos
   }
 }
@@ -455,7 +477,8 @@ export async function getPasos(): Promise<PasoItem[]> {
       seen.add(p.n)
       return true
     })
-  } catch {
+  } catch (err) {
+    logFirestoreError('getPasos', err)
     return pasosEstaticos
   }
 }
@@ -509,7 +532,8 @@ export async function getEquipo(): Promise<EquipoMember[]> {
       seen.add(m.nombre)
       return true
     })
-  } catch {
+  } catch (err) {
+    logFirestoreError('getEquipo', err)
     return equipoEstatico
   }
 }
@@ -555,7 +579,8 @@ export async function getKitArchivos(): Promise<KitArchivo[]> {
   try {
     const snap = await getDocs(query(kitCol(), orderBy('orden', 'asc')))
     return snap.docs.map(d => ({ ...(d.data() as KitArchivo), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getKitArchivos', err)
     return []
   }
 }
@@ -587,7 +612,9 @@ export async function saveLead(email: string, telefono?: string): Promise<void> 
       estado:    'nuevo',
       createdAt: serverTimestamp(),
     })
-  } catch { /* silencioso — no bloquear al usuario */ }
+  } catch (err) {
+    logFirestoreError('saveLead', err) // no bloquear al usuario, pero sí queda registrado
+  }
 }
 
 const leadsCrud = makeCrud<Lead>('leads', 'createdAt', 'desc')
@@ -612,7 +639,8 @@ export async function getBriefs(): Promise<Brief[]> {
   try {
     const snap = await getDocs(query(briefsCol(), orderBy('createdAt', 'desc')))
     return snap.docs.map(d => ({ ...(d.data() as Brief), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getBriefs', err)
     return []
   }
 }
@@ -643,7 +671,8 @@ export async function getBriefFormConfig(): Promise<BriefFormConfig> {
       ...DEFAULT_BRIEF_CONFIG.fields.filter(f => !existingKeys.has(f.key)),
     ]
     return { ...data, fields: mergedFields }
-  } catch {
+  } catch (err) {
+    logFirestoreError('getBriefFormConfig', err)
     return DEFAULT_BRIEF_CONFIG
   }
 }
@@ -744,7 +773,7 @@ export async function getClientes(): Promise<Cliente[]> {
   try {
     const snap = await getDocs(query(clientesCol(), orderBy('createdAt', 'desc')))
     return snap.docs.map(d => ({ ...(d.data() as Cliente), _id: d.id }))
-  } catch { return [] }
+  } catch (err) { logFirestoreError('getClientes', err); return [] }
 }
 
 export async function getCliente(id: string): Promise<Cliente | null> {
@@ -753,7 +782,7 @@ export async function getCliente(id: string): Promise<Cliente | null> {
     const snap = await getDoc(doc(db!, 'clientes', id))
     if (!snap.exists()) return null
     return { ...(snap.data() as Cliente), _id: snap.id }
-  } catch { return null }
+  } catch (err) { logFirestoreError('getCliente', err); return null }
 }
 
 /** Crea un cliente. Retorna { id, slug } donde slug es el access_token final. */
@@ -813,7 +842,7 @@ export async function getPortalByToken(
     const snap = await getDoc(doc(db!, 'portales', token))
     if (!snap.exists()) return null
     return snap.data() as (Partial<Cliente> & { clienteId?: string })
-  } catch { return null }
+  } catch (err) { logFirestoreError('getPortalByToken', err); return null }
 }
 
 export async function addSolicitudToPortal(
@@ -884,7 +913,7 @@ export async function getLegalDocsUrls(): Promise<LegalDocUrl[]> {
     const snap = await getDoc(legalDocsDoc())
     if (!snap.exists()) return []
     return (snap.data().urls ?? []) as LegalDocUrl[]
-  } catch { return [] }
+  } catch (err) { logFirestoreError('getLegalDocsUrls', err); return [] }
 }
 
 export async function saveLegalDocsUrls(urls: LegalDocUrl[]): Promise<void> {
@@ -932,7 +961,8 @@ export async function getTareasByResponsable(responsableId: string): Promise<Tar
   try {
     const snap = await getDocs(query(tareasCrud.col(), where('responsableId', '==', responsableId)))
     return snap.docs.map(d => ({ ...(d.data() as Tarea), _id: d.id }))
-  } catch {
+  } catch (err) {
+    logFirestoreError('getTareasByResponsable', err)
     return []
   }
 }
@@ -1026,7 +1056,7 @@ export async function getCurso(id: string): Promise<Curso | null> {
     const snap = await getDoc(doc(db!, 'cursos', id))
     if (!snap.exists()) return null
     return { ...(snap.data() as Curso), _id: snap.id }
-  } catch { return null }
+  } catch (err) { logFirestoreError('getCurso', err); return null }
 }
 
 export function createCurso(data: Omit<Curso, '_id'>): Promise<string> {
@@ -1081,7 +1111,7 @@ export async function getIdeasByCliente(clienteId: string): Promise<Idea[]> {
       const tb = (b.createdAt as { seconds?: number })?.seconds ?? 0
       return tb - ta
     })
-  } catch { return [] }
+  } catch (err) { logFirestoreError('getIdeasByCliente', err); return [] }
 }
 
 export function createIdea(data: Omit<Idea, '_id'>): Promise<string> {
