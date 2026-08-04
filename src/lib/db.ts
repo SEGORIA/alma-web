@@ -1,6 +1,6 @@
 import {
   collection, doc, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc,
-  query, orderBy, where, serverTimestamp, arrayUnion, increment,
+  query, orderBy, where, serverTimestamp, arrayUnion, increment, deleteField,
 } from 'firebase/firestore'
 import { db, firebaseReady } from './firebase'
 import { articulos as staticArticulos } from '../data/articulos'
@@ -118,6 +118,10 @@ function portafolioCol()  { return collection(db!, 'portafolio') }
 function planesCol()      { return collection(db!, 'precios_planes') }
 function extrasCol()      { return collection(db!, 'precios_extras') }
 function configDoc()      { return doc(db!, 'config', 'site') }
+/** Datos del emisor (NIT, datos bancarios de ALMA). Van en `config_privado`,
+ *  no en `config/site`: ese documento es de lectura pública porque lleva el
+ *  contenido de la web, así que cualquiera podía leer la cuenta bancaria. */
+function emisorDoc()      { return doc(db!, 'config_privado', 'emisor') }
 function testimoniosCol() { return collection(db!, 'testimonios') }
 function faqsCol()        { return collection(db!, 'faqs') }
 function categoriasCol()  { return collection(db!, 'categorias') }
@@ -325,7 +329,6 @@ export async function getConfig(): Promise<SiteConfig> {
     heroSubtitulo:  heroSubtituloDefault,
     principios:     principiosDefault,
     leadMagnet:     leadMagnetDefault,
-    emisor:         emisorDefault,
     redColores:     redColoresDefault,
   }
   if (!firebaseReady || !db) return fallback
@@ -342,7 +345,7 @@ export async function getConfig(): Promise<SiteConfig> {
           heroSubtitulo:  data.heroSubtitulo ?? heroSubtituloDefault,
           principios:     data.principios    ?? principiosDefault,
           leadMagnet:     data.leadMagnet    ?? leadMagnetDefault,
-          emisor:         { ...emisorDefault, ...(data.emisor ?? {}) },
+          // `emisor` a propósito no se expone aquí: es privado (ver emisorDoc).
           redColores:     { ...redColoresDefault, ...(data.redColores ?? {}) },
         }
       })
@@ -389,14 +392,55 @@ export async function getContactoInfo(): Promise<ContactoInfo> {
   return cfg.contactoInfo ?? contactoDefault
 }
 
+/** Lee los datos del emisor del documento privado. Mientras no se haya migrado
+ *  puede seguir habiendo una copia dentro de `config/site`; se usa como
+ *  respaldo para no perder los datos entre el despliegue y la migración. */
 export async function getEmisorInfo(): Promise<EmisorInfo> {
-  const cfg = await getConfig()
-  return { ...emisorDefault, ...(cfg.emisor ?? {}) }
+  if (!firebaseReady || !db) return emisorDefault
+  try {
+    const snap = await getDoc(emisorDoc())
+    if (snap.exists()) return { ...emisorDefault, ...(snap.data() as Partial<EmisorInfo>) }
+  } catch (err) { logFirestoreError('getEmisorInfo', err) }
+  return { ...emisorDefault, ...(await getEmisorLegacy() ?? {}) }
+}
+
+/** Copia heredada del emisor dentro de `config/site` (documento público). */
+async function getEmisorLegacy(): Promise<Partial<EmisorInfo> | null> {
+  if (!firebaseReady || !db) return null
+  try {
+    const snap = await getDoc(configDoc())
+    if (!snap.exists()) return null
+    return (snap.data() as { emisor?: Partial<EmisorInfo> }).emisor ?? null
+  } catch (err) { logFirestoreError('getEmisorLegacy', err); return null }
 }
 
 export async function updateEmisorInfo(emisor: EmisorInfo) {
-  invalidateConfigCache()
-  await updateConfig({ emisor })
+  if (!firebaseReady || !db) return
+  await setDoc(emisorDoc(), emisor)
+  await borrarEmisorLegacy()
+}
+
+/** Borra la copia del emisor del documento público, si quedaba alguna. */
+async function borrarEmisorLegacy(): Promise<void> {
+  if (!firebaseReady || !db) return
+  try {
+    await updateDoc(configDoc(), { emisor: deleteField() })
+    invalidateConfigCache()
+  } catch (err) { logFirestoreError('borrarEmisorLegacy', err) }
+}
+
+/** Migración de un solo uso: mueve el emisor de `config/site` (público) a
+ *  `config_privado/emisor`. Es idempotente — si no queda copia heredada no
+ *  hace nada. La llama CuentasCobroAdmin al cargar, que es la única página
+ *  que usa estos datos y siempre corre con sesión de admin. */
+export async function migrarEmisorAPrivado(): Promise<boolean> {
+  if (!firebaseReady || !db) return false
+  const legacy = await getEmisorLegacy()
+  if (!legacy) return false
+  const snap = await getDoc(emisorDoc()).catch(() => null)
+  if (!snap?.exists()) await setDoc(emisorDoc(), { ...emisorDefault, ...legacy })
+  await borrarEmisorLegacy()
+  return true
 }
 
 export async function getHeroContent(): Promise<{ stats: HeroStat[]; subtitulo: string }> {

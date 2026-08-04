@@ -80,7 +80,8 @@ export type SiteConfig = {
   heroSubtitulo?: string
   principios?:    ManifiestoItem[]
   leadMagnet?:    LeadMagnetConfig
-  emisor?:        EmisorInfo
+  // Ojo: `emisor` (NIT y datos bancarios) NO va aquí. config/site es de
+  // lectura pública; el emisor vive en config_privado/emisor. Ver db.ts.
   redColores?:    Record<string, string>   // color por red social (Instagram, TikTok…) en calendarios de parrilla
 }
 

@@ -3,7 +3,7 @@ import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import {
   getClientes, getCuentasCobro, saveCuentaCobro, updateCuentaCobro, deleteCuentaCobro,
-  getEmisorInfo, updateEmisorInfo,
+  getEmisorInfo, updateEmisorInfo, migrarEmisorAPrivado,
 } from '../../lib/db'
 import type { CuentaCobro, CuentaConcepto } from '../../lib/db'
 import type { Cliente } from '../../data/clientes'
@@ -132,12 +132,21 @@ export default function CuentasCobroAdmin() {
   const [emisorModal, setEmisorModal] = useState(false)
 
   useEffect(() => {
-    Promise.all([getClientes(), getCuentasCobro(), getEmisorInfo()]).then(([cl, cc, em]) => {
-      setClientes(cl)
-      setCuentas(cc)
-      setEmisor(em)
-      setLoading(false)
-    })
+    // Migración de un solo uso e idempotente: saca el NIT y los datos
+    // bancarios de config/site (que es de lectura pública) a config_privado.
+    // Va aquí porque es la única página que usa el emisor y siempre corre
+    // con sesión de admin, que es la que tiene permiso para escribirlo.
+    migrarEmisorAPrivado()
+      .then(migrado => { if (migrado) console.info('[emisor] movido a config_privado/emisor') })
+      .catch(err => console.error('[emisor] no se pudo migrar:', err))
+      .finally(() => {
+        Promise.all([getClientes(), getCuentasCobro(), getEmisorInfo()]).then(([cl, cc, em]) => {
+          setClientes(cl)
+          setCuentas(cc)
+          setEmisor(em)
+          setLoading(false)
+        })
+      })
   }, [])
 
   /* Nueva cuenta de cobro: precarga los datos bancarios del emisor */

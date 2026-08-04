@@ -56,6 +56,15 @@ service cloud.firestore {
        de estas reglas falta, el sitio no falla de forma visible: cae al
        fallback estático de src/data/ y deja de reflejar el panel.         */
     match /config/{docId}          { allow read: if true; allow write: if esAdmin(); }
+
+    // Ajustes internos que NO pueden ser públicos. Hoy solo config_privado/emisor
+    // (NIT y datos bancarios de ALMA, que usan las cuentas de cobro): vivían
+    // dentro de config/site, que es de lectura pública. Colección aparte y no un
+    // documento dentro de config/ porque las reglas de Firestore se combinan con
+    // OR: el `allow read: if true` de arriba ganaría sobre cualquier regla más
+    // específica que intentara cerrar un documento suelto.
+    match /config_privado/{docId}  { allow read, write: if esAdmin(); }
+
     match /articulos/{id}          { allow read: if true; allow write: if esAdmin(); }
     match /portafolio/{id}         { allow read: if true; allow write: if esAdmin(); }
     match /precios_planes/{id}     { allow read: if true; allow write: if esAdmin(); }
@@ -158,12 +167,7 @@ service cloud.firestore {
 //     es de código, no de reglas: mover la validación del PIN a una función
 //     serverless, o guardar solo un hash.
 //
-//  2. `config/site` es de lectura pública y en el mismo documento vive
-//     `emisor` (NIT y datos bancarios de ALMA, que usan las cuentas de
-//     cobro). Convendría separar `emisor` a un documento propio, p. ej.
-//     `config/emisor`, y dejarlo solo para el equipo.
-//
-//  3. `tareas` es de lectura pública porque el portal de equipo consulta
+//  2. `tareas` es de lectura pública porque el portal de equipo consulta
 //     por responsableId sin sesión. Las reglas no pueden exigir un `where`
 //     concreto, así que las tareas internas son legibles por cualquiera que
 //     conozca el proyecto de Firebase.
