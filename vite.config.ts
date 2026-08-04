@@ -24,7 +24,14 @@ export default defineConfig({
             return 'vendor-motion'
           if (id.includes('firebase'))
             return 'vendor-firebase'
-          return 'vendor-misc'
+          // Todo lo demás (incluido jspdf, usado solo por la ruta lazy de
+          // AlumnosAdmin) se deja sin agrupar a propósito: un catch-all
+          // "vendor-misc" forzaba TODO node_modules a un solo chunk siempre
+          // cargado, incluidos canvg/html2canvas/dompurify — dependencias que
+          // jspdf importa con import() dinámico para su función .html(), que
+          // no usamos. Ese catch-all anulaba el code-splitting automático de
+          // Rollup para esos imports dinámicos. Sin él, Rollup los deja en
+          // chunks separados que solo se descargan si de verdad se ejecutan.
         },
       },
     },
