@@ -1,0 +1,170 @@
+// ════════════════════════════════════════════════════════════════════════
+//  Reglas de seguridad de Firestore — proyecto de Alma Agencia Creativa
+//  (las comparten alma-web, alma-edu y los portales)
+//
+//  ⚠️  Este archivo NO se despliega solo. Es la copia de referencia, en el
+//      repo, de lo que debe estar pegado en:
+//      Firebase Console → Firestore Database → pestaña "Reglas" → Publicar.
+//
+//      Se versiona aquí porque en agosto de 2026 las reglas se reemplazaron
+//      por el bloque de Academia en vez de sumarse a las existentes, y el
+//      sitio público se quedó sirviendo datos estáticos durante días sin que
+//      se notara (todas las lecturas daban permission-denied en silencio).
+//      Si vuelves a tocar las reglas: edítalas AQUÍ primero, pega el archivo
+//      completo en la consola y commitea el cambio.
+//
+//  Modelo de acceso, en corto:
+//    · Contenido del sitio  → lo lee cualquiera, solo el equipo escribe.
+//    · Formularios públicos → cualquiera crea, solo el equipo lee.
+//    · Portales             → el token/PIN de la URL es la credencial; se
+//                             permite leer el documento concreto (get) pero
+//                             nunca enumerar la colección (list).
+//    · Datos internos       → cotizaciones, cuentas de cobro y finanzas solo
+//                             para el equipo.
+//    · Lo no declarado      → denegado.
+// ════════════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ── Helpers ────────────────────────────────────────────────────── */
+
+    // ¿La sesión pertenece a alguien del equipo? (allowlist en /admins)
+    function esAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Una escritura pública solo puede tocar los campos indicados.
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    /* ── Allowlist del equipo ───────────────────────────────────────────
+       Cada quien puede comprobar su propio documento (es lo que hace
+       isAdmin() en db.ts). Nadie enumera ni escribe: los documentos se
+       crean a mano en la consola.                                        */
+    match /admins/{uid} {
+      allow get:          if request.auth != null && request.auth.uid == uid;
+      allow list, write:  if false;
+    }
+
+    /* ── Contenido del sitio público ────────────────────────────────────
+       Lo que se administra desde /admin y se muestra en la web. Si alguna
+       de estas reglas falta, el sitio no falla de forma visible: cae al
+       fallback estático de src/data/ y deja de reflejar el panel.         */
+    match /config/{docId}          { allow read: if true; allow write: if esAdmin(); }
+    match /articulos/{id}          { allow read: if true; allow write: if esAdmin(); }
+    match /portafolio/{id}         { allow read: if true; allow write: if esAdmin(); }
+    match /precios_planes/{id}     { allow read: if true; allow write: if esAdmin(); }
+    match /precios_extras/{id}     { allow read: if true; allow write: if esAdmin(); }
+    match /categorias/{id}         { allow read: if true; allow write: if esAdmin(); }
+    match /testimonios/{id}        { allow read: if true; allow write: if esAdmin(); }
+    match /faqs/{id}               { allow read: if true; allow write: if esAdmin(); }
+    match /proceso/{id}            { allow read: if true; allow write: if esAdmin(); }
+    match /kit_archivos/{id}       { allow read: if true; allow write: if esAdmin(); }
+    match /brief_config/{id}       { allow read: if true; allow write: if esAdmin(); }
+
+    // El portal de equipo (/equipo-portal/:pin) busca aquí sin sesión, así
+    // que la colección tiene que ser legible en público — y con ella los
+    // PIN. Ver la nota "Pendientes" al final del archivo.
+    match /equipo/{id}             { allow read: if true; allow write: if esAdmin(); }
+
+    /* ── Academia (los lee alma-edu, sin sesión) ────────────────────── */
+    match /cursos/{id}             { allow read: if true; allow write: if esAdmin(); }
+    match /recursos/{id}           { allow read: if true; allow write: if esAdmin(); }
+
+    /* ── Formularios públicos ───────────────────────────────────────────
+       Cualquiera envía, solo el equipo consulta. Sin `read` público: si no,
+       los datos de contacto de todos los leads quedarían a la vista.      */
+    match /leads/{id} {
+      allow create:                if true;
+      allow read, update, delete:  if esAdmin();
+    }
+    match /briefs/{id} {
+      allow create:                if true;
+      allow read, update, delete:  if esAdmin();
+    }
+
+    /* ── Portal de cliente (/cliente/:token) ────────────────────────────
+       El token es la credencial y es el ID del documento, así que se
+       permite `get` pero nunca `list`: sin el token no se llega al doc y
+       nadie puede recorrer la colección entera.                          */
+    match /portales/{token} {
+      allow get:             if true;
+      allow list:            if esAdmin();
+      allow update:          if esAdmin() || soloCambia(['solicitudes', 'entregables']);
+      allow create, delete:  if esAdmin();
+    }
+
+    // El portal también lee y actualiza el documento del cliente (los
+    // entregables y solicitudes viven duplicados en portales/ y clientes/).
+    // Mismo criterio: `get` sí, `list` solo el equipo — así la cartera de
+    // clientes no se puede enumerar.
+    match /clientes/{clienteId} {
+      allow get:             if true;
+      allow list:            if esAdmin();
+      allow update:          if esAdmin() || soloCambia(['solicitudes', 'entregables', 'updatedAt']);
+      allow create, delete:  if esAdmin();
+    }
+
+    /* ── Portal de equipo (/equipo-portal/:pin) ─────────────────────────
+       Consulta por responsableId sin sesión, y solo mueve el estado de la
+       tarea en el kanban.                                                */
+    match /tareas/{id} {
+      allow read:            if true;
+      allow update:          if esAdmin() || soloCambia(['estado', 'updatedAt']);
+      allow create, delete:  if esAdmin();
+    }
+
+    /* ── Banco de ideas ─────────────────────────────────────────────────
+       Equipo y cliente proponen y votan desde el portal, sin sesión. La
+       escritura pública queda acotada a los contadores de voto.          */
+    match /ideas/{id} {
+      allow read, create:  if true;
+      allow update:        if esAdmin() || soloCambia(['votos_equipo', 'votos_cliente', 'updatedAt']);
+      allow delete:        if esAdmin();
+    }
+
+    /* ── Datos internos — nunca salen del equipo ────────────────────── */
+    match /cotizaciones/{id}          { allow read, write: if esAdmin(); }
+    match /cuentas_cobro/{id}         { allow read, write: if esAdmin(); }
+    match /finanzas_movimientos/{id}  { allow read, write: if esAdmin(); }
+
+    /* ── Estudiantes de la Academia ─────────────────────────────────────
+       Cada quien accede solo a su propio perfil y progreso.              */
+    match /estudiantes/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /inscripciones/{cursoId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    /* Sin comodín final a propósito: cualquier colección nueva nace
+       denegada y hay que declararla aquí de forma explícita. */
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  Pendientes conocidos (no son regresiones de este archivo: son límites
+//  del modelo actual de la app, que estas reglas respetan para no romper
+//  nada en producción)
+//
+//  1. `equipo` es de lectura pública y los documentos incluyen el campo
+//     `pin`. Cualquiera puede leer los PIN del portal de equipo. El arreglo
+//     es de código, no de reglas: mover la validación del PIN a una función
+//     serverless, o guardar solo un hash.
+//
+//  2. `config/site` es de lectura pública y en el mismo documento vive
+//     `emisor` (NIT y datos bancarios de ALMA, que usan las cuentas de
+//     cobro). Convendría separar `emisor` a un documento propio, p. ej.
+//     `config/emisor`, y dejarlo solo para el equipo.
+//
+//  3. `tareas` es de lectura pública porque el portal de equipo consulta
+//     por responsableId sin sesión. Las reglas no pueden exigir un `where`
+//     concreto, así que las tareas internas son legibles por cualquiera que
+//     conozca el proyecto de Firebase.
+// ════════════════════════════════════════════════════════════════════════

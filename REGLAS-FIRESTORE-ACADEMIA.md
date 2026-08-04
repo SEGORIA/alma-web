@@ -46,58 +46,33 @@ VITE_GA_MEASUREMENT_ID   (opcional, mismo ID de GA4)
 
 ## 3. Reglas de seguridad de Firestore
 
-Firebase Console → **Firestore Database** → pestaña **Reglas**.
+> **⚠️ Este paso ya no se hace desde aquí.** Las reglas completas del proyecto
+> viven ahora en [`firestore.rules`](firestore.rules), en la raíz del repo.
+>
+> Antes, esta sección traía solo el bloque de Academia con una nota de "sin
+> borrar tus reglas existentes". En la práctica el bloque se pegó **en lugar
+> de** las reglas anteriores, y las ~20 colecciones del sitio (`config`,
+> `equipo`, `proceso`, `precios_planes`, `portafolio`, `testimonios`, `faqs`,
+> `categorias`, `precios_extras`, `kit_archivos`…) se quedaron sin regla, es
+> decir, denegadas. El sitio no se rompió de forma visible: cayó al fallback
+> estático de `src/data/` y estuvo sirviendo datos viejos, con todo lo que se
+> editaba en `/admin` sin llegar nunca a la web pública.
+>
+> Por eso el archivo se versiona: para pegar **el archivo completo**, no
+> fragmentos sueltos.
 
-**Agrega** estos bloques `match` dentro de `match /databases/{database}/documents { … }`,
-**sin borrar** las reglas que ya tengas para las demás colecciones
-(`clientes`, `portales`, `equipo`, `leads`, `briefs`, etc.).
+Para aplicarlas:
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // — helper: ¿el usuario autenticado es del equipo?
-    function esAdmin() {
-      return request.auth != null
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-    }
-
-    // — Allowlist de admins: cada quien lee solo su propio doc; nadie escribe
-    //   desde el cliente (se administra a mano en la consola).
-    match /admins/{uid} {
-      allow get: if request.auth != null && request.auth.uid == uid;
-      allow list, write: if false;
-    }
-
-    // — Cursos y recursos: lectura pública; solo el equipo escribe.
-    match /cursos/{cursoId} {
-      allow read: if true;
-      allow write: if esAdmin();
-    }
-    match /recursos/{recursoId} {
-      allow read: if true;
-      allow write: if esAdmin();
-    }
-
-    // — Estudiantes: cada quien lee/escribe SOLO sus propios datos y progreso.
-    match /estudiantes/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-      match /inscripciones/{cursoId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-    }
-
-    // … aquí van tus reglas existentes para clientes, portales, equipo, etc. …
-  }
-}
+```bash
+firebase deploy --only firestore:rules
 ```
 
-> Nota: si tus reglas actuales terminan con un `match /{document=**}` abierto
-> (`allow read, write: if true;`), esas colecciones nuevas quedarían abiertas de
-> todos modos. Lo ideal es ir cerrando ese comodín, pero como mínimo agrega los
-> bloques de arriba para `admins` y `estudiantes`, que son los que protegen
-> datos sensibles.
+Si el CLI pide re-autenticarse, primero `firebase login --reauth`. Como
+alternativa, abre `firestore.rules`, copia **todo** el contenido y pégalo en
+Firebase Console → **Firestore Database** → pestaña **Reglas** → **Publicar**.
+
+Cada vez que cambien las reglas: edítalas en `firestore.rules`, despliega y
+commitea el cambio, para que el repo y la consola no se separen otra vez.
 
 ---
 

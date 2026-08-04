@@ -80,6 +80,17 @@ api/               funciones serverless de Vercel (correos, alumnos)
 server-utils/      código compartido por las funciones de api/ (NO api/_x.ts)
 ```
 
+## Reglas de Firestore
+
+Están versionadas en [`firestore.rules`](firestore.rules) y se aplican con
+`firebase deploy --only firestore:rules`. **No las edites solo en la consola
+de Firebase**: el repo y el proyecto se separan y es muy fácil dejar una
+colección sin regla. Cuando eso pasa el sitio no falla de forma visible —
+`db.ts` cae al fallback estático de `src/data/`, así que la web sigue en pie
+mostrando datos viejos mientras el panel deja de tener efecto. Si sospechas
+de algo así, abre la consola del navegador y busca errores `[db] …:
+permission-denied`.
+
 ## Despliegue
 
 Vercel, con deploy automático al hacer push a `main`. Las variables de
