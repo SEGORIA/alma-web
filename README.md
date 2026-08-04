@@ -1,73 +1,88 @@
-# React + TypeScript + Vite
+# Alma Agencia Creativa — alma-web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sitio público, panel de administración interno y portales de clientes/equipo
+de **Alma Agencia Creativa** (Manizales, Colombia). React + TypeScript + Vite
+en el frontend, Firebase (Auth + Firestore) como backend, y unas pocas
+funciones serverless en Vercel (`api/*.ts`) para envío de correos y gestión
+de cuentas de estudiante.
 
-Currently, two official plugins are available:
+## Repos hermanos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **`alma-edu`** — el LMS público de la Academia, desplegado en
+  `edu.almaagenciacreativa.com`. Repo independiente que lee/escribe el mismo
+  proyecto de Firebase que este. Los cursos y recursos se administran desde
+  `/admin/academia` en este repo.
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 19 + TypeScript + Vite, React Router, Framer Motion,
+  Tailwind (solo en algunas páginas), React Helmet Async para SEO.
+- **Backend de datos**: Firebase Firestore. `src/lib/db.ts` centraliza todo
+  el acceso: cada colección tiene sus funciones `get*`/`create*`/`update*`,
+  con fallback a datos estáticos (`src/data/*.ts`) cuando Firebase no está
+  configurado, para poder desarrollar sin credenciales.
+- **Auth**: Firebase Auth para el equipo (`/admin/*`), protegido además por
+  una allowlist en Firestore (colección `admins`, ver `isAdmin()` en
+  `db.ts`) — sin esa allowlist, cualquier cuenta del mismo proyecto de
+  Firebase Auth (incluyendo estudiantes de la Academia) podría entrar al
+  panel. El portal de clientes y el de equipo usan token/PIN en vez de
+  cuentas reales.
+- **Subida de archivos**: Cloudinary (unsigned upload), no Firebase Storage.
+- **Funciones serverless** (`api/*.ts`, Vercel): envío de correos (kit
+  gratuito, solicitudes del portal, briefs) y gestión de cuentas de alumno
+  (Firebase Admin SDK). El código compartido entre funciones vive en
+  `server-utils/` — **no** en `api/_algo.ts`: un archivo con prefijo `_`
+  dentro de `api/` puede quedar excluido del bundle de la función en
+  producción aunque compile bien en local.
 
-## Expanding the ESLint configuration
+## Empezar
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+cp .env.example .env   # completa tus credenciales (ver comentarios en el archivo)
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Sin `.env`, el sitio público funciona igual (con los datos estáticos de
+`src/data/`), pero el panel admin y los portales necesitan Firebase
+configurado.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo (Vite) |
+| `npm run build` | Type-check (`tsc -b`) + build de producción |
+| `npm run lint` | ESLint sobre todo el proyecto |
+| `npm test` | Corre la suite de tests (Vitest) una vez |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run preview` | Sirve el build de producción localmente |
+
+## Tests
+
+Vitest cubre por ahora las funciones puras más sensibles (limpieza de datos
+antes de escribir a Firestore, generación de slugs, escape de HTML en los
+templates de correo, rate limiting). No hay tests de componentes React
+todavía — para cambios de UI, verificar manualmente en el navegador sigue
+siendo necesario.
+
+## Estructura
+
 ```
+src/
+  pages/           páginas públicas, portales (cliente/equipo) y todo /admin
+  sections/        secciones de la landing (Hero, Academia, LeadMagnet…)
+  components/      componentes compartidos (uploaders, feedback, admin/*)
+  data/            tipos + datos estáticos de fallback (uno por dominio)
+  lib/             acceso a Firestore (db.ts), auth, storage, analytics…
+  hooks/           hooks compartidos (useAuth, useIsMobile…)
+api/               funciones serverless de Vercel (correos, alumnos)
+server-utils/      código compartido por las funciones de api/ (NO api/_x.ts)
+```
+
+## Despliegue
+
+Vercel, con deploy automático al hacer push a `main`. Las variables de
+entorno (Firebase, Cloudinary, Gmail/Resend, `FIREBASE_SERVICE_ACCOUNT`) se
+configuran en el dashboard de Vercel del proyecto — ver `.env.example` para
+la lista completa y de dónde sacar cada una.

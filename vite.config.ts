@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -5,6 +6,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   appType: 'spa',
+
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts', 'server-utils/**/*.test.ts'],
+  },
 
   build: {
     // Split vendor chunks para mejor cache del browser
