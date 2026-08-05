@@ -84,11 +84,39 @@ export default function NotaDeVoz({ value, onChange, accent = '#6E2DFF' }: {
     setError(null)
     if (!storageReady) { setError('La subida de archivos no está configurada.'); return }
 
+    // getUserMedia solo existe en contexto seguro (HTTPS o localhost). Abrir el
+    // dev server por IP de red — http://192.168.x.x:5173 — lo deja undefined.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(window.isSecureContext
+        ? 'Este navegador no permite grabar audio. Prueba con Chrome o Safari.'
+        : 'Para grabar audio la página debe abrirse por HTTPS (o localhost).')
+      return
+    }
+
     let stream: MediaStream
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    } catch {
-      setError('No se pudo acceder al micrófono. Revisa los permisos del navegador.')
+    } catch (err) {
+      const name = err instanceof Error ? err.name : ''
+      if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        setError('No se detectó ningún micrófono conectado.')
+      } else if (name === 'NotReadableError') {
+        setError('El micrófono está siendo usado por otra aplicación. Ciérrala e intenta de nuevo.')
+      } else if (name === 'NotAllowedError') {
+        // Chrome lanza NotAllowedError tanto si el usuario negó el permiso como si
+        // una cabecera Permissions-Policy bloquea el micrófono para todo el sitio.
+        // El segundo caso es invisible en la configuración del navegador (aparece
+        // como "permitido") y sin esta pista es muy difícil de diagnosticar.
+        const bloqueadoPorPolitica =
+          typeof document !== 'undefined' &&
+          (document as unknown as { featurePolicy?: { allowsFeature: (f: string) => boolean } })
+            .featurePolicy?.allowsFeature('microphone') === false
+        setError(bloqueadoPorPolitica
+          ? 'El sitio tiene el micrófono bloqueado por su política de permisos (Permissions-Policy). No es un problema de tu navegador — avísale al equipo de Alma.'
+          : 'Permiso de micrófono denegado. Ábrelo en el candado 🔒 de la barra de direcciones y recarga.')
+      } else {
+        setError('No se pudo acceder al micrófono.')
+      }
       return
     }
 
