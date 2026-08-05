@@ -318,6 +318,51 @@ function BriefModal({ brief, onClose, onEstado, onUpdate }: {
                 </div>
               </div>
 
+              {(brief.redes_seleccionadas?.length || brief.audio_url) && (
+                <>
+                  <div style={{ height: '1px', background: '#F3F4F6', margin: '20px 0' }} />
+                  <h3 style={{ fontSize: '11px', fontWeight: 800, color: '#6B21A8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '14px', borderBottom: '2px solid #F5F3FF', paddingBottom: '6px' }}>Redes y Nota de Voz</h3>
+
+                  {brief.redes_seleccionadas && brief.redes_seleccionadas.length > 0 && (
+                    <div style={{ marginBottom: brief.audio_url ? '16px' : 0 }}>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 7px' }}>
+                        Redes que quiere trabajar
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+                        {brief.redes_seleccionadas.map(r => {
+                          const meta = REDES_BRIEF.find(x => x.value === r)
+                          return (
+                            <span key={r} style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '6px',
+                              background: '#F5F3FF', border: '1px solid #DDD6FE', color: '#5B21B6',
+                              borderRadius: '100px', padding: '5px 12px', fontSize: '12px', fontWeight: 600,
+                            }}>
+                              <span aria-hidden>{meta?.icon ?? '•'}</span>{redLabel(r)}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {brief.audio_url && (
+                    <div>
+                      <p style={{ fontSize: '10px', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 7px' }}>
+                        🎙️ Nota de voz{brief.audio_duracion ? ` · ${Math.floor(brief.audio_duracion / 60)}:${String(brief.audio_duracion % 60).padStart(2, '0')}` : ''}
+                      </p>
+                      <audio src={brief.audio_url} controls style={{ width: '100%', marginBottom: brief.audio_transcripcion ? '10px' : 0 }} />
+                      {brief.audio_transcripcion && (
+                        <div style={{ background: '#FAFAF9', border: '1px solid #F3F4F6', borderRadius: '8px', padding: '12px 14px' }}>
+                          <p style={{ margin: 0, fontSize: '13px', color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                            {brief.audio_transcripcion}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
               {(brief.presencia_redes || brief.credenciales_redes || brief.credenciales_plataformas) && (
                 <>
                   <div style={{ height: '1px', background: '#F3F4F6', margin: '20px 0' }} />

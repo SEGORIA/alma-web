@@ -28,6 +28,10 @@ interface BriefPayload {
   emociones?:                string
   competidores?:             string
   referencias?:              string
+  redes_seleccionadas?:      string[]
+  audio_url?:                string
+  audio_transcripcion?:      string
+  audio_duracion?:           number
   fecha_inicio?:             string
   archivos?:                 string
   link_archivos?:            string
@@ -37,6 +41,19 @@ interface BriefPayload {
 /* ── Helper: row HTML ─────────────────────────────────────────── */
 function row(label: string, value?: string, highlight = false): string {
   const val = value && value !== '—' ? escapeHtml(value) : '<span style="color:#9CA3AF;font-style:italic;">No proporcionado</span>'
+  const bg  = highlight ? '#F5F3FF' : '#F9FAFB'
+  return `
+    <tr>
+      <td style="padding:10px 14px;background:${bg};font-size:11px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:0.5px;vertical-align:top;white-space:nowrap;border-top:1px solid #E5E7EB;">${label}</td>
+      <td style="padding:10px 14px;background:${bg};font-size:13px;color:#374151;border-top:1px solid #E5E7EB;white-space:pre-wrap;">${val}</td>
+    </tr>`
+}
+
+/** Igual que row(), pero el valor ya viene como HTML confiable (lo arma este
+ *  archivo, escapando por dentro lo que venga del usuario). Se usa solo para
+ *  el enlace de la nota de voz: row() escaparía la etiqueta <a>. */
+function rowHtml(label: string, valueHtml?: string, highlight = false): string {
+  const val = valueHtml ?? '<span style="color:#9CA3AF;font-style:italic;">No proporcionado</span>'
   const bg  = highlight ? '#F5F3FF' : '#F9FAFB'
   return `
     <tr>
@@ -109,6 +126,15 @@ function buildAdminEmail(p: BriefPayload): string {
     <table style="width:100%;border-collapse:collapse;margin-bottom:24px;border-radius:10px;overflow:hidden;">
       ${row('Competidores', p.competidores, true)}
       ${row('Referencias',  p.referencias)}
+    </table>
+
+    <h3 style="font-size:12px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;padding-top:16px;border-top:2px solid #F5F3FF;">Redes y Nota de Voz</h3>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px;border-radius:10px;overflow:hidden;">
+      ${row('Redes a trabajar', p.redes_seleccionadas?.length ? p.redes_seleccionadas.join(' · ') : undefined, true)}
+      ${rowHtml('Nota de voz', p.audio_url
+        ? `<a href="${escapeHtml(p.audio_url)}" style="color:#6B21A8;font-weight:700;">🎙️ Escuchar${p.audio_duracion ? ` (${Math.floor(p.audio_duracion / 60)}:${String(p.audio_duracion % 60).padStart(2, '0')})` : ''}</a>`
+        : undefined)}
+      ${row('Transcripción', p.audio_transcripcion, true)}
     </table>
 
     <h3 style="font-size:12px;font-weight:700;color:#6B21A8;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px;padding-top:16px;border-top:2px solid #F5F3FF;">Presencia Digital y Accesos</h3>
