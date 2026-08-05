@@ -238,6 +238,10 @@ export type Cliente = {
   parrilla:      ParrillaItem[]
   solicitudes:   Solicitud[]
   metricas_historico?: MetricaMes[]  // métricas mensuales manuales
+  // Horarios recomendados por Instagram para publicar según su público. Dato
+  // único del cliente (no por mes): lo da Instagram Insights, cambia poco de
+  // un mes a otro y no vale la pena repetirlo en cada entrada del historial.
+  horarios_recomendados?: string
   // Estrategia mensual
   plan_mes?:       PlanMes
   analisis_marca?: AnalisisMarca

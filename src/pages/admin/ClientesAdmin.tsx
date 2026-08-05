@@ -1356,6 +1356,24 @@ export default function ClientesAdmin() {
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
+                    {/* Horarios recomendados — dato único del cliente, no por mes:
+                        lo da Instagram Insights y cambia poco de un mes a otro. */}
+                    <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: '14px', padding: '16px 18px' }}>
+                      <label style={{ ...labelStyle, marginBottom: 0 }}>
+                        🕐 Horarios recomendados para publicar
+                        <textarea
+                          value={form.horarios_recomendados ?? ''}
+                          onChange={e => setForm(f => ({ ...f, horarios_recomendados: e.target.value || undefined }))}
+                          rows={2}
+                          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }}
+                          placeholder="Martes y jueves 6–8pm · Domingos 12–2pm (según Instagram Insights)"
+                        />
+                      </label>
+                      <p style={{ fontSize: '11px', color: '#B45309', margin: '6px 0 0' }}>
+                        Se copia del panel de Instagram del cliente. No va ligado a un mes — se actualiza cuando cambie.
+                      </p>
+                    </div>
+
                     {/* Tabla de meses */}
                     {hist.length === 0 ? (
                       <p style={{ color: '#9CA3AF', fontSize: '13px', textAlign: 'center', padding: '20px 0' }}>Sin métricas aún. Agrega el primero abajo.</p>

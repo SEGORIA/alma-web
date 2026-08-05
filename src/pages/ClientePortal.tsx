@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal, getIdeasByCliente, createIdea, votarIdea, getRedColores } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
-import type { Cliente, Solicitud, ParrillaItem } from '../data/clientes'
+import type { Cliente, Solicitud, ParrillaItem, MetricaMes } from '../data/clientes'
 import {
   PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
@@ -113,6 +113,10 @@ export default function ClientePortal() {
     } catch { return new Set<string>() }   // localStorage no disponible
   })
   const [redColores,     setRedColores]     = useState<Record<string, string>>(redColoresDefault)
+  // Índice del mes que se muestra en la tarjeta "Audiencia del mes" (0 = más
+  // reciente). Independiente de las stat cards de arriba, que siempre
+  // muestran el mes actual — solo esta tarjeta se puede navegar hacia atrás.
+  const [audienciaIdx, setAudienciaIdx] = useState(0)
   // Parrilla
   const [activeHtmlId,        setActiveHtmlId]        = useState<string | null>(null)
   const [activeParrillaMesId, setActiveParrillaMesId] = useState<string | null>(null)
@@ -497,6 +501,38 @@ export default function ClientePortal() {
           const histAdmin = [...(data.metricas_historico ?? [])].sort((a, b) => b.mes.localeCompare(a.mes))
           const mesActual = histAdmin[0]
 
+          // Mes que se muestra en la tarjeta de Audiencia (navegable) — el resto
+          // de la pantalla (stat cards, mini stats) siempre usa mesActual.
+          const idxAudiencia = Math.min(audienciaIdx, Math.max(0, histAdmin.length - 1))
+          const mesAudiencia = histAdmin[idxAudiencia]
+          const tieneAudiencia = (m?: MetricaMes) => !!m && (m.pct_mujeres != null || m.pct_hombres != null || !!m.edad_principal || !!m.ciudad_top || m.pct_historias != null || m.pct_publicaciones != null || m.pct_reels != null || m.visitas_perfil != null || m.clics_enlace != null)
+          // La tarjeta existe si ALGÚN mes del historial tiene datos de audiencia
+          // (no solo el que se está viendo ahora) — si no, un mes sin audiencia
+          // haría desaparecer también las flechas de navegación, y parecería que
+          // la página se rompió al hacer clic.
+          const algunMesConAudiencia = histAdmin.some(tieneAudiencia)
+
+          // Progreso desde el primer mes registrado, solo con 3+ meses de
+          // historial: con menos, un solo mes atípico distorsiona el número.
+          // Al comparar por campo (no por objeto completo) un cliente con datos
+          // parciales al inicio igual ve el progreso de lo que sí se registró
+          // desde el principio.
+          const primerMes = histAdmin[histAdmin.length - 1]
+          type MetricaProgreso = { key: 'seguidores_total' | 'alcance' | 'engagement'; label: string; icon: string; desde: number; hasta: number }
+          const CANDIDATOS_PROGRESO: { key: MetricaProgreso['key']; label: string; icon: string }[] = [
+            { key: 'seguidores_total', label: 'Seguidores', icon: '👤' },
+            { key: 'alcance',          label: 'Alcance',    icon: '👁️' },
+            { key: 'engagement',       label: 'Engagement', icon: '📈' },
+          ]
+          const progresoDesdeInicio: MetricaProgreso[] = histAdmin.length >= 3 && primerMes && mesActual
+            ? CANDIDATOS_PROGRESO.reduce<MetricaProgreso[]>((acc, m) => {
+                const desde = primerMes[m.key]
+                const hasta = mesActual[m.key]
+                if (desde != null && hasta != null && desde !== 0) acc.push({ ...m, desde, hasta })
+                return acc
+              }, [])
+            : []
+
           // Derivadas de parrilla
           const alcanceTotal  = conMet.reduce((s, p) => s + (p.metricas?.alcance ?? 0), 0)
           const likesTotal    = conMet.reduce((s, p) => s + (p.metricas?.likes ?? 0), 0)
@@ -667,28 +703,54 @@ export default function ClientePortal() {
                 </div>
               )}
 
-              {/* ══ AUDIENCIA DEL MES ══ */}
-              {mesActual && (mesActual.pct_mujeres != null || mesActual.pct_hombres != null || !!mesActual.edad_principal || !!mesActual.ciudad_top || mesActual.pct_historias != null || mesActual.pct_publicaciones != null || mesActual.pct_reels != null || mesActual.visitas_perfil != null || mesActual.clics_enlace != null) && (
+              {/* ══ AUDIENCIA DEL MES (navegable) ══
+                   La tarjeta se muestra si ALGÚN mes tiene datos de audiencia
+                   (aunque no sea el que se ve ahora): así las flechas siguen ahí
+                   incluso en un mes sin ese dato, y solo cambia el cuerpo. */}
+              {algunMesConAudiencia && mesAudiencia && (
                 <div style={{ background:'#fff', borderRadius:'20px', border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
-                  <div style={{ padding:'18px 22px 14px', borderBottom:'1px solid #F3F4F6' }}>
-                    <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#111' }}>👥 Audiencia del mes</p>
-                    <p style={{ margin:'2px 0 0', fontSize:'12px', color:'#9CA3AF' }}>
-                      {(() => { const [y,mo] = mesActual.mes.split('-'); return new Date(+y, +mo-1, 1).toLocaleDateString('es-CO',{month:'long', year:'numeric'}) })()} · Instagram Insights
-                    </p>
+                  <div style={{ padding:'18px 22px 14px', borderBottom:'1px solid #F3F4F6', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px' }}>
+                    <div>
+                      <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#111' }}>👥 Audiencia del mes</p>
+                      <p style={{ margin:'2px 0 0', fontSize:'12px', color:'#9CA3AF', textTransform:'capitalize' }}>
+                        {(() => { const [y,mo] = mesAudiencia.mes.split('-'); return new Date(+y, +mo-1, 1).toLocaleDateString('es-CO',{month:'long', year:'numeric'}) })()} · Instagram Insights
+                      </p>
+                    </div>
+                    {histAdmin.length > 1 && (
+                      <div style={{ display:'flex', alignItems:'center', gap:'4px', flexShrink:0 }}>
+                        <button
+                          onClick={() => setAudienciaIdx(i => Math.min(histAdmin.length - 1, i + 1))}
+                          disabled={idxAudiencia >= histAdmin.length - 1}
+                          aria-label="Mes anterior"
+                          style={{ width:'30px', height:'30px', borderRadius:'8px', border:'1px solid #E5E7EB', background:'#fff', color: idxAudiencia >= histAdmin.length - 1 ? '#D1D5DB' : '#374151', cursor: idxAudiencia >= histAdmin.length - 1 ? 'default' : 'pointer', fontSize:'13px' }}
+                        >‹</button>
+                        <button
+                          onClick={() => setAudienciaIdx(i => Math.max(0, i - 1))}
+                          disabled={idxAudiencia <= 0}
+                          aria-label="Mes siguiente"
+                          style={{ width:'30px', height:'30px', borderRadius:'8px', border:'1px solid #E5E7EB', background:'#fff', color: idxAudiencia <= 0 ? '#D1D5DB' : '#374151', cursor: idxAudiencia <= 0 ? 'default' : 'pointer', fontSize:'13px' }}
+                        >›</button>
+                      </div>
+                    )}
                   </div>
+                  {!tieneAudiencia(mesAudiencia) ? (
+                    <p style={{ margin:0, padding:'20px 22px', fontSize:'13px', color:'#9CA3AF' }}>
+                      Sin datos de audiencia registrados para este mes.
+                    </p>
+                  ) : (
                   <div style={{ padding:'18px 22px', display:'flex', flexDirection:'column', gap:'18px' }}>
 
                     {/* Género */}
-                    {(mesActual.pct_mujeres != null || mesActual.pct_hombres != null) && (
+                    {(mesAudiencia.pct_mujeres != null || mesAudiencia.pct_hombres != null) && (
                       <div>
                         <p style={{ margin:'0 0 8px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Género</p>
                         <div style={{ display:'flex', gap:'8px', marginBottom:'8px', flexWrap:'wrap' }}>
-                          {mesActual.pct_mujeres != null && <span style={{ background:'rgba(236,72,153,0.12)', color:'#BE185D', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♀ Mujeres {mesActual.pct_mujeres}%</span>}
-                          {mesActual.pct_hombres != null && <span style={{ background:'rgba(59,130,246,0.12)', color:'#1D4ED8', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♂ Hombres {mesActual.pct_hombres}%</span>}
+                          {mesAudiencia.pct_mujeres != null && <span style={{ background:'rgba(236,72,153,0.12)', color:'#BE185D', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♀ Mujeres {mesAudiencia.pct_mujeres}%</span>}
+                          {mesAudiencia.pct_hombres != null && <span style={{ background:'rgba(59,130,246,0.12)', color:'#1D4ED8', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>♂ Hombres {mesAudiencia.pct_hombres}%</span>}
                         </div>
-                        {mesActual.pct_mujeres != null && mesActual.pct_hombres != null && (
+                        {mesAudiencia.pct_mujeres != null && mesAudiencia.pct_hombres != null && (
                           <div style={{ height:'8px', borderRadius:'4px', overflow:'hidden', display:'flex' }}>
-                            <div style={{ width:`${mesActual.pct_mujeres}%`, background:'linear-gradient(90deg,#EC4899,#F472B6)', transition:'width 0.6s ease' }} />
+                            <div style={{ width:`${mesAudiencia.pct_mujeres}%`, background:'linear-gradient(90deg,#EC4899,#F472B6)', transition:'width 0.6s ease' }} />
                             <div style={{ flex:1, background:'linear-gradient(90deg,#60A5FA,#3B82F6)' }} />
                           </div>
                         )}
@@ -696,32 +758,32 @@ export default function ClientePortal() {
                     )}
 
                     {/* Edad + Ciudad */}
-                    {(mesActual.edad_principal || mesActual.ciudad_top) && (
+                    {(mesAudiencia.edad_principal || mesAudiencia.ciudad_top) && (
                       <div style={{ display:'flex', gap:'12px', flexWrap:'wrap' }}>
-                        {mesActual.edad_principal && (
+                        {mesAudiencia.edad_principal && (
                           <div style={{ flex:1, minWidth:'130px', background:'rgba(107,33,168,0.06)', borderRadius:'12px', padding:'14px 16px' }}>
                             <p style={{ margin:'0 0 3px', fontSize:'11px', color:'#9CA3AF', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Edad principal</p>
-                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:P }}>{mesActual.edad_principal} <span style={{ fontSize:'13px', fontWeight:600, color:'#9CA3AF' }}>años</span></p>
+                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:P }}>{mesAudiencia.edad_principal} <span style={{ fontSize:'13px', fontWeight:600, color:'#9CA3AF' }}>años</span></p>
                           </div>
                         )}
-                        {mesActual.ciudad_top && (
+                        {mesAudiencia.ciudad_top && (
                           <div style={{ flex:1, minWidth:'130px', background:'rgba(5,150,105,0.06)', borderRadius:'12px', padding:'14px 16px' }}>
                             <p style={{ margin:'0 0 3px', fontSize:'11px', color:'#9CA3AF', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px' }}>Ciudad principal</p>
-                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:'#059669' }}>{mesActual.ciudad_top}</p>
+                            <p style={{ margin:0, fontSize:'22px', fontWeight:900, color:'#059669' }}>{mesAudiencia.ciudad_top}</p>
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* Distribución por tipo */}
-                    {(mesActual.pct_historias != null || mesActual.pct_publicaciones != null || mesActual.pct_reels != null) && (
+                    {(mesAudiencia.pct_historias != null || mesAudiencia.pct_publicaciones != null || mesAudiencia.pct_reels != null) && (
                       <div>
                         <p style={{ margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Visualizaciones por formato</p>
                         <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
                           {([
-                            { label:'Historias',     pct: mesActual.pct_historias,     color:'#8B5CF6' },
-                            { label:'Publicaciones', pct: mesActual.pct_publicaciones, color:'#EC4899' },
-                            { label:'Reels',         pct: mesActual.pct_reels,         color:'#F59E0B' },
+                            { label:'Historias',     pct: mesAudiencia.pct_historias,     color:'#8B5CF6' },
+                            { label:'Publicaciones', pct: mesAudiencia.pct_publicaciones, color:'#EC4899' },
+                            { label:'Reels',         pct: mesAudiencia.pct_reels,         color:'#F59E0B' },
                           ] as { label: string; pct: number | undefined; color: string }[]).filter(x => x.pct != null).map(x => (
                             <div key={x.label} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                               <span style={{ fontSize:'12px', color:'#6B7280', minWidth:'95px', fontWeight:600 }}>{x.label}</span>
@@ -738,23 +800,61 @@ export default function ClientePortal() {
                     )}
 
                     {/* Actividad del perfil */}
-                    {(mesActual.visitas_perfil != null || mesActual.clics_enlace != null) && (
+                    {(mesAudiencia.visitas_perfil != null || mesAudiencia.clics_enlace != null) && (
                       <div style={{ display:'flex', gap:'16px', flexWrap:'wrap', paddingTop:'4px', borderTop:'1px solid #F9FAFB' }}>
-                        {mesActual.visitas_perfil != null && (
+                        {mesAudiencia.visitas_perfil != null && (
                           <div style={{ textAlign:'center', flex:1, minWidth:'100px' }}>
-                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesActual.visitas_perfil.toLocaleString()}</p>
+                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesAudiencia.visitas_perfil.toLocaleString()}</p>
                             <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>🔍 Visitas al perfil</p>
                           </div>
                         )}
-                        {mesActual.clics_enlace != null && (
+                        {mesAudiencia.clics_enlace != null && (
                           <div style={{ textAlign:'center', flex:1, minWidth:'100px' }}>
-                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesActual.clics_enlace.toLocaleString()}</p>
+                            <p style={{ margin:'0 0 2px', fontSize:'22px', fontWeight:900, color:'#111' }}>{mesAudiencia.clics_enlace.toLocaleString()}</p>
                             <p style={{ margin:0, fontSize:'12px', color:'#9CA3AF' }}>🔗 Clics en enlace</p>
                           </div>
                         )}
                       </div>
                     )}
 
+                  </div>
+                  )}
+                </div>
+              )}
+
+              {/* ══ HORARIOS RECOMENDADOS — dato único del cliente, no por mes ══ */}
+              {data.horarios_recomendados && (
+                <div style={{ background:'#fff', borderRadius:'20px', border:'1px solid #E5E7EB', padding:'18px 22px', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#111' }}>🕐 Mejores horarios para publicar</p>
+                  <p style={{ margin:'2px 0 12px', fontSize:'12px', color:'#9CA3AF' }}>Según Instagram Insights de tu cuenta</p>
+                  <p style={{ margin:0, fontSize:'14px', color:'#374151', lineHeight:1.6, whiteSpace:'pre-wrap' }}>{data.horarios_recomendados}</p>
+                </div>
+              )}
+
+              {/* ══ PROGRESO DESDE QUE EMPEZAMOS — requiere 3+ meses registrados ══ */}
+              {progresoDesdeInicio.length > 0 && primerMes && mesActual && (
+                <div style={{ background:'linear-gradient(135deg, #052E16, #065F46)', borderRadius:'20px', padding:'22px 24px', boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+                  <p style={{ margin:0, fontSize:'15px', fontWeight:800, color:'#fff' }}>🚀 Desde que empezamos</p>
+                  <p style={{ margin:'2px 0 18px', fontSize:'12px', color:'rgba(255,255,255,0.55)', textTransform:'capitalize' }}>
+                    {(() => { const [y,mo] = primerMes.mes.split('-'); return new Date(+y, +mo-1, 1).toLocaleDateString('es-CO',{month:'short', year:'numeric'}) })()}
+                    {' → '}
+                    {(() => { const [y,mo] = mesActual.mes.split('-'); return new Date(+y, +mo-1, 1).toLocaleDateString('es-CO',{month:'short', year:'numeric'}) })()}
+                  </p>
+                  <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : `repeat(${progresoDesdeInicio.length}, 1fr)`, gap:'16px' }}>
+                    {progresoDesdeInicio.map(m => {
+                      const pct   = ((m.hasta - m.desde) / Math.abs(m.desde)) * 100
+                      const subio = pct >= 0
+                      const fmt   = (n: number) => m.key === 'engagement' ? `${n.toFixed(1)}%` : Math.round(n).toLocaleString()
+                      return (
+                        <div key={m.key} style={{ background:'rgba(255,255,255,0.08)', borderRadius:'14px', padding:'16px' }}>
+                          <p style={{ margin:'0 0 6px', fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.55)', textTransform:'uppercase', letterSpacing:'0.5px' }}>{m.icon} {m.label}</p>
+                          <p style={{ margin:'0 0 4px', fontSize:'22px', fontWeight:900, color:'#fff' }}>{fmt(m.desde)} → {fmt(m.hasta)}</p>
+                          <p style={{ margin:0, fontSize:'13px', fontWeight:800, color: subio ? '#6EE7B7' : '#FCA5A5' }}>
+                            {subio ? '↑' : '↓'} {Math.abs(pct).toFixed(pct % 1 === 0 ? 0 : 1)}%
+                          </p>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
