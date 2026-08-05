@@ -6,7 +6,7 @@ import {
   getBriefFormConfig, saveBriefFormConfig,
 } from '../../lib/db'
 import type { Brief, BriefFormConfig, BriefFieldDef, BriefSectionDef } from '../../data/briefs'
-import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG } from '../../data/briefs'
+import { BRIEF_ESTADOS, DEFAULT_BRIEF_CONFIG, REDES_BRIEF, redLabel } from '../../data/briefs'
 import { confirmar } from '../../components/admin/Feedback'
 import { ListSkeleton } from '../../components/admin/Loading'
 import { ADM } from '../../lib/adminTheme'
@@ -607,10 +607,227 @@ function FormBuilder() {
   )
 }
 
+/* ══ ANÁLISIS DE MARCA ═══════════════════════════════════════════
+   Condensa en una sola vista lo que el cliente contó de su marca en
+   el brief, agrupado por tema y con cada bloque listo para copiar.
+   Es la materia prima para llenar el "Análisis de marca" del cliente
+   (ClientesAdmin → pestaña Marca), que es lo que ve en su portal.
+═══════════════════════════════════════════════════════════════ */
+
+/** Un campo del brief que vale la pena mostrar aquí, con su etiqueta. */
+type CampoAnalisis = { label: string; valor?: string }
+
+const vacio = (v?: string) => !v || v.trim() === '' || v.trim() === '—'
+
+function BloqueAnalisis({ titulo, icono, campos, color }: {
+  titulo: string; icono: string; campos: CampoAnalisis[]; color: string
+}) {
+  const [copiado, setCopiado] = useState(false)
+  const conDatos = campos.filter(c => !vacio(c.valor))
+  if (conDatos.length === 0) return null
+
+  const textoPlano = conDatos.map(c => `${c.label}:\n${c.valor}`).join('\n\n')
+
+  function copiar() {
+    navigator.clipboard.writeText(`${titulo}\n\n${textoPlano}`).then(() => {
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 1800)
+    }).catch(() => {})
+  }
+
+  return (
+    <div style={{ background: DIM, border: `1px solid ${BDR}`, borderRadius: '14px', padding: '20px', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+        <span style={{ fontSize: '15px' }} aria-hidden>{icono}</span>
+        <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 800, color, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          {titulo}
+        </h3>
+        <button
+          onClick={copiar}
+          style={{
+            marginLeft: 'auto',
+            background: copiado ? 'rgba(16,185,129,0.14)' : 'transparent',
+            border: `1px solid ${copiado ? '#10B98155' : BDR2}`,
+            color: copiado ? '#10B981' : MUT,
+            borderRadius: '7px', padding: '4px 11px', fontSize: '11px',
+            fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
+          }}
+        >
+          {copiado ? '✓ Copiado' : 'Copiar'}
+        </button>
+      </div>
+      {conDatos.map(c => (
+        <div key={c.label} style={{ marginBottom: '14px' }}>
+          <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 700, color: MUT, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            {c.label}
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', color: WHT, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            {c.valor}
+          </p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AnalisisMarcaBrief({ briefs }: { briefs: Brief[] }) {
+  const [sel, setSel] = useState<string | null>(briefs[0]?._id ?? null)
+  const brief = briefs.find(b => b._id === sel) ?? briefs[0]
+
+  if (briefs.length === 0) {
+    return (
+      <div style={{ background: DIM, border: `1px solid ${BDR}`, borderRadius: '16px', padding: '48px 24px', textAlign: 'center' }}>
+        <p style={{ margin: 0, fontSize: '14px', color: MUT }}>
+          Todavía no hay briefs. Cuando llegue el primero, aquí verás su análisis de marca.
+        </p>
+      </div>
+    )
+  }
+  if (!brief) return null
+
+  const redes = brief.redes_seleccionadas ?? []
+
+  return (
+    <div>
+      {/* Selector de marca */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '22px' }}>
+        {briefs.map(b => {
+          const activo = b._id === brief._id
+          return (
+            <button
+              key={b._id}
+              onClick={() => setSel(b._id ?? null)}
+              style={{
+                background: activo ? `${C1}18` : GHOST,
+                border: `1px solid ${activo ? C1 : BDR}`,
+                color: activo ? WHT : MUT,
+                borderRadius: '100px', padding: '7px 16px',
+                fontSize: '12px', fontWeight: activo ? 700 : 500,
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {b.marca || b.nombre || 'Sin marca'}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Cabecera de la marca */}
+      <div style={{ background: `${C1}10`, border: `1px solid ${C1}30`, borderRadius: '14px', padding: '20px', marginBottom: '18px' }}>
+        <h2 style={{ margin: '0 0 6px', fontSize: '20px', fontWeight: 900, color: WHT }}>
+          {brief.marca || '—'}
+        </h2>
+        <p style={{ margin: 0, fontSize: '13px', color: MUT }}>
+          {brief.nombre}{brief.email ? ` · ${brief.email}` : ''}{brief.telefono && brief.telefono !== '—' ? ` · ${brief.telefono}` : ''}
+        </p>
+        <p style={{ margin: '8px 0 0', fontSize: '12px', color: MUT }}>
+          Recibido el {fmtDate(brief.createdAt)}
+        </p>
+      </div>
+
+      {/* Redes elegidas */}
+      {redes.length > 0 && (
+        <div style={{ background: DIM, border: `1px solid ${BDR}`, borderRadius: '14px', padding: '20px', marginBottom: '14px' }}>
+          <h3 style={{ margin: '0 0 14px', fontSize: '12px', fontWeight: 800, color: BLUE, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            📱 Redes que quiere trabajar
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {redes.map(r => {
+              const meta = REDES_BRIEF.find(x => x.value === r)
+              return (
+                <span key={r} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '7px',
+                  background: `${BLUE}15`, border: `1px solid ${BLUE}35`, color: WHT,
+                  borderRadius: '100px', padding: '6px 14px', fontSize: '12px', fontWeight: 600,
+                }}>
+                  <span aria-hidden>{meta?.icon ?? '•'}</span>{redLabel(r)}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Nota de voz */}
+      {brief.audio_url && (
+        <div style={{ background: DIM, border: `1px solid ${BDR}`, borderRadius: '14px', padding: '20px', marginBottom: '14px' }}>
+          <h3 style={{ margin: '0 0 14px', fontSize: '12px', fontWeight: 800, color: AMB, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            🎙️ Nota de voz del cliente
+          </h3>
+          <audio src={brief.audio_url} controls style={{ width: '100%', marginBottom: brief.audio_transcripcion ? '14px' : 0 }} />
+          {brief.audio_transcripcion
+            ? (
+              <>
+                <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 700, color: MUT, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Transcripción automática
+                </p>
+                <p style={{ margin: 0, fontSize: '13px', color: WHT, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                  {brief.audio_transcripcion}
+                </p>
+              </>
+            )
+            : (
+              <p style={{ margin: 0, fontSize: '12px', color: MUT, lineHeight: 1.5 }}>
+                Sin transcripción — el navegador del cliente no la soportaba. Escucha el audio.
+              </p>
+            )}
+        </div>
+      )}
+
+      <BloqueAnalisis
+        titulo="ADN de marca" icono="🧬" color={C1}
+        campos={[
+          { label: 'Personalidad',      valor: brief.personalidad },
+          { label: 'Valores',           valor: brief.valores_marca },
+          { label: 'Colores',           valor: brief.colores_marca },
+          { label: 'Eslogan',           valor: brief.slogan },
+          { label: 'Nacimiento de la marca', valor: brief.nacimiento_marca },
+        ]}
+      />
+      <BloqueAnalisis
+        titulo="Propuesta de valor" icono="💎" color={TEAL}
+        campos={[
+          { label: 'Cliente ideal',      valor: brief.clientes_potenciales },
+          { label: 'Problema que resuelve', valor: brief.problema_resuelve },
+          { label: 'Propuesta de valor', valor: brief.propuesta_valor },
+          { label: 'Beneficios',         valor: brief.beneficios },
+        ]}
+      />
+      <BloqueAnalisis
+        titulo="Experiencia emocional" icono="💜" color={ACC2}
+        campos={[
+          { label: 'Qué debe sentir el cliente', valor: brief.experiencia_emocional },
+          { label: 'Emociones',                  valor: brief.emociones },
+        ]}
+      />
+      <BloqueAnalisis
+        titulo="Competencia y referencias" icono="🔭" color={GRN}
+        campos={[
+          { label: 'Competidores', valor: brief.competidores },
+          { label: 'Referencias',  valor: brief.referencias },
+        ]}
+      />
+      <BloqueAnalisis
+        titulo="Presencia actual" icono="🌐" color={BLUE}
+        campos={[
+          { label: 'Presencia en redes', valor: brief.presencia_redes },
+          { label: '¿Tiene logo?',       valor: brief.tiene_logo },
+          { label: 'Notas adicionales',  valor: brief.notas_adicionales },
+        ]}
+      />
+
+      <p style={{ margin: '18px 0 0', fontSize: '12px', color: MUT, lineHeight: 1.6 }}>
+        💡 Usa estos bloques para llenar el <strong>Análisis de marca</strong> del cliente en
+        Clientes → pestaña Marca. Eso es lo que termina viendo en su portal.
+      </p>
+    </div>
+  )
+}
+
 /* ── Main page ──────────────────────────────────────────────── */
 export default function BriefAdmin() {
   const isMobile = useIsMobile()
-  const [tab, setTab]           = useState<'inbox' | 'formulario'>('inbox')
+  const [tab, setTab]           = useState<'inbox' | 'analisis' | 'formulario'>('inbox')
   const [briefs, setBriefs]     = useState<Brief[]>([])
   const [loading, setLoading]   = useState(true)
   const [selected, setSelected] = useState<Brief | null>(null)
@@ -692,6 +909,7 @@ export default function BriefAdmin() {
         <div style={{ display: 'flex', borderBottom: `0.5px solid ${BDR}`, marginBottom: '28px', gap: '0', overflowX: 'auto' }}>
           {([
             { key: 'inbox',      label: '📥 Inbox',       count: briefs.length },
+            { key: 'analisis',   label: '🧬 Análisis de marca' },
             { key: 'formulario', label: '⚙️ Formulario' },
           ] as const).map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{
@@ -819,6 +1037,8 @@ export default function BriefAdmin() {
         )}
 
         {/* ══ TAB: FORMULARIO ════════════════════════════════════ */}
+        {tab === 'analisis' && <AnalisisMarcaBrief briefs={briefs} />}
+
         {tab === 'formulario' && <FormBuilder />}
 
       </div>

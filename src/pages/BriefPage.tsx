@@ -4,8 +4,10 @@ import { db, firebaseReady } from '../lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { getBriefFormConfig } from '../lib/db'
 import type { BriefFormConfig } from '../data/briefs'
+import { REDES_BRIEF } from '../data/briefs'
 import { trackBriefSubmit } from '../lib/analytics'
 import { uploadFile, storageReady } from '../lib/storage'
+import NotaDeVoz, { type NotaDeVozValue } from '../components/NotaDeVoz'
 
 /* ── Config ─────────────────────────────────────────────────── */
 const V   = '#6E2DFF'  // violet
@@ -39,6 +41,7 @@ interface FormData {
   emociones_descripcion: string
   competidores: string
   referencias:  string
+  redes_seleccionadas: string[]
   fecha_inicio: string
   archivos:     string[]
   link_archivos: string
@@ -72,6 +75,7 @@ const initialForm: FormData = {
   emociones_descripcion: '',
   competidores: '',
   referencias:  '',
+  redes_seleccionadas: [],
   fecha_inicio: '',
   archivos:     [],
   link_archivos: '',
@@ -219,6 +223,7 @@ export default function BriefPage() {
   const [customVals, setCustomVals] = useState<Record<string, string>>({})
   const [uploadingFiles, setUploadingFiles] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [notaVoz, setNotaVoz]   = useState<NotaDeVozValue | null>(null)
 
   useEffect(() => { getBriefFormConfig().then(setFConfig) }, [])
 
@@ -348,6 +353,12 @@ export default function BriefPage() {
       competidores:             form.competidores             || '—',
       referencias:              form.referencias              || '—',
       fecha_inicio:             form.fecha_inicio             || 'No definida',
+      ...(form.redes_seleccionadas.length > 0 ? { redes_seleccionadas: form.redes_seleccionadas } : {}),
+      ...(notaVoz ? {
+        audio_url:           notaVoz.url,
+        audio_transcripcion: notaVoz.transcripcion,
+        audio_duracion:      notaVoz.duracion,
+      } : {}),
       archivos:                 form.archivos.length > 0 ? form.archivos.join('\n') : 'Ninguno',
       link_archivos:            form.link_archivos            || '—',
       notas_adicionales:        form.notas_adicionales        || '—',
@@ -751,9 +762,50 @@ export default function BriefPage() {
             </SectionBlock>
             )}
 
-            {/* 08 — Inicio del servicio */}
+            {/* 08 — Redes y nota de voz (siempre visible: no depende de la
+                 configuración del constructor de formularios) */}
+            <SectionBlock num="08" title="Redes y Nota de Voz">
+              <FieldWrap label="¿Qué redes quieres trabajar con nosotros?" style={{ marginBottom: '24px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  {REDES_BRIEF.map(r => {
+                    const active = form.redes_seleccionadas.includes(r.value)
+                    return (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => setForm(f => ({
+                          ...f,
+                          redes_seleccionadas: active
+                            ? f.redes_seleccionadas.filter(x => x !== r.value)
+                            : [...f.redes_seleccionadas, r.value],
+                        }))}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '8px',
+                          background: active ? 'rgba(110,45,255,0.18)' : 'rgba(42,42,51,0.6)',
+                          border: `1px solid ${active ? V : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: '100px', padding: '8px 18px',
+                          fontSize: '12px', letterSpacing: '0.06em',
+                          color: active ? '#fff' : '#A0A0B0',
+                          cursor: 'pointer', transition: 'all 0.2s',
+                          fontFamily: "'DM Sans', sans-serif",
+                          boxShadow: active ? '0 0 12px rgba(110,45,255,0.2)' : 'none',
+                        }}
+                      >
+                        <span aria-hidden>{r.icon}</span>{r.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </FieldWrap>
+
+              <FieldWrap label="Cuéntanos en tus palabras (opcional)">
+                <NotaDeVoz value={notaVoz} onChange={setNotaVoz} accent={V} />
+              </FieldWrap>
+            </SectionBlock>
+
+            {/* 09 — Inicio del servicio */}
             {isSecActive('s8') && (
-            <SectionBlock num="08" title="Inicio del Servicio">
+            <SectionBlock num="09" title="Inicio del Servicio">
               {isFieldActive('fecha_inicio') && (
               <div style={{ maxWidth: '360px' }}>
                 <FieldWrap label={getLabel('fecha_inicio', 'Fecha de inicio del servicio')}>
@@ -771,7 +823,7 @@ export default function BriefPage() {
 
             {/* 09 — Archivos de referencia */}
             {isSecActive('s9') && (
-            <SectionBlock num="09" title="Archivos de Referencia">
+            <SectionBlock num="10" title="Archivos de Referencia">
               {isFieldActive('archivos') && <div
                 role="button"
                 tabIndex={0}
@@ -860,7 +912,7 @@ export default function BriefPage() {
 
             {/* 10 — Para nosotros */}
             {isSecActive('s10') && (
-            <SectionBlock num="10" title="Para Nosotros">
+            <SectionBlock num="11" title="Para Nosotros">
               {isFieldActive('notas_adicionales') && (
               <FieldWrap label={getLabel('notas_adicionales', '¿Algo que quieras agregar? Cuéntanos tus sentimientos y expectativas')}>
                 <textarea style={{ ...ta, minHeight: '140px' }} placeholder="Es importante para nosotros conocer cómo te sientes, qué esperas de esta alianza, qué sueños tienes para tu marca... Escribe con libertad." value={form.notas_adicionales} onChange={e => setField('notas_adicionales', e.target.value)} />

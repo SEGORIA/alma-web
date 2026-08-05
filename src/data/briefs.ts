@@ -32,7 +32,13 @@ export type Brief = {
   // 07 Competencia y referencias
   competidores?: string
   referencias?:  string
-  // 08 Inicio del servicio
+  // 08 Redes a trabajar
+  redes_seleccionadas?: string[]   // valores de REDES_BRIEF
+  // 09 Nota de voz del cliente
+  audio_url?:           string     // URL en Cloudinary
+  audio_transcripcion?: string     // transcripción hecha en el navegador
+  audio_duracion?:      number     // segundos
+  // 10 Inicio del servicio
   fecha_inicio?: string
   // 09 Archivos
   archivos?:      string
@@ -47,6 +53,22 @@ export type Brief = {
   createdAt?: unknown
   updatedAt?: unknown
 }
+
+// ── Redes sociales que el cliente puede elegir ─────────────────
+
+export const REDES_BRIEF: { value: string; label: string; icon: string }[] = [
+  { value: 'instagram', label: 'Instagram',         icon: '📸' },
+  { value: 'tiktok',    label: 'TikTok',            icon: '🎵' },
+  { value: 'facebook',  label: 'Facebook',          icon: '👥' },
+  { value: 'linkedin',  label: 'LinkedIn',          icon: '💼' },
+  { value: 'youtube',   label: 'YouTube',           icon: '▶️' },
+  { value: 'x',         label: 'X (Twitter)',       icon: '✖️' },
+  { value: 'pinterest', label: 'Pinterest',         icon: '📌' },
+  { value: 'whatsapp',  label: 'WhatsApp Business', icon: '💬' },
+]
+
+export const redLabel = (value: string) =>
+  REDES_BRIEF.find(r => r.value === value)?.label ?? value
 
 // ── Estados ────────────────────────────────────────────────────
 
