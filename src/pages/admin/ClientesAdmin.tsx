@@ -318,6 +318,8 @@ export default function ClientesAdmin() {
       subtitulo:   newP.subtitulo?.trim() || undefined,
       pilar:       newP.pilar || undefined,
       cta:         newP.cta?.trim() || undefined,
+      caption:     newP.caption?.trim() || undefined,
+      hashtags:    newP.hashtags?.trim() || undefined,
       estado:      newP.estado ?? 'borrador',
       link:        newP.link?.trim() || undefined,
       link_drive:  newP.link_drive?.trim() || undefined,
@@ -1239,8 +1241,30 @@ export default function ClientesAdmin() {
                         <input value={newP.link_drive ?? ''} onChange={e => setNewP(n => ({ ...n, link_drive: e.target.value || undefined }))} style={inputStyle} placeholder="https://drive.google.com/…" />
                       </label>
                     </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <label style={labelStyle}>
+                        ✍️ Caption (listo para copiar desde el calendario)
+                        <textarea
+                          value={newP.caption ?? ''}
+                          onChange={e => setNewP(n => ({ ...n, caption: e.target.value }))}
+                          rows={5}
+                          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5, fontFamily: 'inherit' }}
+                          placeholder={'El texto completo de la publicación.\n\nSe podrá leer y copiar desde el modal del calendario, tanto aquí como en el portal del cliente.'}
+                        />
+                      </label>
+                      <label style={labelStyle}>
+                        #️⃣ Hashtags
+                        <textarea
+                          value={newP.hashtags ?? ''}
+                          onChange={e => setNewP(n => ({ ...n, hashtags: e.target.value }))}
+                          rows={5}
+                          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5, fontFamily: 'monospace', fontSize: '12px' }}
+                          placeholder="#bienesraices #miami"
+                        />
+                      </label>
+                    </div>
                     <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 10px' }}>
-                      💡 Después de agregar, haz clic en <strong>✏️ Editar</strong> para rellenar el caption, concepto visual, instrucciones y métricas.
+                      💡 Después de agregar, haz clic en <strong>✏️ Editar</strong> para el concepto visual, las instrucciones y las métricas.
                     </p>
                     <button onClick={addParrillaItem} style={{
                       background: C1, color: '#fff', border: 'none', cursor: 'pointer',

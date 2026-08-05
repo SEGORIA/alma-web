@@ -1079,8 +1079,16 @@ export default function ClientePortal() {
                                 <p style={{ margin:'0 0 4px', fontSize:'10px', fontWeight:800, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', letterSpacing:'0.5px' }}>Caption</p>
                                 <div style={{ background:'rgba(0,0,0,0.35)', borderRadius:'10px', padding:'12px 14px' }}>
                                   <p style={{ margin:'0 0 8px', fontSize:'12px', color:'rgba(255,255,255,0.7)', whiteSpace:'pre-wrap', lineHeight:1.55 }}>{post.caption}</p>
-                                  <button onClick={() => navigator.clipboard.writeText(post.caption!)} style={{ background:'rgba(167,139,250,0.15)', border:'1px solid rgba(167,139,250,0.3)', color:'#A78BFA', borderRadius:'7px', padding:'5px 12px', fontSize:'11px', fontWeight:800, cursor:'pointer' }}>
-                                    Copiar caption
+                                  <button
+                                    onClick={() => copyToClipboard(`cap-${post.id}`, [post.caption, post.hashtags].filter(Boolean).join('\n\n'))}
+                                    style={{
+                                      background: copiedKey === `cap-${post.id}` ? 'rgba(16,185,129,0.18)' : 'rgba(167,139,250,0.15)',
+                                      border: `1px solid ${copiedKey === `cap-${post.id}` ? 'rgba(16,185,129,0.4)' : 'rgba(167,139,250,0.3)'}`,
+                                      color: copiedKey === `cap-${post.id}` ? '#34D399' : '#A78BFA',
+                                      borderRadius:'7px', padding:'5px 12px', fontSize:'11px', fontWeight:800, cursor:'pointer', transition:'all 0.15s',
+                                    }}
+                                  >
+                                    {copiedKey === `cap-${post.id}` ? '✓ Copiado' : `Copiar${post.hashtags ? ' caption + hashtags' : ' caption'}`}
                                   </button>
                                 </div>
                               </div>

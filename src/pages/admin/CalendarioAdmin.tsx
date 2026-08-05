@@ -36,6 +36,17 @@ export default function CalendarioAdmin() {
     const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }
   })
   const [modalPosts, setModalPosts] = useState<PostConCliente[] | null>(null)
+  // Confirmación visual del botón "Copiar": sin esto el clic no da ninguna señal
+  // y no se sabe si el caption quedó en el portapapeles.
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  function copiarCaption(post: PostConCliente) {
+    const texto = [post.caption, post.hashtags].filter(Boolean).join('\n\n')
+    navigator.clipboard.writeText(texto).then(() => {
+      setCopiedId(post.id)
+      setTimeout(() => setCopiedId(id => (id === post.id ? null : id)), 1800)
+    }).catch(() => {})
+  }
   const [filtroCliente, setFiltroCliente] = useState<string>('') // '' = todos
   const [RED_COLOR, setRedColor] = useState<Record<string, string>>(redColoresDefault)
 
@@ -260,11 +271,29 @@ export default function CalendarioAdmin() {
                 </div>
                 <p style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 800, color: WHT }}>{post.descripcion}</p>
                 {post.subtitulo && <p style={{ margin: 0, fontSize: '12px', color: MUT }}>{post.subtitulo}</p>}
-                {post.caption && (
+                {(post.caption || post.hashtags) && (
                   <div style={{ marginTop: '8px', background: INPUT_BG, borderRadius: '8px', padding: '10px 12px' }}>
-                    <p style={{ margin: '0 0 6px', fontSize: '12px', color: MUT, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{post.caption}</p>
-                    <button onClick={() => navigator.clipboard.writeText(post.caption!)} style={{ background: C1_BG, border: `1px solid ${C1}40`, color: C1, borderRadius: '7px', padding: '4px 10px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
-                      Copiar caption
+                    {post.caption && (
+                      <p style={{ margin: '0 0 6px', fontSize: '12px', color: MUT, whiteSpace: 'pre-wrap', lineHeight: 1.5, maxHeight: '260px', overflowY: 'auto' }}>
+                        {post.caption}
+                      </p>
+                    )}
+                    {post.hashtags && (
+                      <p style={{ margin: '0 0 6px', fontSize: '11.5px', color: C1, fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+                        {post.hashtags}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => copiarCaption(post)}
+                      style={{
+                        background: copiedId === post.id ? '#10B98122' : C1_BG,
+                        border: `1px solid ${copiedId === post.id ? '#10B98155' : C1 + '40'}`,
+                        color: copiedId === post.id ? '#10B981' : C1,
+                        borderRadius: '7px', padding: '4px 10px', fontSize: '11px', fontWeight: 700,
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                    >
+                      {copiedId === post.id ? '✓ Copiado' : `Copiar${post.hashtags ? ' caption + hashtags' : ' caption'}`}
                     </button>
                   </div>
                 )}
