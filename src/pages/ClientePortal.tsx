@@ -505,7 +505,7 @@ export default function ClientePortal() {
           // de la pantalla (stat cards, mini stats) siempre usa mesActual.
           const idxAudiencia = Math.min(audienciaIdx, Math.max(0, histAdmin.length - 1))
           const mesAudiencia = histAdmin[idxAudiencia]
-          const tieneAudiencia = (m?: MetricaMes) => !!m && (m.pct_mujeres != null || m.pct_hombres != null || !!m.edad_principal || !!m.ciudad_top || m.pct_historias != null || m.pct_publicaciones != null || m.pct_reels != null || m.visitas_perfil != null || m.clics_enlace != null)
+          const tieneAudiencia = (m?: MetricaMes) => !!m && (m.pct_mujeres != null || m.pct_hombres != null || !!m.edad_principal || !!m.ciudad_top || m.pct_seguidores != null || m.pct_no_seguidores != null || m.pct_historias != null || m.pct_publicaciones != null || m.pct_reels != null || m.visitas_perfil != null || m.clics_enlace != null)
           // La tarjeta existe si ALGÚN mes del historial tiene datos de audiencia
           // (no solo el que se está viendo ahora) — si no, un mes sin audiencia
           // haría desaparecer también las flechas de navegación, y parecería que
@@ -717,19 +717,36 @@ export default function ClientePortal() {
                       </p>
                     </div>
                     {histAdmin.length > 1 && (
-                      <div style={{ display:'flex', alignItems:'center', gap:'4px', flexShrink:0 }}>
-                        <button
-                          onClick={() => setAudienciaIdx(i => Math.min(histAdmin.length - 1, i + 1))}
-                          disabled={idxAudiencia >= histAdmin.length - 1}
-                          aria-label="Mes anterior"
-                          style={{ width:'30px', height:'30px', borderRadius:'8px', border:'1px solid #E5E7EB', background:'#fff', color: idxAudiencia >= histAdmin.length - 1 ? '#D1D5DB' : '#374151', cursor: idxAudiencia >= histAdmin.length - 1 ? 'default' : 'pointer', fontSize:'13px' }}
-                        >‹</button>
-                        <button
-                          onClick={() => setAudienciaIdx(i => Math.max(0, i - 1))}
-                          disabled={idxAudiencia <= 0}
-                          aria-label="Mes siguiente"
-                          style={{ width:'30px', height:'30px', borderRadius:'8px', border:'1px solid #E5E7EB', background:'#fff', color: idxAudiencia <= 0 ? '#D1D5DB' : '#374151', cursor: idxAudiencia <= 0 ? 'default' : 'pointer', fontSize:'13px' }}
-                        >›</button>
+                      <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'4px', flexShrink:0 }}>
+                        <span style={{ fontSize:'9.5px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Otros meses</span>
+                        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+                          <button
+                            onClick={() => setAudienciaIdx(i => Math.min(histAdmin.length - 1, i + 1))}
+                            disabled={idxAudiencia >= histAdmin.length - 1}
+                            aria-label="Mes anterior"
+                            style={{
+                              width:'38px', height:'38px', borderRadius:'11px',
+                              border: idxAudiencia >= histAdmin.length - 1 ? '1.5px solid #E5E7EB' : `1.5px solid ${P}40`,
+                              background: idxAudiencia >= histAdmin.length - 1 ? '#F9FAFB' : `${P}12`,
+                              color: idxAudiencia >= histAdmin.length - 1 ? '#D1D5DB' : P,
+                              cursor: idxAudiencia >= histAdmin.length - 1 ? 'default' : 'pointer',
+                              fontSize:'18px', fontWeight:900, lineHeight:1, transition:'all 0.15s',
+                            }}
+                          >‹</button>
+                          <button
+                            onClick={() => setAudienciaIdx(i => Math.max(0, i - 1))}
+                            disabled={idxAudiencia <= 0}
+                            aria-label="Mes siguiente"
+                            style={{
+                              width:'38px', height:'38px', borderRadius:'11px',
+                              border: idxAudiencia <= 0 ? '1.5px solid #E5E7EB' : `1.5px solid ${P}40`,
+                              background: idxAudiencia <= 0 ? '#F9FAFB' : `${P}12`,
+                              color: idxAudiencia <= 0 ? '#D1D5DB' : P,
+                              cursor: idxAudiencia <= 0 ? 'default' : 'pointer',
+                              fontSize:'18px', fontWeight:900, lineHeight:1, transition:'all 0.15s',
+                            }}
+                          >›</button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -752,6 +769,25 @@ export default function ClientePortal() {
                           <div style={{ height:'8px', borderRadius:'4px', overflow:'hidden', display:'flex' }}>
                             <div style={{ width:`${mesAudiencia.pct_mujeres}%`, background:'linear-gradient(90deg,#EC4899,#F472B6)', transition:'width 0.6s ease' }} />
                             <div style={{ flex:1, background:'linear-gradient(90deg,#60A5FA,#3B82F6)' }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Alcance más allá de la audiencia — mejor señal de
+                        crecimiento que el alcance en bruto: dice si el
+                        contenido está llegando a gente nueva o no. */}
+                    {(mesAudiencia.pct_seguidores != null || mesAudiencia.pct_no_seguidores != null) && (
+                      <div>
+                        <p style={{ margin:'0 0 8px', fontSize:'11px', fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.5px' }}>Visualizaciones: seguidores vs. gente nueva</p>
+                        <div style={{ display:'flex', gap:'8px', marginBottom:'8px', flexWrap:'wrap' }}>
+                          {mesAudiencia.pct_seguidores != null && <span style={{ background:'rgba(107,33,168,0.10)', color:P, padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>Seguidores {mesAudiencia.pct_seguidores}%</span>}
+                          {mesAudiencia.pct_no_seguidores != null && <span style={{ background:'rgba(16,185,129,0.12)', color:'#059669', padding:'5px 14px', borderRadius:'8px', fontSize:'13px', fontWeight:800 }}>🌱 Gente nueva {mesAudiencia.pct_no_seguidores}%</span>}
+                        </div>
+                        {mesAudiencia.pct_seguidores != null && mesAudiencia.pct_no_seguidores != null && (
+                          <div style={{ height:'8px', borderRadius:'4px', overflow:'hidden', display:'flex' }}>
+                            <div style={{ width:`${mesAudiencia.pct_seguidores}%`, background:`linear-gradient(90deg, ${P}, #9333EA)`, transition:'width 0.6s ease' }} />
+                            <div style={{ flex:1, background:'linear-gradient(90deg,#34D399,#10B981)' }} />
                           </div>
                         )}
                       </div>

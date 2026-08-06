@@ -109,6 +109,11 @@ export type MetricaMes = {
   pct_hombres?:       number
   edad_principal?:    string   // ej: "25-34"
   ciudad_top?:        string   // ej: "Manizales"
+  // Alcance más allá de la audiencia actual — "Visualizaciones de X% no
+  // seguidores" en Instagram Insights. Mejor indicador de crecimiento que el
+  // alcance en bruto: dice si el contenido está llegando a gente nueva.
+  pct_seguidores?:    number
+  pct_no_seguidores?: number
   // Distribución por tipo de contenido
   pct_historias?:      number
   pct_publicaciones?:  number

@@ -1347,6 +1347,8 @@ export default function ClientesAdmin() {
                   { key: 'posts_publicados',  label: 'Posts pub.',    icon: '✅' },
                   { key: 'pct_mujeres',       label: 'Mujeres %',     icon: '♀' },
                   { key: 'pct_hombres',       label: 'Hombres %',     icon: '♂' },
+                  { key: 'pct_seguidores',    label: 'Vis. de seguidores %',    icon: '🟣' },
+                  { key: 'pct_no_seguidores', label: 'Vis. de no seguidores %', icon: '🌱' },
                   { key: 'pct_historias',     label: 'Historias %',   icon: '📖' },
                   { key: 'pct_publicaciones', label: 'Publicac. %',   icon: '📝' },
                   { key: 'pct_reels',         label: 'Reels %',       icon: '🎬' },
@@ -1406,7 +1408,7 @@ export default function ClientesAdmin() {
                                       <label key={String(k.key)} style={labelStyle}>
                                         {k.icon} {k.label}
                                         <input
-                                          type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
+                                          type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_seguidores','pct_no_seguidores','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
                                           value={(newMes[k.key] as number | undefined) ?? ''}
                                           onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
                                           style={inputStyle} placeholder="0"
@@ -1449,7 +1451,7 @@ export default function ClientesAdmin() {
                             <label key={String(k.key)} style={labelStyle}>
                               {k.icon} {k.label}
                               <input
-                                type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
+                                type="number" min={0} step={(['engagement','pct_mujeres','pct_hombres','pct_seguidores','pct_no_seguidores','pct_historias','pct_publicaciones','pct_reels'] as string[]).includes(k.key as string) ? 0.1 : 1}
                                 value={(newMes[k.key] as number | undefined) ?? ''}
                                 onChange={e => setNewMes(n => ({ ...n, [k.key]: e.target.value ? +e.target.value : undefined }))}
                                 style={inputStyle} placeholder="0"
