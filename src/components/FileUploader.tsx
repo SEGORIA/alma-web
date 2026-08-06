@@ -1,15 +1,17 @@
 import { useState, useRef } from 'react'
-import { uploadFile, storageReady } from '../lib/storage'
+import { uploadFile, uploadImage, storageReady } from '../lib/storage'
 import { P } from '../tokens'
 
 interface Props {
   onUploaded: (url: string, nombre: string, tipo: string, tamano: number) => void
   accept?: string   // default: '.pdf,.docx,.doc,.xlsx,.zip'
+  hint?: string      // texto bajo el ícono; por defecto describe accept
 }
 
 const ACCEPT_DEFAULT = '.pdf,.docx,.doc,.xlsx,.xls,.zip,.rar,.pptx,.mp4,.mov'
+const HINT_DEFAULT = 'PDF, DOCX, XLSX, ZIP, PPTX… · Máx. 50 MB'
 
-export default function FileUploader({ onUploaded, accept = ACCEPT_DEFAULT }: Props) {
+export default function FileUploader({ onUploaded, accept = ACCEPT_DEFAULT, hint = HINT_DEFAULT }: Props) {
   const [uploading, setUploading] = useState(false)
   const [progress,  setProgress]  = useState(0)
   const [error,     setError]     = useState<string | null>(null)
@@ -21,7 +23,15 @@ export default function FileUploader({ onUploaded, accept = ACCEPT_DEFAULT }: Pr
     setUploading(true)
     setProgress(0)
     try {
-      const url  = await uploadFile(file, pct => setProgress(pct))
+      // Cloudinary separa imágenes (endpoint /image/upload) de todo lo demás
+      // (/raw/upload). Subir una imagen por el endpoint "raw" a veces la deja
+      // servida de forma que el navegador no la muestra en línea. El arrastre
+      // (handleDrop) tampoco respeta el atributo `accept`, así que esta
+      // detección por MIME real cubre también lo que igual se cuele ahí.
+      const esImagen = file.type.startsWith('image/')
+      const url  = esImagen
+        ? await uploadImage(file, pct => setProgress(pct))
+        : await uploadFile(file, pct => setProgress(pct))
       const tipo = file.name.split('.').pop()?.toLowerCase() ?? 'file'
       onUploaded(url, file.name, tipo, file.size)
     } catch (e: unknown) {
@@ -112,7 +122,7 @@ export default function FileUploader({ onUploaded, accept = ACCEPT_DEFAULT }: Pr
               Haz clic o arrastra un archivo aquí
             </p>
             <p style={{ fontSize: '12px', color: '#9CA3AF', margin: 0 }}>
-              PDF, DOCX, XLSX, ZIP, PPTX… · Máx. 50 MB
+              {hint}
             </p>
           </>
         )}

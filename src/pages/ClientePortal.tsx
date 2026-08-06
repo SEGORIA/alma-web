@@ -518,11 +518,12 @@ export default function ClientePortal() {
           // parciales al inicio igual ve el progreso de lo que sí se registró
           // desde el principio.
           const primerMes = histAdmin[histAdmin.length - 1]
-          type MetricaProgreso = { key: 'seguidores_total' | 'alcance' | 'engagement'; label: string; icon: string; desde: number; hasta: number }
+          type MetricaProgreso = { key: 'seguidores_total' | 'alcance' | 'engagement' | 'pct_no_seguidores'; label: string; icon: string; desde: number; hasta: number }
           const CANDIDATOS_PROGRESO: { key: MetricaProgreso['key']; label: string; icon: string }[] = [
-            { key: 'seguidores_total', label: 'Seguidores', icon: '👤' },
-            { key: 'alcance',          label: 'Alcance',    icon: '👁️' },
-            { key: 'engagement',       label: 'Engagement', icon: '📈' },
+            { key: 'seguidores_total',  label: 'Seguidores',   icon: '👤' },
+            { key: 'alcance',           label: 'Alcance',      icon: '👁️' },
+            { key: 'engagement',        label: 'Engagement',   icon: '📈' },
+            { key: 'pct_no_seguidores', label: 'Alcance nuevo', icon: '🌱' },
           ]
           const progresoDesdeInicio: MetricaProgreso[] = histAdmin.length >= 3 && primerMes && mesActual
             ? CANDIDATOS_PROGRESO.reduce<MetricaProgreso[]>((acc, m) => {
@@ -880,7 +881,7 @@ export default function ClientePortal() {
                     {progresoDesdeInicio.map(m => {
                       const pct   = ((m.hasta - m.desde) / Math.abs(m.desde)) * 100
                       const subio = pct >= 0
-                      const fmt   = (n: number) => m.key === 'engagement' ? `${n.toFixed(1)}%` : Math.round(n).toLocaleString()
+                      const fmt   = (n: number) => (m.key === 'engagement' || m.key === 'pct_no_seguidores') ? `${n.toFixed(1)}%` : Math.round(n).toLocaleString()
                       return (
                         <div key={m.key} style={{ background:'rgba(255,255,255,0.08)', borderRadius:'14px', padding:'16px' }}>
                           <p style={{ margin:'0 0 6px', fontSize:'11px', fontWeight:700, color:'rgba(255,255,255,0.55)', textTransform:'uppercase', letterSpacing:'0.5px' }}>{m.icon} {m.label}</p>

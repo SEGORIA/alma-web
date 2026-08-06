@@ -2015,7 +2015,11 @@ export default function ClientesAdmin() {
                     <label style={{ ...labelStyle, marginBottom:'10px' }}>Descripción (opcional)<input value={newAsset.descripcion ?? ''} onChange={e => setNewAsset(p => ({ ...p, descripcion: e.target.value }))} style={inputStyle} placeholder="Uso, formato, contexto…" /></label>
                     <label style={{ ...labelStyle, marginBottom:'10px' }}>URL del archivo *<input value={newAsset.url} onChange={e => setNewAsset(p => ({ ...p, url: e.target.value }))} style={inputStyle} placeholder="Pega un enlace (Drive, Canva, Figma…) o sube abajo" /></label>
                     <div style={{ marginBottom:'12px' }}>
-                      <FileUploader onUploaded={(url, nombre) => setNewAsset(p => ({ ...p, url, nombre: p.nombre || nombre }))} />
+                      <FileUploader
+                        accept=".pdf,.docx,.doc,.xlsx,.xls,.zip,.rar,.pptx,.jpg,.jpeg,.png,.webp,.svg,.gif"
+                        hint="PDF, DOCX, ZIP, JPG, PNG, SVG… · Máx. 50 MB"
+                        onUploaded={(url, nombre) => setNewAsset(p => ({ ...p, url, nombre: p.nombre || nombre }))}
+                      />
                     </div>
                     <button
                       disabled={!newAsset.nombre.trim() || !newAsset.url.trim()}
