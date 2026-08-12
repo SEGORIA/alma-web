@@ -42,6 +42,19 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
     }
 
+    // Una solicitud del brief de Reactivación (/reactivacion) recién enviada
+    // por el formulario público: fuerza estado 'nuevo' y exige lo mínimo
+    // (contacto + autorización) sin validar cada uno de sus ~20 campos.
+    function solicitudReactivacionValida() {
+      let d = request.resource.data;
+      return d.estado == 'nuevo'
+        && d.nombre_contacto is string && d.nombre_contacto.size() > 0 && d.nombre_contacto.size() < 200
+        && d.nombre_negocio is string  && d.nombre_negocio.size() > 0  && d.nombre_negocio.size() < 200
+        && d.whatsapp is string && d.whatsapp.size() >= 10 && d.whatsapp.size() < 20
+        && d.email is string && d.email.size() > 0 && d.email.size() < 200
+        && d.autoriza == true;
+    }
+
     /* ── Allowlist del equipo ───────────────────────────────────────────
        Cada quien puede comprobar su propio documento (es lo que hace
        isAdmin() en db.ts). Nadie enumera ni escribe: los documentos se
@@ -94,6 +107,15 @@ service cloud.firestore {
     }
     match /briefs/{id} {
       allow create:                if true;
+      allow read, update, delete:  if esAdmin();
+    }
+
+    /* ── Reactivación del comercio (/reactivacion) ──────────────────────
+       Brief temporal: negocios afectados por el sismo dejan sus datos para
+       que Alma les ofrezca acompañamiento. Solo el equipo lee — a diferencia
+       de Red de Ayuda, esto no se publica en ningún buscador público.       */
+    match /solicitudes_reactivacion/{id} {
+      allow create:                if solicitudReactivacionValida();
       allow read, update, delete:  if esAdmin();
     }
 

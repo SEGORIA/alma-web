@@ -7,21 +7,23 @@ import type { Cliente } from '../data/clientes'
    cada navegación entre páginas del panel. */
 
 export type Pendientes = {
-  leadsNuevos:     number
-  briefsNuevos:    number
-  solicitudesPend: number
+  leadsNuevos:         number
+  briefsNuevos:        number
+  solicitudesPend:     number
+  reactivacionNuevas:  number
 }
 
 let cache: { t: number; data: Pendientes } | null = null
 
 export async function getPendientes(): Promise<Pendientes> {
-  if (!db) return { leadsNuevos: 0, briefsNuevos: 0, solicitudesPend: 0 }
+  if (!db) return { leadsNuevos: 0, briefsNuevos: 0, solicitudesPend: 0, reactivacionNuevas: 0 }
   if (cache && Date.now() - cache.t < 60_000) return cache.data
 
-  const [leadsSnap, briefsSnap, clientesSnap] = await Promise.all([
+  const [leadsSnap, briefsSnap, clientesSnap, reactivacionSnap] = await Promise.all([
     getCountFromServer(query(collection(db, 'leads'),  where('estado', '==', 'nuevo'))).catch(() => null),
     getCountFromServer(query(collection(db, 'briefs'), where('estado', '==', 'nuevo'))).catch(() => null),
     getDocs(collection(db, 'clientes')).catch(() => null),
+    getCountFromServer(query(collection(db, 'solicitudes_reactivacion'), where('estado', '==', 'nuevo'))).catch(() => null),
   ])
 
   const data: Pendientes = {
@@ -33,6 +35,7 @@ export async function getPendientes(): Promise<Pendientes> {
           return sum + (c.solicitudes ?? []).filter(s => s.estado === 'pendiente').length
         }, 0)
       : 0,
+    reactivacionNuevas: reactivacionSnap?.data().count ?? 0,
   }
   cache = { t: Date.now(), data }
   return data

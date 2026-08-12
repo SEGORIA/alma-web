@@ -25,6 +25,7 @@ import type { Tarea } from '../data/tareas'
 import type { Curso, Recurso } from '../data/academia'
 import { RECURSOS_SEED_HACKS_IG } from '../data/academia'
 import type { Idea } from '../data/ideas'
+import type { SolicitudReactivacion } from '../data/reactivacion'
 
 
 
@@ -1199,3 +1200,31 @@ export async function seedConfig() {
     await addDoc(equipoCol(), { ...equipoEstatico[i], orden: i, createdAt: serverTimestamp() })
   }
 }
+
+/* ══ REACTIVACIÓN DEL COMERCIO ═══════════════════════════════
+   Brief temporal (/reactivacion) para que negocios afectados por el sismo
+   dejen sus datos. Colección aparte de `leads`/`briefs` a propósito: es una
+   campaña puntual, así que toda su huella en el código debe poder borrarse
+   sola sin tocar los formularios permanentes del sitio. */
+
+const reactivacionCrud = makeCrud<SolicitudReactivacion>('solicitudes_reactivacion', 'createdAt', 'desc')
+
+export async function createSolicitudReactivacion(
+  data: Omit<SolicitudReactivacion, '_id' | 'estado' | 'createdAt' | 'updatedAt'>
+): Promise<string> {
+  if (!db) throw new Error('DB not ready')
+  const ref = await addDoc(reactivacionCrud.col(), {
+    ...(stripUndefined(data) as object),
+    estado: 'nuevo',
+    createdAt: serverTimestamp(),
+  })
+  return ref.id
+}
+
+export const getSolicitudesReactivacion = reactivacionCrud.getAll
+
+export function updateSolicitudReactivacionEstado(id: string, estado: SolicitudReactivacion['estado']): Promise<void> {
+  return reactivacionCrud.update(id, { estado } as Partial<SolicitudReactivacion>)
+}
+
+export const deleteSolicitudReactivacion = reactivacionCrud.remove

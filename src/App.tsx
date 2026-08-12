@@ -56,6 +56,7 @@ const PreciosAdmin     = lazy(() => import('./pages/admin/PreciosAdmin'))
 const ConfigAdmin      = lazy(() => import('./pages/admin/ConfigAdmin'))
 const ContenidoAdmin   = lazy(() => import('./pages/admin/ContenidoAdmin'))
 const LeadsAdmin       = lazy(() => import('./pages/admin/LeadsAdmin'))
+const ReactivacionAdmin = lazy(() => import('./pages/admin/ReactivacionAdmin'))
 /* ── Módulos de negocio ── */
 const BriefAdmin       = lazy(() => import('./pages/admin/BriefAdmin'))
 const FinanzasAdmin    = lazy(() => import('./pages/admin/FinanzasAdmin'))
@@ -69,6 +70,7 @@ const AlumnosAdmin        = lazy(() => import('./pages/admin/AlumnosAdmin'))
 const TareasAdmin         = lazy(() => import('./pages/admin/TareasAdmin'))
 const CalendarioAdmin     = lazy(() => import('./pages/admin/CalendarioAdmin'))
 const EquipoPortalPage    = lazy(() => import('./pages/EquipoPortal'))
+const ReactivacionPage   = lazy(() => import('./pages/ReactivacionPage'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -645,6 +647,9 @@ export default function App() {
         <Route path="/cliente/:token" element={<ClientePortalPage />} />
         <Route path="/equipo-portal" element={<EquipoPortalPage />} />
         <Route path="/equipo-portal/:pin" element={<EquipoPortalPage />} />
+        {/* Reactivación del comercio — brief temporal (negocios afectados por el sismo) */}
+        <Route path="/reactivacion"  element={<ReactivacionPage />} />
+
         <Route path="*"              element={<NotFoundPage />} />
 
         {/* Admin — lazy */}
@@ -658,6 +663,7 @@ export default function App() {
         <Route path="/admin/contenido"  element={<RequireAuth><ContenidoAdmin /></RequireAuth>} />
         <Route path="/admin/config"     element={<RequireAuth><ConfigAdmin /></RequireAuth>} />
         <Route path="/admin/leads"      element={<RequireAuth><LeadsAdmin /></RequireAuth>} />
+        <Route path="/admin/reactivacion" element={<RequireAuth><ReactivacionAdmin /></RequireAuth>} />
         {/* ── Módulos de negocio ── */}
         <Route path="/admin/brief"      element={<RequireAuth><BriefAdmin /></RequireAuth>} />
         <Route path="/admin/finanzas"   element={<RequireAuth><FinanzasAdmin /></RequireAuth>} />

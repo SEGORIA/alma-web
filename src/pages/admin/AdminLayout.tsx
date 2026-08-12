@@ -11,6 +11,7 @@ type NavEntry = { label: string; to: string; badgeKey?: keyof Pendientes }
 
 const PAGINA_WEB: NavEntry[] = [
   { label: '🎯 Leads',         to: '/admin/leads', badgeKey: 'leadsNuevos' },
+  { label: '💜 Reactivación',  to: '/admin/reactivacion', badgeKey: 'reactivacionNuevas' },
   { label: '✍️ Blog',          to: '/admin/blog' },
   { label: '🖼️ Portafolio',    to: '/admin/portafolio' },
   { label: '💰 Precios',       to: '/admin/precios' },
