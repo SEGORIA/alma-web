@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from './AdminLayout'
-import { getClientes, getRedColores } from '../../lib/db'
+import { getClientes, updateCliente, getRedColores } from '../../lib/db'
 import type { Cliente, ParrillaItem } from '../../data/clientes'
-import { getRedesItem } from '../../data/clientes'
+import { getRedesItem, TIPO_POST_OPCIONES, DURACION_OPCIONES, PARRILLA_ESTADOS } from '../../data/clientes'
 import { redColoresDefault } from '../../data/config'
+import { toast } from '../../components/admin/Feedback'
+import RedesMultiSelect from '../../components/admin/RedesMultiSelect'
 import { ADM } from '../../lib/adminTheme'
 
 const { BK, DIM, BDR, MUT, WHT, C1, C1_BG, INPUT_BG } = ADM
@@ -51,10 +53,79 @@ export default function CalendarioAdmin() {
   const [filtroCliente, setFiltroCliente] = useState<string>('') // '' = todos
   const [RED_COLOR, setRedColor] = useState<Record<string, string>>(redColoresDefault)
 
+  // Arrastrar publicación entre días
+  const [dragging,   setDragging]   = useState<{ postId: string; clienteId: string; fromFecha: string } | null>(null)
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null)
+
+  // Edición inline dentro del modal de día
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [editDraft,     setEditDraft]     = useState<Partial<ParrillaItem>>({})
+  const [savingEdit,    setSavingEdit]    = useState(false)
+
   useEffect(() => {
     getClientes().then(list => { setClientes(list); setLoading(false) })
     getRedColores().then(setRedColor)
   }, [])
+
+  function startEdit(post: PostConCliente) {
+    setEditingPostId(post.id)
+    setEditDraft({ ...post })
+  }
+
+  function cancelEdit() {
+    setEditingPostId(null)
+    setEditDraft({})
+  }
+
+  async function saveEdit(post: PostConCliente) {
+    const cliente = clientes.find(c => c._id === post.clienteId)
+    if (!cliente) return
+    setSavingEdit(true)
+    const anteriorParrilla = cliente.parrilla ?? []
+    const cambios: Partial<ParrillaItem> = {
+      ...editDraft,
+      red: editDraft.redes?.[0] ?? editDraft.red ?? post.red,
+    }
+    const nuevaParrilla = anteriorParrilla.map(p => p.id === post.id ? { ...p, ...cambios } : p)
+    setClientes(prev => prev.map(c => c._id === post.clienteId ? { ...c, parrilla: nuevaParrilla } : c))
+    setModalPosts(prev => prev ? prev.map(p => p.id === post.id ? { ...p, ...cambios } as PostConCliente : p) : prev)
+    setEditingPostId(null)
+    try {
+      await updateCliente(post.clienteId, { parrilla: nuevaParrilla })
+      toast.ok('Publicación actualizada')
+    } catch (err) {
+      setClientes(prev => prev.map(c => c._id === post.clienteId ? { ...c, parrilla: anteriorParrilla } : c))
+      setModalPosts(prev => prev ? prev.map(p => p.id === post.id ? { ...post } : p) : prev)
+      toast.err('No se pudo guardar los cambios: ' + err)
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  async function moverPost(clienteId: string, postId: string, nuevaFecha: string) {
+    const cliente = clientes.find(c => c._id === clienteId)
+    if (!cliente) return
+    const anteriorParrilla = cliente.parrilla ?? []
+    const nuevaParrilla = anteriorParrilla.map(p => p.id === postId ? { ...p, fecha: nuevaFecha } : p)
+    setClientes(prev => prev.map(c => c._id === clienteId ? { ...c, parrilla: nuevaParrilla } : c))
+    try {
+      await updateCliente(clienteId, { parrilla: nuevaParrilla })
+      toast.ok('Publicación movida de fecha')
+    } catch (err) {
+      setClientes(prev => prev.map(c => c._id === clienteId ? { ...c, parrilla: anteriorParrilla } : c))
+      toast.err('No se pudo mover la publicación: ' + err)
+    }
+  }
+
+  function handleDayDrop(day: number, year: number, month: number) {
+    if (!dragging) return
+    const info = dragging
+    setDragging(null)
+    setDragOverDay(null)
+    const nuevaFecha = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    if (nuevaFecha === info.fromFecha) return
+    moverPost(info.clienteId, info.postId, nuevaFecha)
+  }
 
   const { year, month } = mes
   const cells = getCalCells(year, month)
@@ -153,21 +224,27 @@ export default function CalendarioAdmin() {
                 const borderRight = (i + 1) % 7 !== 0 ? `1px solid ${BDR}` : 'none'
                 const borderBottom = i < cells.length - 7 ? `1px solid ${BDR}` : 'none'
 
+                const isDropTarget = day !== null && dragging !== null
+                const isDragOver = isDropTarget && dragOverDay === day
+
                 return (
                   <div
                     key={i}
                     onClick={() => hasPosts && setModalPosts(posts)}
+                    onDragOver={e => { if (isDropTarget) { e.preventDefault(); if (dragOverDay !== day) setDragOverDay(day) } }}
+                    onDragLeave={() => { if (dragOverDay === day) setDragOverDay(null) }}
+                    onDrop={e => { if (isDropTarget && day !== null) { e.preventDefault(); handleDayDrop(day, year, month) } }}
                     style={{
                       minHeight: '110px', padding: '8px', position: 'relative',
-                      background: day ? (hasPosts ? `${C1}06` : 'transparent') : `${BDR}30`,
+                      background: isDragOver ? `${C1}22` : day ? (hasPosts ? `${C1}06` : 'transparent') : `${BDR}30`,
                       cursor: hasPosts ? 'pointer' : 'default',
                       borderRight, borderBottom,
-                      outline: isToday ? `2px solid ${C1}40` : 'none',
+                      outline: isDragOver ? `2px dashed ${C1}` : isToday ? `2px solid ${C1}40` : 'none',
                       outlineOffset: '-2px',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => { if (hasPosts) e.currentTarget.style.background = `${C1}12` }}
-                    onMouseLeave={e => { e.currentTarget.style.background = day ? (hasPosts ? `${C1}06` : 'transparent') : `${BDR}30` }}
+                    onMouseEnter={e => { if (hasPosts && !dragging) e.currentTarget.style.background = `${C1}12` }}
+                    onMouseLeave={e => { if (!isDragOver) e.currentTarget.style.background = day ? (hasPosts ? `${C1}06` : 'transparent') : `${BDR}30` }}
                   >
                     {day !== null && (
                       <>
@@ -186,13 +263,21 @@ export default function CalendarioAdmin() {
                         {/* Chips de posts */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                           {posts.slice(0, 3).map(p => (
-                            <div key={p.id} style={{
-                              display: 'flex', alignItems: 'center', gap: '4px',
-                              background: p.clienteColor + '18',
-                              border: `1px solid ${p.clienteColor}40`,
-                              borderRadius: '5px', padding: '2px 6px',
-                              overflow: 'hidden',
-                            }}>
+                            <div
+                              key={p.id}
+                              draggable
+                              title="Arrastra para cambiar de fecha"
+                              onDragStart={e => { e.stopPropagation(); setDragging({ postId: p.id, clienteId: p.clienteId, fromFecha: p.fecha }) }}
+                              onDragEnd={() => { setDragging(null); setDragOverDay(null) }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '4px',
+                                background: p.clienteColor + '18',
+                                border: `1px solid ${p.clienteColor}40`,
+                                borderRadius: '5px', padding: '2px 6px',
+                                overflow: 'hidden', cursor: 'grab',
+                                opacity: dragging?.postId === p.id ? 0.4 : 1,
+                              }}
+                            >
                               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: RED_COLOR[getRedesItem(p)[0]] ?? p.clienteColor, flexShrink: 0 }} />
                               <span style={{ fontSize: '10px', fontWeight: 700, color: p.clienteColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                                 {p.clienteNombre}
@@ -258,7 +343,87 @@ export default function CalendarioAdmin() {
               </p>
               <button onClick={() => setModalPosts(null)} style={{ background: BK, border: `1.5px solid ${BDR}`, color: MUT, borderRadius: '9px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>✕ Cerrar</button>
             </div>
-            {modalPosts.map(post => (
+            {modalPosts.map(post => {
+              const isEditing = editingPostId === post.id
+              const ep = editDraft
+              if (isEditing) {
+                return (
+                  <div key={post.id} style={{ background: BK, borderRadius: '14px', padding: '16px', marginBottom: '10px', border: `2px solid ${C1}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: post.clienteColor }}>{post.clienteNombre}</span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => saveEdit(post)} disabled={savingEdit} style={{ padding: '6px 14px', borderRadius: '7px', background: C1, color: '#fff', border: 'none', cursor: savingEdit ? 'default' : 'pointer', fontWeight: 700, fontSize: '11px', opacity: savingEdit ? 0.6 : 1 }}>
+                          {savingEdit ? 'Guardando…' : '💾 Guardar'}
+                        </button>
+                        <button onClick={cancelEdit} disabled={savingEdit} style={{ padding: '6px 14px', borderRadius: '7px', background: 'transparent', border: `1.5px solid ${BDR}`, color: MUT, cursor: 'pointer', fontWeight: 700, fontSize: '11px' }}>
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '8px', marginBottom: '10px' }}>
+                      <label style={labelStyle}>
+                        Fecha
+                        <input type="date" value={ep.fecha ?? ''} onChange={e => setEditDraft(d => ({ ...d, fecha: e.target.value }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Hora
+                        <input type="time" value={ep.hora ?? ''} onChange={e => setEditDraft(d => ({ ...d, hora: e.target.value || undefined }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Redes
+                        <RedesMultiSelect
+                          value={ep.redes && ep.redes.length > 0 ? ep.redes : (ep.red ? [ep.red] : ['Instagram'])}
+                          onChange={redes => setEditDraft(d => ({ ...d, redes }))}
+                          style={inputStyle}
+                        />
+                      </label>
+                      <label style={labelStyle}>
+                        Tipo
+                        <select value={ep.tipo ?? 'Reel'} onChange={e => setEditDraft(d => ({ ...d, tipo: e.target.value }))} style={inputStyle}>
+                          {TIPO_POST_OPCIONES.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </label>
+                      <label style={labelStyle}>
+                        Duración
+                        <select value={ep.duracion ?? ''} onChange={e => setEditDraft(d => ({ ...d, duracion: e.target.value || undefined }))} style={inputStyle}>
+                          {DURACION_OPCIONES.map(o => <option key={o} value={o}>{o || '—'}</option>)}
+                        </select>
+                      </label>
+                      <label style={labelStyle}>
+                        Estado
+                        <select value={ep.estado ?? 'borrador'} onChange={e => setEditDraft(d => ({ ...d, estado: e.target.value as ParrillaItem['estado'] }))} style={inputStyle}>
+                          {PARRILLA_ESTADOS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                      <label style={labelStyle}>
+                        Hook / Título
+                        <input value={ep.descripcion ?? ''} onChange={e => setEditDraft(d => ({ ...d, descripcion: e.target.value }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Subtítulo
+                        <input value={ep.subtitulo ?? ''} onChange={e => setEditDraft(d => ({ ...d, subtitulo: e.target.value || undefined }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Caption
+                        <textarea value={ep.caption ?? ''} onChange={e => setEditDraft(d => ({ ...d, caption: e.target.value || undefined }))} style={{ ...inputStyle, minHeight: '70px', resize: 'vertical' }} />
+                      </label>
+                      <label style={labelStyle}>
+                        Hashtags
+                        <input value={ep.hashtags ?? ''} onChange={e => setEditDraft(d => ({ ...d, hashtags: e.target.value || undefined }))} style={inputStyle} />
+                      </label>
+                      <label style={labelStyle}>
+                        Link publicado
+                        <input value={ep.link ?? ''} onChange={e => setEditDraft(d => ({ ...d, link: e.target.value || undefined }))} style={inputStyle} placeholder="https://…" />
+                      </label>
+                    </div>
+                  </div>
+                )
+              }
+              return (
               <div key={post.id} style={{ background: BK, borderRadius: '14px', padding: '16px', marginBottom: '10px', border: `1.5px solid ${post.clienteColor}30` }}>
                 {/* Cliente + red */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
@@ -273,6 +438,12 @@ export default function CalendarioAdmin() {
                   ))}
                   <span style={{ fontSize: '12px', color: MUT }}>· {post.tipo}</span>
                   {post.hora && <span style={{ fontSize: '12px', color: C1, fontWeight: 700 }}>🕐 {post.hora}</span>}
+                  <button
+                    onClick={() => startEdit(post)}
+                    style={{ marginLeft: 'auto', padding: '4px 10px', borderRadius: '7px', background: C1_BG, border: `1px solid ${C1}40`, color: C1, cursor: 'pointer', fontWeight: 700, fontSize: '11px' }}
+                  >
+                    ✏️ Editar
+                  </button>
                 </div>
                 <p style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 800, color: WHT }}>{post.descripcion}</p>
                 {post.subtitulo && <p style={{ margin: 0, fontSize: '12px', color: MUT }}>{post.subtitulo}</p>}
@@ -304,7 +475,8 @@ export default function CalendarioAdmin() {
                 )}
                 {post.link && <a href={post.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '8px', fontSize: '12px', color: '#60A5FA', fontWeight: 700 }}>Ver publicación →</a>}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

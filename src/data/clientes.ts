@@ -326,6 +326,10 @@ export const PARRILLA_ESTADOS: {
   { value: 'publicado',           label: 'Publicado',           color: '#2563EB', bg: '#DBEAFE' },
 ]
 
+export const REDES_OPCIONES = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn', 'Twitter/X', 'Pinterest', 'Otro']
+export const TIPO_POST_OPCIONES = ['Reel', 'Carrusel', 'Post', 'Story', 'Video', 'Blog', 'Email', 'Otro']
+export const DURACION_OPCIONES  = ['', '15 seg', '20 seg', '30 seg', '45 seg', '1 min', '2 min', '3 slides', '5 slides', '7 slides', '10 slides']
+
 export const PILARES_CONTENIDO: { value: string; label: string; color: string; bg: string }[] = [
   { value: 'marca',       label: 'Marca',        color: '#059669', bg: '#D1FAE5' },
   { value: 'educacion',   label: 'Educación',     color: '#2563EB', bg: '#DBEAFE' },
