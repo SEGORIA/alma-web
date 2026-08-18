@@ -56,7 +56,8 @@ export type ParrillaItem = {
   fecha:       string        // YYYY-MM-DD
   hora?:       string        // HH:MM (hora de publicación)
   // Formato
-  red:         string        // Instagram, TikTok, etc.
+  red:         string        // Instagram, TikTok, etc. — red principal (compat: publicaciones creadas antes de `redes`)
+  redes?:      string[]      // todas las redes donde se publicó este mismo contenido
   tipo:        string        // Reel, Carrusel, Post, Story, Video
   duracion?:   string        // "20 seg", "7 slides", "30 seg"
   // Contenido principal
@@ -76,6 +77,13 @@ export type ParrillaItem = {
   link_drive?: string        // link de Drive con el material de esta publicación
   // Métricas post-publicación
   metricas?:   ParrillaMetricas
+}
+
+/** Redes donde vive esta publicación. Usa `redes` (multi-selección) si ya
+ *  tiene datos; si no, cae a la `red` única — así los ítems creados antes
+ *  de que el campo fuera múltiple se siguen mostrando igual. */
+export function getRedesItem(item: Pick<ParrillaItem, 'red' | 'redes'>): string[] {
+  return item.redes && item.redes.length > 0 ? item.redes : [item.red]
 }
 
 export type SolicitudEstado = 'pendiente' | 'en_revision' | 'resuelto'

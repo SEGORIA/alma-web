@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import AdminLayout from './AdminLayout'
 import { getClientes, getRedColores } from '../../lib/db'
 import type { Cliente, ParrillaItem } from '../../data/clientes'
+import { getRedesItem } from '../../data/clientes'
 import { redColoresDefault } from '../../data/config'
 import { ADM } from '../../lib/adminTheme'
 
@@ -192,7 +193,7 @@ export default function CalendarioAdmin() {
                               borderRadius: '5px', padding: '2px 6px',
                               overflow: 'hidden',
                             }}>
-                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: RED_COLOR[p.red] ?? p.clienteColor, flexShrink: 0 }} />
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: RED_COLOR[getRedesItem(p)[0]] ?? p.clienteColor, flexShrink: 0 }} />
                               <span style={{ fontSize: '10px', fontWeight: 700, color: p.clienteColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
                                 {p.clienteNombre}
                               </span>
@@ -264,8 +265,12 @@ export default function CalendarioAdmin() {
                   <span style={{ fontSize: '12px', fontWeight: 800, color: post.clienteColor, background: post.clienteColor + '15', padding: '2px 9px', borderRadius: '20px', border: `1px solid ${post.clienteColor}30` }}>
                     {post.clienteNombre}
                   </span>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: RED_COLOR[post.red] ?? '#6B7280' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: WHT }}>{post.red}</span>
+                  {getRedesItem(post).map(r => (
+                    <div key={r} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: RED_COLOR[r] ?? '#6B7280' }} />
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: WHT }}>{r}</span>
+                    </div>
+                  ))}
                   <span style={{ fontSize: '12px', color: MUT }}>· {post.tipo}</span>
                   {post.hora && <span style={{ fontSize: '12px', color: C1, fontWeight: 700 }}>🕐 {post.hora}</span>}
                 </div>

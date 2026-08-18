@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AdminLayout from './AdminLayout'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import {
@@ -86,6 +86,69 @@ const REDES_OPCIONES = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn'
 const TIPO_POST_OPCIONES = ['Reel', 'Carrusel', 'Post', 'Story', 'Video', 'Blog', 'Email', 'Otro']
 const DURACION_OPCIONES  = ['', '15 seg', '20 seg', '30 seg', '45 seg', '1 min', '2 min', '3 slides', '5 slides', '7 slides', '10 slides']
 
+/** Selector de varias redes a la vez (mismo contenido subido en varias
+ *  plataformas). Botón compacto del mismo tamaño que un <select> normal;
+ *  al hacer clic despliega un checklist. */
+function RedesMultiSelect({ value, onChange, style }: {
+  value: string[]; onChange: (redes: string[]) => void; style?: React.CSSProperties
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDocClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [open])
+
+  function toggle(red: string) {
+    onChange(value.includes(red) ? value.filter(r => r !== red) : [...value, red])
+  }
+
+  const label = value.length === 0 ? 'Elegir…' : value.length === 1 ? value[0] : `${value[0]} +${value.length - 1}`
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button" onClick={() => setOpen(o => !o)}
+        style={{
+          ...style, textAlign: 'left', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        <span style={{ fontSize: '9px', opacity: 0.6, flexShrink: 0 }}>▾</span>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: '#fff', border: '1px solid #E5E7EB', borderRadius: '10px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.16)', padding: '6px', minWidth: '170px',
+        }}>
+          {REDES_OPCIONES.map(r => (
+            <label
+              key={r}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '6px 8px', borderRadius: '6px', cursor: 'pointer',
+                fontSize: '13px', color: '#111827', whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F9FAFB' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              <input type="checkbox" checked={value.includes(r)} onChange={() => toggle(r)} />
+              {r}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Helpers financieros ──────────────────────────────────── */
 function parseValorCOP(v?: string): number {
   if (!v) return 0
@@ -119,7 +182,7 @@ export default function ClientesAdmin() {
   const [saveMsg,    setSaveMsg]    = useState('')
 
   /* sub-forms */
-  const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
+  const [newP, setNewP] = useState<Partial<ParrillaItem>>({ fecha: '', red: 'Instagram', redes: ['Instagram'], tipo: 'Reel', descripcion: '', estado: 'borrador' })
   const [editingParrillaId, setEditingParrillaId] = useState<string | null>(null)
   const [newMes, setNewMes] = useState<Partial<MetricaMes>>({ mes: '' })
   const [editMes, setEditMes] = useState<string | null>(null)
@@ -165,7 +228,7 @@ export default function ClientesAdmin() {
      evitando que quede una tarjeta "editando" (o una contraseña tecleada) del
      cliente anterior. */
   function resetSubForms() {
-    setNewP({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
+    setNewP({ fecha: '', red: 'Instagram', redes: ['Instagram'], tipo: 'Reel', descripcion: '', estado: 'borrador' })
     setEditingParrillaId(null)
     setEditingParrillaData({})
     setNewMes({ mes: '' })
@@ -243,6 +306,7 @@ export default function ClientesAdmin() {
       id: newId(),
       fecha: '',
       red: 'Instagram',
+      redes: ['Instagram'],
       tipo: 'Post',
       descripcion: idea.titulo,
       pilar: idea.pilar,
@@ -311,7 +375,8 @@ export default function ClientesAdmin() {
       dia_num:     newP.dia_num,
       semana:      newP.semana,
       fecha:       newP.fecha,
-      red:         newP.red ?? 'Instagram',
+      red:         newP.redes?.[0] ?? newP.red ?? 'Instagram',
+      redes:       newP.redes && newP.redes.length > 0 ? newP.redes : [newP.red ?? 'Instagram'],
       tipo:        newP.tipo ?? 'Reel',
       duracion:    newP.duracion || undefined,
       descripcion: newP.descripcion.trim(),
@@ -325,7 +390,7 @@ export default function ClientesAdmin() {
       link_drive:  newP.link_drive?.trim() || undefined,
     }
     setForm(f => ({ ...f, parrilla: [...f.parrilla, item] }))
-    setNewP({ fecha: '', red: 'Instagram', tipo: 'Reel', descripcion: '', estado: 'borrador' })
+    setNewP({ fecha: '', red: 'Instagram', redes: ['Instagram'], tipo: 'Reel', descripcion: '', estado: 'borrador' })
   }
 
   function removeParrillaItem(id: string) {
@@ -1005,9 +1070,11 @@ export default function ClientesAdmin() {
                           </label>
                           <label style={labelStyle}>
                             Red
-                            <select value={ep.red ?? 'Instagram'} onChange={e => setEditingParrillaData(d => ({ ...d, red: e.target.value }))} style={inputStyle}>
-                              {REDES_OPCIONES.map(r => <option key={r} value={r}>{r}</option>)}
-                            </select>
+                            <RedesMultiSelect
+                              value={ep.redes && ep.redes.length > 0 ? ep.redes : (ep.red ? [ep.red] : ['Instagram'])}
+                              onChange={redes => setEditingParrillaData(d => ({ ...d, redes, red: redes[0] ?? 'Instagram' }))}
+                              style={inputStyle}
+                            />
                           </label>
                           <label style={labelStyle}>
                             Tipo
@@ -1201,9 +1268,11 @@ export default function ClientesAdmin() {
                       </label>
                       <label style={labelStyle}>
                         Red
-                        <select value={newP.red ?? 'Instagram'} onChange={e => setNewP(n => ({ ...n, red: e.target.value }))} style={inputStyle}>
-                          {REDES_OPCIONES.map(r => <option key={r} value={r}>{r}</option>)}
-                        </select>
+                        <RedesMultiSelect
+                          value={newP.redes && newP.redes.length > 0 ? newP.redes : (newP.red ? [newP.red] : ['Instagram'])}
+                          onChange={redes => setNewP(n => ({ ...n, redes, red: redes[0] ?? 'Instagram' }))}
+                          style={inputStyle}
+                        />
                       </label>
                       <label style={labelStyle}>
                         Tipo

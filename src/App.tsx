@@ -32,6 +32,7 @@ import EquipoPage      from './pages/EquipoPage'
 import NotFoundPage    from './pages/NotFoundPage'
 import BriefPageDirect   from './pages/BriefPage'
 import ClientePortalPage from './pages/ClientePortal'
+const ReactivacionPage   = lazy(() => import('./pages/ReactivacionPage'))
 import { getConfig, getContactoInfo, isAdmin } from './lib/db'
 import { seccionesDefault, contactoDefault } from './data/config'
 import type { SeccionesConfig } from './data/config'
@@ -70,7 +71,6 @@ const AlumnosAdmin        = lazy(() => import('./pages/admin/AlumnosAdmin'))
 const TareasAdmin         = lazy(() => import('./pages/admin/TareasAdmin'))
 const CalendarioAdmin     = lazy(() => import('./pages/admin/CalendarioAdmin'))
 const EquipoPortalPage    = lazy(() => import('./pages/EquipoPortal'))
-const ReactivacionPage   = lazy(() => import('./pages/ReactivacionPage'))
 
 const NAV_LINKS = [
   { label: 'Inicio',     href: '#inicio',    id: 'inicio'    },
@@ -647,6 +647,7 @@ export default function App() {
         <Route path="/cliente/:token" element={<ClientePortalPage />} />
         <Route path="/equipo-portal" element={<EquipoPortalPage />} />
         <Route path="/equipo-portal/:pin" element={<EquipoPortalPage />} />
+
         {/* Reactivación del comercio — brief temporal (negocios afectados por el sismo) */}
         <Route path="/reactivacion"  element={<ReactivacionPage />} />
 

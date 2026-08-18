@@ -110,15 +110,6 @@ service cloud.firestore {
       allow read, update, delete:  if esAdmin();
     }
 
-    /* ── Reactivación del comercio (/reactivacion) ──────────────────────
-       Brief temporal: negocios afectados por el sismo dejan sus datos para
-       que Alma les ofrezca acompañamiento. Solo el equipo lee — a diferencia
-       de Red de Ayuda, esto no se publica en ningún buscador público.       */
-    match /solicitudes_reactivacion/{id} {
-      allow create:                if solicitudReactivacionValida();
-      allow read, update, delete:  if esAdmin();
-    }
-
     /* ── Portal de cliente (/cliente/:token) ────────────────────────────
        El token es la credencial y es el ID del documento, así que se
        permite `get` pero nunca `list`: sin el token no se llega al doc y
@@ -157,6 +148,15 @@ service cloud.firestore {
       allow read, create:  if true;
       allow update:        if esAdmin() || soloCambia(['votos_equipo', 'votos_cliente', 'updatedAt']);
       allow delete:        if esAdmin();
+    }
+
+    /* ── Reactivación del comercio (/reactivacion) ──────────────────────
+       Brief temporal: negocios afectados por el sismo dejan sus datos para
+       que Alma les ofrezca acompañamiento. Solo el equipo lee — a diferencia
+       de Red de Ayuda, esto no se publica en ningún buscador público.       */
+    match /solicitudes_reactivacion/{id} {
+      allow create:                if solicitudReactivacionValida();
+      allow read, update, delete:  if esAdmin();
     }
 
     /* ── Datos internos — nunca salen del equipo ────────────────────── */

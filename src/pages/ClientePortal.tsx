@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { getPortalByToken, addSolicitudToPortal, getIdeasByCliente, createIdea, votarIdea, getRedColores } from '../lib/db'
 import { trackPortalVisit } from '../lib/analytics'
 import type { Cliente, Solicitud, ParrillaItem, MetricaMes } from '../data/clientes'
+import { getRedesItem } from '../data/clientes'
 import {
   PILARES_CONTENIDO,
   SOLICITUD_TIPOS, SOLICITUD_ESTADOS, CLIENTE_ESTADOS,
@@ -1155,8 +1156,8 @@ export default function ClientePortal() {
                             <p style={{ margin:'0 0 3px', fontSize: isMobile ? '9.5px' : '11px', fontWeight: isToday ? 900 : 500, color: isToday ? '#A78BFA' : 'rgba(255,255,255,0.45)', textAlign:'right', lineHeight:1 }}>{day}</p>
                             <div style={{ display:'flex', flexWrap:'wrap', gap: isMobile ? '3px' : '6px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
                               {posts.slice(0, 3).map(p => (
-                                <div key={p.id} title={`${p.red} · ${p.tipo}`} style={{ display:'flex', alignItems:'center', gap:'3px' }}>
-                                  <div style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[p.red] ?? '#6B7280', flexShrink:0 }} />
+                                <div key={p.id} title={`${getRedesItem(p).join(' + ')} · ${p.tipo}`} style={{ display:'flex', alignItems:'center', gap:'3px' }}>
+                                  <div style={{ width:'9px', height:'9px', borderRadius:'50%', background: RED_COLOR[getRedesItem(p)[0]] ?? '#6B7280', flexShrink:0 }} />
                                   {!isMobile && <span style={{ fontSize:'8px', lineHeight:1, color:'rgba(255,255,255,0.55)', whiteSpace:'nowrap' }}>{p.tipo}</span>}
                                 </div>
                               ))}
@@ -1177,7 +1178,7 @@ export default function ClientePortal() {
                 {/* Leyenda redes */}
                 <div style={{ marginTop:'20px', display:'flex', gap:'14px', flexWrap:'wrap' }}>
                   {Object.entries(RED_COLOR).map(([red, color]) => {
-                    if (!(data.parrilla ?? []).some(p => p.red === red)) return null
+                    if (!(data.parrilla ?? []).some(p => getRedesItem(p).includes(red))) return null
                     return (
                       <div key={red} style={{ display:'flex', alignItems:'center', gap:'5px' }}>
                         <div style={{ width:'8px', height:'8px', borderRadius:'50%', background:color }} />
@@ -1202,8 +1203,12 @@ export default function ClientePortal() {
                         return (
                           <div key={post.id} style={{ background:'rgba(255,255,255,0.05)', borderRadius:'16px', padding:'18px', marginBottom:'12px', border:'1px solid rgba(255,255,255,0.08)' }}>
                             <div style={{ display:'flex', gap:'8px', alignItems:'center', marginBottom:'12px', flexWrap:'wrap' }}>
-                              <div style={{ width:'10px', height:'10px', borderRadius:'50%', background: RED_COLOR[post.red] ?? '#6B7280', flexShrink:0 }} />
-                              <span style={{ fontSize:'13px', fontWeight:800, color:'#fff' }}>{post.red}</span>
+                              {getRedesItem(post).map(r => (
+                                <div key={r} style={{ display:'flex', alignItems:'center', gap:'4px' }}>
+                                  <div style={{ width:'10px', height:'10px', borderRadius:'50%', background: RED_COLOR[r] ?? '#6B7280', flexShrink:0 }} />
+                                  <span style={{ fontSize:'13px', fontWeight:800, color:'#fff' }}>{r}</span>
+                                </div>
+                              ))}
                               <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.35)' }}>·</span>
                               <span style={{ fontSize:'12px', color:'rgba(255,255,255,0.6)' }}>{post.tipo}</span>
                               {post.hora && <span style={{ fontSize:'12px', color:'#A78BFA', fontWeight:700 }}>🕐 {post.hora}</span>}
